@@ -13,6 +13,13 @@ const SortingTable = (props) => {
   const [data, setData] = useState([])
   //cartypes
   const [cartypes, setCartypes] = useState([]);
+  //window
+  const [windowSize, setWindowSize] = useState(getWindowSize());
+
+  function getWindowSize(){
+    const {innerWidth, innerHeight} = window;
+    return {innerWidth, innerHeight};
+  }
 
   async function CalculateDataArr() {
     let temp_cardatas;
@@ -224,6 +231,16 @@ const SortingTable = (props) => {
     CalculateDataArr()
   }
 
+  useEffect(()=>{
+    function handleWindowResize(){
+      setWindowSize(getWindowSize());
+    }
+    window.addEventListener('resize', handleWindowResize);
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, []);
+
   useEffect(() => {
     init();
   }, [props]);
@@ -315,7 +332,7 @@ const SortingTable = (props) => {
 
     return(
       <tr style={{ width: `${100 / 3}%`, minWidth: '150px', backgroundColor: 'rgba(228, 228, 228, 0.5)'}}>
-       <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}>סה"כ</th>
+       <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}>סה"כ</th>
        {props.unittype == 'hativa' ? 
          <td style={{ width: `${100 / 3}%`, minWidth: '150px' }}></td>
          :
@@ -384,19 +401,19 @@ const SortingTable = (props) => {
           style={{ float: 'right' }}
         />
       </div>
-      <div className="table-responsive" style={{ overflow: 'auto' }}>
+      <div className="table-responsive" style={{ overflow: 'auto', height: (windowSize.innerHeight)*0.9}}>
         <table id="table-to-xls">
           <thead>
             <tr>
-              <th> </th>
-              {props.unittype == 'hativa' ? <th>תאריך עדכון אחרון</th> : null}
+              <th style={{ position: 'sticky', top:'-2px'}}> </th>
+              {props.unittype == 'hativa' ? <th style={{ position: 'sticky', top:'-2px'}}>תאריך עדכון אחרון</th> : null}
               {cartypes.map((cartype, index) => {
-                return (props.match.params.cartype == 'magadal' ? <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/${props.match.params.unittype}/${props.match.params.unitid}/magad/${cartype._id}`}>{cartype.name}</Link></th>
-                  : props.match.params.cartype == 'magad' ? <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/${props.match.params.unittype}/${props.match.params.unitid}/mkabaz/${cartype._id}`}>{cartype.name}</Link></th>
-                    : <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}>{cartype.name}</th>
+                return (props.match.params.cartype == 'magadal' ? <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/${props.match.params.unittype}/${props.match.params.unitid}/magad/${cartype._id}`}>{cartype.name}</Link></th>
+                  : props.match.params.cartype == 'magad' ? <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/${props.match.params.unittype}/${props.match.params.unitid}/mkabaz/${cartype._id}`}>{cartype.name}</Link></th>
+                    : <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}>{cartype.name}</th>
                 )
               })}
-              <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}>סה"כ</th>
+              <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}>סה"כ</th>
             </tr>
           </thead>
           <tbody>
@@ -410,11 +427,11 @@ const SortingTable = (props) => {
                 SumNumCarKashir = SumNumCarKashir + data.cardatas[i].numberofcars_kashir;
               }
               return (<tr>
-                {props.unittype == 'admin' || props.unittype == 'general' && data.pikod ? <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/pikod/${data.pikod._id}/${props.match.params.cartype}/${props.match.params.carid}`}>{data.pikod.name}</Link></th>
-                  : props.unittype == 'pikod' && data.ogda ? <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/ogda/${data.ogda._id}/${props.match.params.cartype}/${props.match.params.carid}`}>{data.ogda.name}</Link></th>
-                    : props.unittype == 'ogda' && data.hativa ? <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/hativa/${data.hativa._id}/${props.match.params.cartype}/${props.match.params.carid}`}>{data.hativa.name}</Link></th>
-                      : props.unittype == 'hativa' && data.gdod ? <><th style={{ width: `${100 / 3}%`, minWidth: '150px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/zminotpage/gdod/${data.gdod._id}/magadal/0/false/false`}>{data.gdod.name}</Link></th> <td>{data.maxdate.toISOString().slice(0, 10).split("-").reverse().join("/")}</td></>
-                        : <th style={{ width: `${100 / 3}%`, minWidth: '150px' }}></th>}
+                {props.unittype == 'admin' || props.unittype == 'general' && data.pikod ? <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/pikod/${data.pikod._id}/${props.match.params.cartype}/${props.match.params.carid}`}>{data.pikod.name}</Link></th>
+                  : props.unittype == 'pikod' && data.ogda ? <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/ogda/${data.ogda._id}/${props.match.params.cartype}/${props.match.params.carid}`}>{data.ogda.name}</Link></th>
+                    : props.unittype == 'ogda' && data.hativa ? <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/subunitspage/hativa/${data.hativa._id}/${props.match.params.cartype}/${props.match.params.carid}`}>{data.hativa.name}</Link></th>
+                      : props.unittype == 'hativa' && data.gdod ? <><th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/zminotpage/gdod/${data.gdod._id}/magadal/0/false/false`}>{data.gdod.name}</Link></th> <td>{data.maxdate.toISOString().slice(0, 10).split("-").reverse().join("/")}</td></>
+                        : <th style={{ width: `${100 / 3}%`, minWidth: '150px', position: 'sticky', top:'-2px' }}></th>}
                 {props.theme == 'white-content' ?
                   data.cardatas ? data.cardatas.map(cardatas => {
                     return (<td style={{ width: `${100 / 3}%`, minWidth: '150px' }}>

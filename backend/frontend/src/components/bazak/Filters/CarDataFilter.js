@@ -29,7 +29,6 @@ import { toast } from "react-toastify";
 import MultiSelect from 'components/general/Select/AnimatedMultiSelect'
 import NormalAnimatedMultiSelect from 'components/general/Select/NormalAnimatedMultiSelect'
 import CarDataFilterModal from "./filterModals/CarDataFilterModal";
-import CarDataFilterCard from "./CarDataFilterCard";
 
 const CarDataFilter = (props) => {
     const { user } = isAuthenticated()

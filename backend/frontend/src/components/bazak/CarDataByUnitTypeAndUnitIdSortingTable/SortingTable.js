@@ -445,7 +445,7 @@ const SortingTable = (props) => {
     else if (props.cartype == 'mkabaz') {
       tempfilter.magad = [props.carid]
       let response1 = await axios.get(`http://localhost:8000/api/magad/${props.carid}`,)
-      tempfilter.magadal = [response1.data[0].magadal]
+      tempfilter.magadal = [response1.data.magadal]
     }
     setFilter(tempfilter);
   }

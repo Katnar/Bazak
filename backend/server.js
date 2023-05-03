@@ -78,6 +78,12 @@ app.use('/api', survey1Routes)
 //
 const tipulRoutes = require("./routes/tipuls/tipul");
 app.use('/api', tipulRoutes)
+//
+const systemRoutes = require("./routes/systems/system");
+app.use('/api', systemRoutes)
+//
+const systemstomakatRoutes = require("./routes/systemstomakats/systemstomakat");
+app.use('/api', systemstomakatRoutes)
 
 if (process.env.NODE_ENV === 'production') {
   //set static folder

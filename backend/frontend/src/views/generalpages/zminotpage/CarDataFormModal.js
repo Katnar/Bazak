@@ -30,6 +30,8 @@ import { generate } from "shortid";
 import { toast } from "react-toastify";
 import Select from "components/general/Select/AnimatedSelect";
 import deletepic from "assets/img/delete.png";
+import savepic from "assets/img/save.png";
+import editpic from "assets/img/write.png"
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 
 const CarDataFormModal = (props) => {
@@ -37,6 +39,8 @@ const CarDataFormModal = (props) => {
   //cardata
   const [cardata, setCarData] = useState({});
   const [finalspecialkeytwo, setFinalSpecialKeytwo] = useState([]);
+  //technology
+  const [technologies, setTechnologies] = useState([]);
   //units
   const [gdods, setGdods] = useState([]);
   const [hativas, setHativas] = useState([]);
@@ -51,6 +55,8 @@ const CarDataFormModal = (props) => {
   const [isgdodsadir, setIsgdodsadir] = useState(true);
   //tipuls
   const [tipuls, setTipuls] = useState([]);
+  //systems
+  const [systems, setSystems] = useState([]);
 
 
   const loadcardata = async () => {
@@ -127,6 +133,38 @@ const CarDataFormModal = (props) => {
       .get(`http://localhost:8000/api/tipul`)
       .then((response) => {
         setTipuls(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const getSystemstomakats = async (makatId) => {
+    let tempsystems = [];
+    await axios
+      .get(`http://localhost:8000/api/systemstomakatByMakatId/${makatId}`)
+      .then((response) => {
+        for(let i=0;i<response.data.length;i++){
+          axios.get(`http://localhost:8000/api/system/${response.data[i].systemId}`)
+          .then((response2) => {
+            tempsystems.push(response2.data);
+          })
+        }
+
+        for(let i=0;i<technologies.length;i++){// technologeies is the tempsystems that are attached to this makat
+          let flag = true;
+          console.log(tempsystems.length)
+          for(let j=0;j<tempsystems.length;j++){
+            if(technologies[i].systemType == tempsystems[j].name){//current system on makat vs all the tempsystems from the new dropdown list
+              console.log(technologies[i].systemType,tempsystems[j].name)
+              flag = false;
+            }
+          }
+          if(flag == true){
+            setTechnologies([]);
+          }
+        }
+         setSystems(tempsystems);
       })
       .catch((error) => {
         console.log(error);
@@ -586,6 +624,20 @@ const CarDataFormModal = (props) => {
     }
   }
 
+   function fixtechnologies(){
+    for(let i=0;i<technologies.length;i++){// technologeies is the systems that are attached to this makat
+      let flag = true;
+      for(let j=0;j<systems.length;j++){
+        if(technologies[i].systemType == systems[j].name){//current system on makat vs all the systems from the new dropdown list
+          flag = false;
+        }
+      }
+      if(flag == true){
+        setTechnologies([]);
+      }
+    }
+  }
+
   function init() {
     if (props.cardataid != undefined) {
       loadcardata();
@@ -628,12 +680,19 @@ const CarDataFormModal = (props) => {
   }, [cardata.mkabaz]);
 
   useEffect(() => {
+    if(cardata.makat != undefined){
+      getSystemstomakats(cardata.makat);
+    }
+  }, [cardata.makat]);
+
+  useEffect(() => {
     if (props.isOpen == true){
       init();
     }
     else {
       setCarData({});
       setFinalSpecialKeytwo([]);
+      setTechnologies([]);
     }
   }, [props.isOpen]);
 
@@ -1066,6 +1125,100 @@ const CarDataFormModal = (props) => {
                     </Input>
                   </Col>
                 </Row>
+
+                <h4 style={{direction: "rtl",textAlign: "center",fontWeight: "bold"}}>זמינות/כשירות</h4>
+
+                <div style={{ textAlign: 'right', paddingTop: '10px', fontWeight: "bold" }}><h6>טכנולוגיות על גבי אמל"ח</h6></div>
+                {cardata.makat ?
+                <button className='btn-new-blue' style={{position:'relative',padding: '11px 17px',borderRadius: '50%',display:'flex'}} onClick={() => { setTechnologies(currentSpec => [{ id: generate(), carnumber: cardata.carnumber, isLocked: 'false' }, ...currentSpec]) }}>+</button>
+                :
+                <button className='btn-new-blue' style={{position:'relative',padding: '11px 17px',borderRadius: '50%',display:'flex'}} onClick={() => {toast.error('מק"ט ריק')}} >+</button>}
+
+                {technologies.map((t, index) => {
+                  return(
+                  t.isLocked == "false" ?
+                  <Row>
+                    <img style={{ cursor: 'pointer', padding: '1px',height:'25px',marginTop:'28px',marginLeft: '15px' }} src={savepic} height='15px' onClick={() => { setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" })) }}/>
+                    <button className='btn-new-delete' style={{padding: '1px',height:'25px',marginTop:'28px'}} onClick={() => { setTechnologies(currentSpec => currentSpec.filter(x => x.id !== t.id)) }}><img src={deletepic} height='15px'></img></button>
+                    <Col xs={12} md={4}>
+                     <div>
+                     <p style={{ margin: '0px', float: 'right' }}><h6>סוג מערכת</h6></p>
+                     <Input onChange={(e) => {
+                     const tech = e.target.value;
+                     if (e.target.value != "בחר")
+                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].systemType = tech}))
+                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" })) 
+                       }}
+                       value={t.systemType ? t.systemType : "בחר"} type="select" placeholder="סוג מערכת">
+                       <option value={"בחר"}>{"בחר"}</option>
+                       {systems.map((system, i) => (
+                       system ?
+                       <option value={system.name}>{system.name}</option>
+                       : null))}
+                     </Input>
+                     </div>
+                    </Col>
+                    <Col xs={12} md={4}>
+                     <div>
+                     <p style={{ margin: '0px', float: 'right' }}><h6>כשירות</h6></p>
+                     <Input onChange={(e) => {
+                      const kshirot = e.target.value;
+                      if (e.target.value != "בחר")
+                      setTechnologies(currentSpec => produce(currentSpec, v => { v[index].kshirot = kshirot }))
+                      if (e.target.value == "לא כשיר"){
+                      setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
+                      toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
+                      }
+                      }}
+                      value={t.kshirot ? t.kshirot : "בחר"} type="select" placeholder="כשירות">
+                      <option value={"בחר"}>{"בחר"}</option>
+                      <option value={"כשיר"}>{"כשיר"}</option>
+                      <option value={"לא כשיר"}>{"לא כשיר"}</option>
+                     </Input>
+                     
+                     </div>
+                    </Col>
+                  </Row>
+                  :
+                  <Row>
+                    <img style={{ cursor: 'pointer', padding: '1px',height:'25px',marginTop:'28px',marginLeft: '15px' }} src={editpic} height='15px' onClick={() => { setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "false" })) }}/>
+                    <Col xs={12} md={4}>
+                     <div>
+                     <p style={{ margin: '0px', float: 'right' }}><h6>סוג מערכת</h6></p>
+                     <Input
+                       value={t.systemType ? t.systemType : "בחר"} type="select" placeholder="סוג מערכת" disabled>
+                       <option value={"בחר"}>{"בחר"}</option>
+                       {systems.map((system, i) => (
+                       system ?
+                       <option value={system.name}>{system.name}</option>
+                       : null))}
+                     </Input>
+                     </div>
+                    </Col>
+                    <Col xs={12} md={4}>
+                     <div>
+                     <p style={{ margin: '0px', float: 'right' }}><h6>כשירות</h6></p>
+                     <Input onChange={(e) => {
+                      const kshirot = e.target.value;
+                      if (e.target.value != "בחר")
+                      setTechnologies(currentSpec => produce(currentSpec, v => { v[index].kshirot = kshirot }))
+                      if (e.target.value == "לא כשיר"){
+                        setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
+                        toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
+                        }
+                      }}
+                      value={t.kshirot ? t.kshirot : "בחר"} type="select" placeholder="כשירות">
+                      <option value={"בחר"}>{"בחר"}</option>
+                      <option value={"כשיר"}>{"כשיר"}</option>
+                      <option value={"לא כשיר"}>{"לא כשיר"}</option>
+                     </Input>
+                     </div>
+                    </Col>
+                  </Row>
+                  )
+                })}
+
+
 
                 <Row>
                   <Col>

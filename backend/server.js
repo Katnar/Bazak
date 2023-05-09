@@ -84,6 +84,9 @@ app.use('/api', systemRoutes)
 //
 const systemstomakatRoutes = require("./routes/systemstomakats/systemstomakat");
 app.use('/api', systemstomakatRoutes)
+//
+const systemsonzRoutes = require("./routes/systemsonzs/systemsonz");
+app.use('/api', systemsonzRoutes)
 
 if (process.env.NODE_ENV === 'production') {
   //set static folder

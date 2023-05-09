@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import { Link, withRouter, Redirect } from "react-router-dom";
 // reactstrap components
 import {
@@ -21,6 +21,7 @@ import {
   Col,
   Modal,
   ModalBody,
+  ButtonGroup,
 } from "reactstrap";
 import axios from "axios";
 import history from "history.js";
@@ -33,6 +34,8 @@ import deletepic from "assets/img/delete.png";
 import savepic from "assets/img/save.png";
 import editpic from "assets/img/write.png"
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 const CarDataFormModal = (props) => {
   const { user } = isAuthenticated();
@@ -62,13 +65,42 @@ const CarDataFormModal = (props) => {
   const loadcardata = async () => {
     await axios
       .get(`http://localhost:8000/api/cardata/${props.cardataid}`)
-      .then((response) => {
+      .then(async(response) => {
         let tempcardata = response.data[0];
         if (tempcardata.latest_recalibration_date)
           tempcardata.latest_recalibration_date =
-            tempcardata.latest_recalibration_date.slice(0, 10);
-        setCarData(tempcardata);
-        setFinalSpecialKeytwo(tempcardata.tipuls);
+          tempcardata.latest_recalibration_date.slice(0, 10);
+          setCarData(tempcardata);
+          for(let x=0;x<tempcardata.tipuls.length;x++){
+            tempcardata.tipuls[x] = {...tempcardata.tipuls[x], errorType: "Z"}
+          }
+          setFinalSpecialKeytwo(tempcardata.tipuls);
+        await axios
+         .get(`http://localhost:8000/api/systemsonzbycarnumber/${tempcardata.carnumber}`)
+         .then((response1)=> {
+          let tempsystemonZ = response1.data;
+          if(tempsystemonZ.length>0){
+            let tempfinalspecialkeytwo = [];
+            let tempTechnologies = [];
+            getTipultypes();
+          for(let i=0;i<tempsystemonZ.length;i++){
+            let temp = {...tempsystemonZ[i]}
+            delete temp._id
+            delete temp.tipuls
+            delete temp.createdAt
+            delete temp.updatedAt
+            tempTechnologies.push(temp)
+            for(let j=0;j<tempsystemonZ[i].tipuls.length;j++){
+              tempsystemonZ[i].tipuls[j] = {...tempsystemonZ[i].tipuls[j],errorType: "technology",systemType: tempsystemonZ[i].systemType};
+              tempfinalspecialkeytwo.push(tempsystemonZ[i].tipuls[j])
+            }
+          }
+          let arr = tempcardata.tipuls.concat(tempfinalspecialkeytwo);
+          setFinalSpecialKeytwo(arr);
+          setTechnologies(tempTechnologies);
+          }
+         })
+         
         //new 18.8.22
         if (tempcardata.gdod) {
           axios
@@ -432,7 +464,26 @@ const CarDataFormModal = (props) => {
         flag = false;
       }
 
+      for (let j = 0; j < technologies.length; j++) {
+         if(technologies[j].systemType == undefined || technologies[j].systemType == ""){
+           ErrorReason += " ,יש להגדיר סוג מערכת לכל המערכות שעל הכלי";
+           flag = false;
+         }
+         if(technologies[j].kshirot == undefined || technologies[j].kshirot == ""){
+          ErrorReason += " ,יש להגדיר כשירות לכל המערכות שעל הכלי";
+          flag = false;
+        }
+      }
+
       for (let i = 0; i < finalspecialkeytwo.length; i++) {
+        if(finalspecialkeytwo[i].errorType == undefined || finalspecialkeytwo[i].errorType == ""){
+          ErrorReason += "בסיבות אי זמינות - חובה להזין האם התקלה בצ' או במערכת, ";
+          flag = false;
+        }
+        if(finalspecialkeytwo[i].errorType == "technology" && (finalspecialkeytwo[i].systemType == undefined || finalspecialkeytwo[i].systemType == "")){
+          ErrorReason += "בסיבות אי זמינות - אם התקלה במערכת יש להזין באיזו מערכת, ";
+          flag = false;
+        }
         if (finalspecialkeytwo[i].type == "tipul") {
           if (!finalspecialkeytwo[i].tipul) {
             ErrorReason += ",בטיפול - חובה להזין סוג טיפול";
@@ -552,14 +603,41 @@ const CarDataFormModal = (props) => {
     } else {
       //create cardata
       let tempcardata = { ...cardata };
+      let tempsystemonZ = {...technologies};
+      let tempfinalspecialkeytwo = {...finalspecialkeytwo};
+      let temptipuls = [];
       tempcardata.updatedBy = user.personalnumber;
       delete tempcardata._id;
-      if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
+      if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") { 
         tempcardata.tipuls = [];
         delete tempcardata.takala_info;
         delete tempcardata.expected_repair;
-      } else {
-        tempcardata.tipuls = finalspecialkeytwo;
+      } else {//for sorting tipuls between cardata and systemsonZ
+        for(let i=0;i<finalspecialkeytwo.length;i++){
+          if(tempfinalspecialkeytwo[i].errorType == "technology"){
+            for(let j=0;j<technologies.length;j++){
+              if(tempfinalspecialkeytwo[i].systemType == tempsystemonZ[j].systemType){
+               let temperror = {...tempfinalspecialkeytwo[i]};
+               let tempsystem = [{...tempsystemonZ[j].tipuls}];
+                 delete temperror.errorType;
+                 delete temperror.systemType;
+                 tempfinalspecialkeytwo[i] = temperror;
+                if(tempsystemonZ[j].tipuls == undefined){
+                  tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: tempfinalspecialkeytwo[i]};
+                }else{
+                  tempsystem.push(tempfinalspecialkeytwo[i]);
+                  tempsystemonZ[j].tipuls = tempsystem;
+                }
+              }
+            }
+          }else{
+            let temp = {...finalspecialkeytwo[i]}
+            delete temp.errorType
+            temptipuls.push(temp);
+          }
+          tempcardata.tipuls = temptipuls;
+        }
+
       }
 
       var isTechnology = false;
@@ -576,6 +654,13 @@ const CarDataFormModal = (props) => {
         `http://localhost:8000/api/cardata`,
         tempcardata
       );
+      for(let x=0;x<technologies.length;x++){
+        let result2 = await axios.post(
+          `http://localhost:8000/api/systemsonz`,
+          tempsystemonZ[x]
+        );
+      }
+      
       toast.success(`צ' נוסף בהצלחה`);
       props.ToggleForModal();
     }
@@ -591,12 +676,39 @@ const CarDataFormModal = (props) => {
       //update cardata
       var tempcardataid = props.cardataid;
       let tempcardata = { ...cardata };
+      let tempsystemonZ = {...technologies};
+      let tempfinalspecialkeytwo = {...finalspecialkeytwo};
+      let temptipuls = [];
       if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
         tempcardata.tipuls = [];
         tempcardata.takala_info = "";
         tempcardata.expected_repair = "";
-      } else {
-        tempcardata.tipuls = finalspecialkeytwo;
+      } else {//for sorting tipuls between cardata and systemsonZ
+        for(let i=0;i<finalspecialkeytwo.length;i++){
+          if(tempfinalspecialkeytwo[i].errorType == "technology"){
+            for(let j=0;j<technologies.length;j++){
+              if(tempfinalspecialkeytwo[i].systemType == tempsystemonZ[j].systemType){
+               let temperror = {...tempfinalspecialkeytwo[i]};
+               let tempsystem = [{...tempsystemonZ[j].tipuls}];
+                 delete temperror.errorType;
+                 delete temperror.systemType;
+                 tempfinalspecialkeytwo[i] = temperror;
+                if(tempsystemonZ[j].tipuls == undefined){
+                  tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: tempfinalspecialkeytwo[i]};
+                }else{
+                  tempsystem.push(tempfinalspecialkeytwo[i]);
+                  tempsystemonZ[j].tipuls = tempsystem;
+                }
+              }
+            }
+          }else{
+            let temp = {...finalspecialkeytwo[i]}
+            delete temp.errorType
+            temptipuls.push(temp);
+          }
+          tempcardata.tipuls = temptipuls;
+        }
+
       }
         var isTechnology = false;
         var newMakat;
@@ -613,6 +725,12 @@ const CarDataFormModal = (props) => {
         `http://localhost:8000/api/cardata/${tempcardataid}`,
         tempcardata
       );
+      for(let x=0;x<technologies.length;x++){
+        let result2 = await axios.put(
+          `http://localhost:8000/api/systemsonz/${tempsystemonZ[x].id}`,
+          tempsystemonZ[x]
+        );
+      }
       //create archivecardata
       delete tempcardata._id;
       let result2 = axios.post(
@@ -1138,16 +1256,28 @@ const CarDataFormModal = (props) => {
                   return(
                   t.isLocked == "false" ?
                   <Row>
-                    <img style={{ cursor: 'pointer', padding: '1px',height:'25px',marginTop:'28px',marginLeft: '15px' }} src={savepic} height='15px' onClick={() => { setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" })) }}/>
+                    <img style={{ cursor: 'pointer', padding: '1px',height:'25px',marginTop:'28px',marginLeft: '15px' }} src={savepic} height='15px' onClick={() => { if(t.systemType){setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" }))}else{ toast.error("על מנת לשמור מערכת יש לציין את סוג המערכת");} }}/>
                     <button className='btn-new-delete' style={{padding: '1px',height:'25px',marginTop:'28px'}} onClick={() => { setTechnologies(currentSpec => currentSpec.filter(x => x.id !== t.id)) }}><img src={deletepic} height='15px'></img></button>
                     <Col xs={12} md={4}>
                      <div>
                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג מערכת</h6></p>
                      <Input onChange={(e) => {
                      const tech = e.target.value;
-                     if (e.target.value != "בחר")
-                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].systemType = tech}))
-                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" })) 
+                     let flag = false;
+                     if (tech != "בחר")
+                     if(technologies.length>1){
+                      for(let i=0;i<technologies.length;i++){
+                        if(technologies[i].systemType == tech){
+                          flag = true;
+                        }
+                       }
+                     }
+                       if(flag == false){
+                        setTechnologies(currentSpec => produce(currentSpec, v => { v[index].systemType = tech}))
+                        setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" })) 
+                       }else{
+                        toast.error("מערכת זו כבר מקושרת ל-צ' זה");
+                       }
                        }}
                        value={t.systemType ? t.systemType : "בחר"} type="select" placeholder="סוג מערכת">
                        <option value={"בחר"}>{"בחר"}</option>
@@ -1166,9 +1296,17 @@ const CarDataFormModal = (props) => {
                       if (e.target.value != "בחר")
                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].kshirot = kshirot }))
                       if (e.target.value == "לא כשיר"){
-                      setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
-                      toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
-                      }
+                        let isMashbit;
+                        for(let i=0;i<systems.length;i++){
+                          if(systems[i].name == t.systemType){
+                            isMashbit = systems[i].mashbit;
+                          }
+                        }
+                        if(isMashbit == true){
+                          setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
+                          toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
+                        }
+                        }
                       }}
                       value={t.kshirot ? t.kshirot : "בחר"} type="select" placeholder="כשירות">
                       <option value={"בחר"}>{"בחר"}</option>
@@ -1203,8 +1341,16 @@ const CarDataFormModal = (props) => {
                       if (e.target.value != "בחר")
                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].kshirot = kshirot }))
                       if (e.target.value == "לא כשיר"){
-                        setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
-                        toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
+                        let isMashbit;
+                        for(let i=0;i<systems.length;i++){
+                          if(systems[i].name == t.systemType){
+                            isMashbit = systems[i].mashbit;
+                          }
+                        }
+                        if(isMashbit == true){
+                          setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
+                          toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
+                        }
                         }
                       }}
                       value={t.kshirot ? t.kshirot : "בחר"} type="select" placeholder="כשירות">
@@ -1278,7 +1424,42 @@ const CarDataFormModal = (props) => {
                               {p.type == "tipul" ? (
                                 <>
                                   <Row>
-                                    <Col xs={12} md={4}>
+                                    <ToggleButtonGroup
+                                      value={p.errorType}
+                                      color="primary"
+                                      exclusive
+                                      onChange={(e,value) => {if(value == undefined || value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}
+                                      aria-label= "error type"
+                                      style={{marginTop:"30px"}}
+                                    >
+                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
+                                      <h6> צ' </h6>
+                                      </ToggleButton>
+                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
+                                      <h6> מערכת </h6> 
+                                      </ToggleButton>
+                                    </ToggleButtonGroup>
+                                    {p.errorType == "technology" ?
+                                    <Col xs={12} md={2}>
+                                    <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>בחר מערכת</h6></p>
+                                      <Input onChange={(e) => {
+                                        const systemType = e.target.value;
+                                        if (e.target.value != "בחר")
+                                          setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].systemType = systemType }))
+                                        }}
+                                          value={p.systemType} type="select" placeholder="מערכת">
+                                          <option value={"בחר"}>{"בחר"}</option>
+                                          {technologies.map((technology, i) => (
+                                            technology.kshirot == "לא כשיר" ?
+                                               <option value={technology.systemType}>{technology.systemType}</option>
+                                              : null))}
+                                      </Input>
+                                    </div>
+                                    </Col>
+                                    :null}
+
+                                    <Col xs={12} md={3}>
                                     <div>
                                       <p style={{ margin: '0px', float: 'right' }}><h6>סוג הטיפול</h6></p>
                                       <Input onChange={(e) => {
@@ -1295,7 +1476,7 @@ const CarDataFormModal = (props) => {
                                       </Input>
                                     </div>
                                     </Col>
-                                    <Col xs={12} md={4}>
+                                    <Col xs={12} md={3}>
                                      <div>
                                       <p style={{ margin: '0px', float: 'right' }}><h6>תאריך כניסה לטיפול</h6></p>
                                       <Input onChange={(e) => {
@@ -1306,7 +1487,7 @@ const CarDataFormModal = (props) => {
                                         value={p.tipul_entry_date} type="date" placeholder="תאריך כניסה לטיפול" min="1900-01-01" max="2040-01-01" />
                                      </div>
                                     </Col> 
-                                    <Col xs={12} md={4}>
+                                    <Col xs={12} md={2}>
                                      <div>
                                       <p style={{ margin: '0px', float: 'right' }}><h6>מיקום הטיפול</h6></p>
                                       <Input onChange={(e) => {
@@ -1523,6 +1704,40 @@ const CarDataFormModal = (props) => {
                               ) : p.type == "harig_tipul" ? (
                                 <>
                                 <Row>
+                                    <ToggleButtonGroup
+                                      value={p.errorType}
+                                      color="primary"
+                                      exclusive
+                                      onChange={(e,value) => {if(value == undefined || value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}
+                                      aria-label= "error type"
+                                      style={{marginTop:"30px"}}
+                                    >
+                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
+                                        <h6>צ'</h6>
+                                      </ToggleButton>
+                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
+                                      <h6>מערכת</h6>
+                                      </ToggleButton>
+                                    </ToggleButtonGroup>
+                                    {p.errorType == "technology" ?
+                                    <Col xs={12} md={2}>
+                                    <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>בחר מערכת</h6></p>
+                                      <Input onChange={(e) => {
+                                        const systemType = e.target.value;
+                                        if (e.target.value != "בחר")
+                                          setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].systemType = systemType }))
+                                        }}
+                                          value={p.systemType} type="select" placeholder="מערכת">
+                                          <option value={"בחר"}>{"בחר"}</option>
+                                          {technologies.map((technology, i) => (
+                                            technology.kshirot == "לא כשיר" ?
+                                               <option value={technology.systemType}>{technology.systemType}</option>
+                                              : null))}
+                                      </Input>
+                                    </div>
+                                    </Col>
+                                    :null}
                                   <Col xs={12} md={4}>
                                     <div>
                                       <p style={{ margin: '0px', float: 'right' }}><h6>חריג טיפול</h6></p>
@@ -1810,6 +2025,39 @@ const CarDataFormModal = (props) => {
                               ) : p.type == "takala_mizdamenet" ? (
                                 <>
                                 <Row>
+                                    <ToggleButtonGroup
+                                      value={p.errorType}
+                                      color="primary"
+                                      exclusive
+                                      onChange={(e,value) => {if(value == undefined || value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}
+                                      style={{marginTop:"30px"}}
+                                    >
+                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
+                                        <h6>צ'</h6>
+                                      </ToggleButton>
+                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
+                                      <h6>מערכת</h6>
+                                      </ToggleButton>
+                                    </ToggleButtonGroup>
+                                    {p.errorType == "technology" ?
+                                    <Col xs={12} md={2}>
+                                    <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>בחר מערכת</h6></p>
+                                      <Input onChange={(e) => {
+                                        const systemType = e.target.value;
+                                        if (e.target.value != "בחר")
+                                          setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].systemType = systemType }))
+                                        }}
+                                          value={p.systemType} type="select" placeholder="מערכת">
+                                          <option value={"בחר"}>{"בחר"}</option>
+                                          {technologies.map((technology, i) => (
+                                            technology.kshirot == "לא כשיר" ?
+                                               <option value={technology.systemType}>{technology.systemType}</option>
+                                              : null))}
+                                      </Input>
+                                    </div>
+                                    </Col>
+                                    :null}
                                   <Col xs={12} md={4}>
                                     <div>
                                       <p style={{ margin: '0px', float: 'right' }}><h6>תקלה מזדמנת</h6></p>
@@ -2233,6 +2481,20 @@ const CarDataFormModal = (props) => {
                             {p.type == "tipul" ? (
                               <>
                               <Row>
+                                    <ToggleButtonGroup
+                                      value={p.errorType}
+                                      color="primary"
+                                      exclusive
+                                      style={{marginTop:"30px"}}
+                                      disabled
+                                    >
+                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
+                                        <h6>צ'</h6>
+                                      </ToggleButton>
+                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
+                                      <h6>מערכת</h6>
+                                      </ToggleButton>
+                                    </ToggleButtonGroup>
                                 <Col xs={12} md={4}>
                                   <div>
                                     <p style={{ margin: '0px', float: 'right' }}>סוג הטיפול</p>
@@ -2312,6 +2574,20 @@ const CarDataFormModal = (props) => {
                             ) : p.type == "harig_tipul" ? (
                               <>
                               <Row>
+                                    <ToggleButtonGroup
+                                      value={p.errorType}
+                                      color="primary"
+                                      exclusive
+                                      style={{marginTop:"30px"}}
+                                      disabled
+                                    >
+                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
+                                        <h6>צ'</h6>
+                                      </ToggleButton>
+                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
+                                      <h6>מערכת</h6>
+                                      </ToggleButton>
+                                    </ToggleButtonGroup>
                                 <Col xs={12} md={4}>
                                   <div>
                                     <p style={{ margin: '0px', float: 'right' }}><h6>חריג טיפול</h6></p>
@@ -2389,6 +2665,20 @@ const CarDataFormModal = (props) => {
                             ) : p.type == "takala_mizdamenet" ? (
                               <>
                               <Row>
+                                    <ToggleButtonGroup
+                                      value={p.errorType}
+                                      color="primary"
+                                      exclusive
+                                      style={{marginTop:"30px"}}
+                                      disabled
+                                    >
+                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
+                                        <h6>צ'</h6>
+                                      </ToggleButton>
+                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
+                                      <h6>מערכת</h6>
+                                      </ToggleButton>
+                                    </ToggleButtonGroup>
                                 <Col xs={12} md={4}>
                                   <div>
                                     <p

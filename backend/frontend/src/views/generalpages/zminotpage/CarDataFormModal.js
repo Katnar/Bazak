@@ -2495,9 +2495,23 @@ const CarDataFormModal = (props) => {
                                       <h6>מערכת</h6>
                                       </ToggleButton>
                                     </ToggleButtonGroup>
-                                <Col xs={12} md={4}>
+                                    {p.errorType == "technology" ?
+                                    <Col xs={12} md={2}>
+                                    <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>בחר מערכת</h6></p>
+                                      <Input value={p.systemType} type="select" placeholder="מערכת" disabled>
+                                          <option value={"בחר"}>{"בחר"}</option>
+                                          {technologies.map((technology, i) => (
+                                            technology.kshirot == "לא כשיר" ?
+                                               <option value={technology.systemType}>{technology.systemType}</option>
+                                              : null))}
+                                      </Input>
+                                    </div>
+                                    </Col>
+                                    :null}
+                                <Col xs={12} md={3}>
                                   <div>
-                                    <p style={{ margin: '0px', float: 'right' }}>סוג הטיפול</p>
+                                    <p style={{ margin: '0px', float: 'right' }}><h6>סוג הטיפול</h6></p>
                                     <Input value={p.tipul} type="select" placeholder="סוג הטיפול" disabled>
                                        <option value={"בחר"}>{"בחר"}</option>
                                           {tipuls.map((tipul, i) => (
@@ -2507,13 +2521,13 @@ const CarDataFormModal = (props) => {
                                     </Input>
                                   </div>
                                 </Col>
-                                <Col xs={12} md={4}>
+                                <Col xs={12} md={3}>
                                   <div>
                                     <p style={{ margin: '0px', float: 'right' }}><h6>תאריך כניסה לטיפול</h6></p>
                                     <Input value={p.tipul_entry_date} type="date" placeholder="תאריך כניסה לטיפול" min="1900-01-01" max="2040-01-01" disabled/>
                                   </div>
                                 </Col>
-                                <Col xs={12} md={4}>
+                                <Col xs={12} md={2}>
                                   <div>
                                     <p style={{ margin: '0px', float: 'right' }}><h6>מיקום הטיפול</h6></p>
                                     <Input value={p.mikum_tipul} type="select" placeholder="מיקום הטיפול" disabled>
@@ -2588,6 +2602,20 @@ const CarDataFormModal = (props) => {
                                       <h6>מערכת</h6>
                                       </ToggleButton>
                                     </ToggleButtonGroup>
+                                    {p.errorType == "technology" ?
+                                    <Col xs={12} md={2}>
+                                    <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>בחר מערכת</h6></p>
+                                      <Input value={p.systemType} type="select" placeholder="מערכת" disabled>
+                                          <option value={"בחר"}>{"בחר"}</option>
+                                          {technologies.map((technology, i) => (
+                                            technology.kshirot == "לא כשיר" ?
+                                               <option value={technology.systemType}>{technology.systemType}</option>
+                                              : null))}
+                                      </Input>
+                                    </div>
+                                    </Col>
+                                    :null}
                                 <Col xs={12} md={4}>
                                   <div>
                                     <p style={{ margin: '0px', float: 'right' }}><h6>חריג טיפול</h6></p>
@@ -2679,6 +2707,20 @@ const CarDataFormModal = (props) => {
                                       <h6>מערכת</h6>
                                       </ToggleButton>
                                     </ToggleButtonGroup>
+                                    {p.errorType == "technology" ?
+                                    <Col xs={12} md={2}>
+                                    <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>בחר מערכת</h6></p>
+                                      <Input value={p.systemType} type="select" placeholder="מערכת" disabled>
+                                          <option value={"בחר"}>{"בחר"}</option>
+                                          {technologies.map((technology, i) => (
+                                            technology.kshirot == "לא כשיר" ?
+                                               <option value={technology.systemType}>{technology.systemType}</option>
+                                              : null))}
+                                      </Input>
+                                    </div>
+                                    </Col>
+                                    :null}
                                 <Col xs={12} md={4}>
                                   <div>
                                     <p

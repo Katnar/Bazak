@@ -35,6 +35,8 @@ const SortingTable = (props) => {
 	//data
 	const [data, setData] = useState([]);
 	const [originaldata, setOriginaldata] = useState([]);
+	// sysytems //! might cange the way we save this kind of data later depends if we want to fillter with the main fillter
+	const [systemsonZ, setSystemonsonZ] = useState({});
 	//filter
 	const [filter, setFilter] = useState([]);
 	//cardata form modal
@@ -78,6 +80,14 @@ const SortingTable = (props) => {
 	function ToggleForModalDelete(evt) {
 		setIscardataformdeleteopen(!iscardataformdeleteopen);
 		updatechangedcardatadelete(); // update table..
+	}
+
+	async function getSystems() {
+		await axios.get(`http://localhost:8000/api/systemsonz`).then((res) => {
+			// console.log(res.data);
+			// setData({ ...data, systems: res.data });
+			setSystemonsonZ(res.data);
+		});
 	}
 
 	async function updatechangedcardata() {
@@ -228,6 +238,7 @@ const SortingTable = (props) => {
 		if (!props.charts) {
 			getCardDataByUnitTypeAndUnitId();
 			fixfilterbyurl();
+			// getSystems();
 		} else {
 			//handeled by useffect..
 		}
@@ -1165,6 +1176,7 @@ const SortingTable = (props) => {
 		if (reduxcardata.length > 0 && isdataloaded == false) {
 			init();
 		}
+		getSystems();
 	}, [reduxcardata]);
 
 	useEffect(() => {
@@ -1347,7 +1359,7 @@ const SortingTable = (props) => {
 											cell.column.id != "makat" &&
 											cell.column.id != "makat_description" &&
 											cell.column.id != "tipuls" &&
-                      cell.column.id != "systems"
+											cell.column.id != "systems"
 										) {
 											return (
 												<td
@@ -1694,6 +1706,63 @@ const SortingTable = (props) => {
 																	<p></p>
 																)
 															)}
+													</td>
+												) : (
+													<td
+														style={{
+															width: `${100 / (23 - hiddenColumns)}%`,
+															minWidth: "50px",
+															maxWidth: "100px",
+															overflow: "auto",
+														}}
+														{...cell.getCellProps()}
+													></td>
+												);
+											}
+											{
+												/*//* systems */
+											}
+											if (cell.column.id == "systems") {
+												{
+													/* console.log(cell.row.values.carnumber); */
+												}
+												const value = systemsonZ.filter(
+													(sys, i) => sys.carnumber == cell.row.values.carnumber
+												);
+
+												{
+													/* console.log(
+													value.map((val) => `${val.systemType},${val.kshirot}`)
+												); */
+												}
+												return value != [] ? (
+													<td
+														style={{
+															width: `${100 / (23 - hiddenColumns)}%`,
+															minWidth: "150px",
+															maxWidth: "150px",
+															overflow: "auto",
+														}}
+														{...cell.getCellProps()}
+													>
+														{value.map((val) => {
+															const color =
+																val.kshirot == "כשיר" ? "blue" : "red";
+															return (
+																<h4 style={{ lineHeight: "3px", marginTop: "6px" }}>
+																	{val.systemType} (
+																	<span
+																		style={{
+																			color: color,
+																			lineHeight: "0.5px",
+																		}}
+																	>
+																		{val.kshirot}
+																	</span>
+																	)
+																</h4>
+															);
+														})}
 													</td>
 												) : (
 													<td

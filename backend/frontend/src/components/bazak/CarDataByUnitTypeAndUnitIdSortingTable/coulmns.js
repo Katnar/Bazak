@@ -146,7 +146,7 @@ export const COLUMNS = [
 		Filter: ColumnFilter,
 	},
 	{
-		Header: "מערכות",
+		Header: "מערכות על גבי פלטפורמה",
 		accessor: "systems",
 		Filter: ColumnFilter,
 	},

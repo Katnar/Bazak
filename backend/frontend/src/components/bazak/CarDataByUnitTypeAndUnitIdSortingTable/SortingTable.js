@@ -18,6 +18,7 @@ import CarDataFormModal from "views/generalpages/zminotpage/CarDataFormModal";
 import CarDataFormModalDelete from "views/generalpages/zminotpage/CarDataFormModalDelete";
 import CarDataFilter from "components/bazak/Filters/CarDataFilter";
 import LatestUpdateDateComponent from "components/bazak/LatestUpdateDateComponent/LatestUpdateDateComponent";
+import styles from "./SortingTable.module.css"
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -1343,7 +1344,7 @@ const SortingTable = (props) => {
 						{page.map((row) => {
 							prepareRow(row);
 							return (
-								<tr {...row.getRowProps()}>
+								<tr className={styles.tr} {...row.getRowProps()}>
 									{row.cells.map((cell) => {
 										if (
 											cell.column.id != "createdAt" &&
@@ -1747,9 +1748,14 @@ const SortingTable = (props) => {
 													>
 														{value.map((val) => {
 															const color =
-																val.kshirot == "כשיר" ? "blue" : "red";
+																val.kshirot == "כשיר" ? "green" : "red";
 															return (
-																<h4 style={{ lineHeight: "3px", marginTop: "6px" }}>
+																<span
+																	style={{
+																		lineHeight: "3px",
+																		marginTop: "6px",
+																	}}
+																>
 																	{val.systemType} (
 																	<span
 																		style={{
@@ -1760,7 +1766,8 @@ const SortingTable = (props) => {
 																		{val.kshirot}
 																	</span>
 																	)
-																</h4>
+																	<br />
+																</span>
 															);
 														})}
 													</td>

@@ -18,16 +18,16 @@ exports.create = (req, res) => {
       res.json(data);
     });
   };
-  // exports.update = (req, res) => {//not working
-  //   const systemsonz = new Systemsonz(req.body);
-  //   Systemsonz.updateOne(systemsonz)
-  //     .then((systemsonzs) => res.json(systemsonzs))
-  //     .catch((err) => res.status(400).json("Error: " + err));
-  // };
 
   exports.update = (req, res) => {
     Systemsonz.findOneAndUpdate({id: req.params.id}, req.body)
-      .then((systemsonz) => res.json(systemsonz))
+      .then((systemsonz)=>{
+        if(systemsonz == null){
+          this.create(req,res)
+        }else{
+          res.json(systemsonz);
+        }
+      })
       .catch((err) => res.status(400).json("Error: " + err));
   }
 

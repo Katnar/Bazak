@@ -18,7 +18,7 @@ import CarDataFormModal from "views/generalpages/zminotpage/CarDataFormModal";
 import CarDataFormModalDelete from "views/generalpages/zminotpage/CarDataFormModalDelete";
 import CarDataFilter from "components/bazak/Filters/CarDataFilter";
 import LatestUpdateDateComponent from "components/bazak/LatestUpdateDateComponent/LatestUpdateDateComponent";
-import styles from "./SortingTable.module.css"
+import styles from "./SortingTable.module.css";
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -1727,9 +1727,15 @@ const SortingTable = (props) => {
 												{
 													/* console.log(cell.row.values.carnumber); */
 												}
-												const value = systemsonZ.filter(
-													(sys, i) => sys.carnumber == cell.row.values.carnumber
-												);
+												let value = [];
+												try {
+													value = systemsonZ.filter(
+														(sys, i) =>
+															sys.carnumber == cell.row.values.carnumber
+													);
+												} catch (error) {
+													{/* console.log(error); */}
+												}
 
 												{
 													/* console.log(

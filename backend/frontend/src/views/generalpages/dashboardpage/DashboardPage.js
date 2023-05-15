@@ -20,6 +20,7 @@ import { signin, authenticate, isAuthenticated } from 'auth/index';
 import PropagateLoader from "react-spinners/PropagateLoader";
 
 import DashboardCard from './DashboardCard';
+import DashboardTechCard from './TechnologyCards/DashboardTechCard';
 import LatestUpdateDateComponent from 'components/bazak/LatestUpdateDateComponent/LatestUpdateDateComponent';
 //redux
 import { useSelector, useDispatch } from 'react-redux'
@@ -32,8 +33,10 @@ function DashboardPage({ match, theme }) {
   //is from unit tree
   const { isfromunittree } = useParams()
   //cardatas
-  const [cardatas, setCardatas] = useState([])
+  const [cardatas, setCardatas] = useState([]);
   const [cartypes, setCartypes] = useState([]);
+  //systems
+  const [systemsonZs, setSystemsonZs] = useState([]);
   //spinner
   const [isdataloaded, setIsdataloaded] = useState(false);
   //redux
@@ -43,6 +46,7 @@ function DashboardPage({ match, theme }) {
   async function init() {
     setIsdataloaded(false);
     filterreduxcardata();
+    getSystemsonZs();
     switch (match.params.cartype) {
       case 'magadal':
         await getMagadals();
@@ -125,6 +129,18 @@ function DashboardPage({ match, theme }) {
     setIsdataloaded(true);
   }
 
+  const getSystemsonZs = async () => {
+    await axios.get(`http://localhost:8000/api/systemsonz`)
+      .then(response => {
+        setSystemsonZs(response.data)
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+  }
+
+  
+
   const getMagadals = async () => {
     await axios.get(`http://localhost:8000/api/magadal`)
       .then(response => {
@@ -194,6 +210,9 @@ function DashboardPage({ match, theme }) {
         :
         <div>
           <Row>
+            {match.params.cartype == "magadal" ?
+            <DashboardTechCard theme={theme} systemtype="allsystems" systemsonZs={systemsonZs}/>
+            :null}
             {cartypes.map((cartype, i) => (
               cartype ?
                 <DashboardCard theme={theme} match={match} cartype={cartype} cardatas={cardatas} />

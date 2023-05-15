@@ -33,6 +33,7 @@ import ManageUsers from "views/authentication/manageusers/ManageUsers";
 import EditUser from "views/authentication/EditUserForm";
 //general routes
 import DashboardPage from "views/generalpages/dashboardpage/DashboardPage";
+import DashboardTechPage from "views/generalpages/dashboardpage/TechnologyCards/DashboardTechPage";
 import SubUnitsPage from "views/generalpages/subunitspage/SubUnitsPage";
 import ZminotPage from "views/generalpages/zminotpage/ZminotPage";
 import UnitTreePage from "views/generalpages/unittreepage/UnitTreePage";
@@ -68,6 +69,7 @@ ReactDOM.render(
 
               {/*///////////////////////////////////////////LoggedIn Routes/////////////////////////////////////////////////*/}
               <LoggedinRoute path="/dashboard/:unittype/:unitid/:cartype/:carid/:isfromunittree" exact component={DashboardPage} />
+              <LoggedinRoute path="/dashboardtechpage/:systemtype/:systemname" exact component={DashboardTechPage} />
               <LoggedinRoute path="/subunitspage/:unittype/:unitid/:cartype/:carid" exact component={SubUnitsPage} />
               <LoggedinRoute path="/zminotpage/:unittype/:unitid/:cartype/:carid/:ismushbat/:isstopped" exact component={ZminotPage} />
               <LoggedinRoute path="/unittreepage/:unittype/:unitid" exact component={UnitTreePage} />

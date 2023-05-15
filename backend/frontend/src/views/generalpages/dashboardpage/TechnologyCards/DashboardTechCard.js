@@ -49,6 +49,10 @@ function DashboardCard(props) {
         let temp_systems_by_kashir;
         let temp_systems_by_lo_kashir;
 
+        if(props.systemtype == "mkabaz" && temp_systems[0].mkabazs){
+            temp_systems = temp_systems.filter(system => (system.mkabazs.name == props.systemname));
+        }
+
         temp_systems_by_kashir = temp_systems.filter(system => (system.kshirot == 'כשיר'));
         temp_systems_by_lo_kashir = temp_systems.filter(system => (system.kshirot == 'לא כשיר'));
 
@@ -125,13 +129,11 @@ function DashboardCard(props) {
                          {props.theme == "white-content" ?
                              props.systemtype == 'allsystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/dividesystems/nosystemname`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3></>
                              :  props.systemtype == 'dividesystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/mkabaz/${props.systemname}`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.systemname}</h3></>
-                                :  props.systemtype == 'mkabaz' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/makat`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3></>
-                                    :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3>
+                                :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.systemname}</h3>
                             : 
                                 props.systemtype == 'allsystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/dividesystems`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3></>
                                 :  props.systemtype == 'dividesystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/mkabaz/${props.systemname}`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.systemname}</h3></>
-                                    :  props.systemtype == 'mkabaz' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/makat`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3></>
-                                        :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3>
+                                    :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.systemname}</h3>
                          }
                     </div>
                     </CardHeader>

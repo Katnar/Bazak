@@ -37,29 +37,20 @@ function DashboardPage({ match, theme }) {
     setIsdataloaded(false);
     getSystemsonZs();
     if(match.params.systemtype == 'mkabaz'){
-      await getMkabazs().then(await systemsByMkabaz(match.params.systemname));
+      await getMkabazs();
+      await systemsByMkabaz();
     }
     getSystemTypes();
   }
 
-  const systemsByMkabaz = async (systemname) => {
-    
-    let temp_systems = systemsonZs.filter(system => (system.systemType == systemname));
-    let systemArr = [];
-    
-    for(let i=0;i<temp_systems.length;i++){
-        await axios.get(`http://localhost:8000/api/cardata/cardatabycarnumber/${temp_systems[i].carnumber}`)
-        .then(response =>{
-        //    for(let j=0;j<systemArr.length;j++){
-        //     if(response.data.mkabaz == systemArr[j].mkabaz){
-              
-        //     }
-        //    }
-        })
-        .catch((error) => {
-            console.log(error);
-        })
-    }
+  const systemsByMkabaz = async () => {
+    await axios.get(`http://localhost:8000/api/systemsonzbymakats`)
+      .then(response => {
+        setSystemsonZs(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      })
   }
 
   const getSystemsonZs = async () => {
@@ -95,6 +86,10 @@ function DashboardPage({ match, theme }) {
 
   useEffect(() => {
     init();
+  }, [match])
+
+  useEffect(() => {
+    init();
   }, [])
 
   return (
@@ -110,9 +105,13 @@ function DashboardPage({ match, theme }) {
             systemtype ?
                <DashboardTechCard theme={theme} systemtype={match.params.systemtype} systemname={systemtype.name} systemsonZs={systemsonZs.filter(system => (system.systemType == systemtype.name))}/>
               : null))
-          :null
-        //   match.params.systemtype == 'mkabaz' ?
-
+          :
+          match.params.systemtype == 'mkabaz' ?
+            mkabazs.map((mkabaz,i) => (
+              mkabaz ?
+              <DashboardTechCard theme={theme} systemtype={match.params.systemtype} systemname={mkabaz.name} systemsonZs={systemsonZs.filter(system => (system.systemType == match.params.systemname))}/>
+            : null))
+            :null
           }
           </Row>
         </div>

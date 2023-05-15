@@ -1,6 +1,66 @@
 const Systemsonz = require("../../models/systemsonzs/systemsonz");
 const mongoose = require('mongoose');
 
+let mkabazBySystemonZ = 
+[
+  {
+    '$lookup': {
+      'from': 'cardatas', 
+      'localField': 'carnumber', 
+      'foreignField': 'carnumber', 
+      'as': 'carnumber'
+    }
+  }, {
+    '$unwind': {
+      'path': '$carnumber'
+    }
+  }, {
+    '$project': {
+      '_id': 0, 
+      'tipuls': 1, 
+      'carnumber.makat': 1, 
+      'systemType': 1, 
+      'id': 1, 
+      'kshirot': 1
+    }
+  }, {
+    '$lookup': {
+      'from': 'makats', 
+      'localField': 'carnumber.makat', 
+      'foreignField': '_id', 
+      'as': 'makats'
+    }
+  }, {
+    '$project': {
+      'tipuls': 1, 
+      'makats.mkabaz': 1, 
+      'systemType': 1, 
+      'id': 1, 
+      'kshirot': 1
+    }
+  }, {
+    '$unwind': {
+      'path': '$makats'
+    }
+  }, {
+    '$lookup': {
+      'from': 'mkabazs', 
+      'localField': 'makats.mkabaz', 
+      'foreignField': '_id', 
+      'as': 'mkabazs'
+    }
+  }, {
+    '$unwind': {
+      'path': '$mkabazs'
+    }
+  }, {
+    '$project': {
+      'makats': 0
+    }
+  }
+];
+
+
 exports.find = (req, res) => {
     Systemsonz.find().sort({index: 1})
     .then((systemsonzs) => res.json(systemsonzs))
@@ -35,6 +95,19 @@ exports.create = (req, res) => {
     Systemsonz.find({ carnumber: req.params.carnumber })
     .then((systemsonzs) => res.json(systemsonzs))
     .catch((err) => res.status(400).json("Error: " + err));
+  };
+
+  exports.findByMkabaz = (req, res) => {
+    let Systemfindquerry = mkabazBySystemonZ.slice();
+    let finalquerry = Systemfindquerry;
+
+    Systemsonz.aggregate(finalquerry)
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((error) => {
+      res.status(400).json('Error: ' + error);
+    });
   };
   
   exports.remove = (req, res) => {

@@ -81,45 +81,48 @@ const ChartModal = (props) => {
   const ImportChartfunc = async () => {
     let tempchartidimport = chartidimport;
     if (tempchartidimport != '') {
-      let response = await axios.get(`http://localhost:8000/api/modularscreens/chartbychartid/${tempchartidimport}`)
-      if (response.data.length > 0) {//שעון נמצא
-        let tempchart = { ...response.data[0] };
-        delete tempchart._id;
-        delete tempchart.chartid;
-        delete tempchart.screenid;
-        if (chartdata.chartid) { //for update
-          tempchart.chartid = chartdata.chartid;
-        }
-        if (chartdata.screenid) { //for update
-          tempchart.screenid = chartdata.screenid;
-        }
-        if (user.role != '0' || user.role != '5') {
-          var flag = true;
-          for (var i = 0; i < tempchart.units.length; i++) {
-             var targetUnitId = Object.values(tempchart.units[i])[1]
-              for(let j=0;j<Object.values(tempchart.units[i])[1].length;j++){
-                flag = await importHierarchyCheck(Object.keys(tempchart.units[i])[1], targetUnitId[j], Object.keys(tempchart.units[i])[1]);
-                if (!flag) {
-                  Object.values(tempchart.units[i])[1].splice(j, 1);
-                  j = j - 1;
+      await axios.get(`http://localhost:8000/api/modularscreens/chartbychartid/${tempchartidimport}`)
+      .then(response => {
+        if (response.data.length > 0) {//שעון נמצא
+          let tempchart = {...response.data[0]};
+          delete tempchart._id;
+          delete tempchart.chartid;
+          delete tempchart.screenid;
+          if (chartdata.chartid) { //for update
+            tempchart.chartid = chartdata.chartid;
+          }
+          if (chartdata.screenid) { //for update
+            tempchart.screenid = chartdata.screenid;
+          }
+          if (user.role != '0' || user.role != '5') {
+            var flag = true;
+            for (var i = 0; i < tempchart.units.length; i++) {
+               var targetUnitId = Object.values(tempchart.units[i])[1]
+                for(let j=0;j<Object.values(tempchart.units[i])[1].length;j++){
+                  flag = importHierarchyCheck(Object.keys(tempchart.units[i])[1], targetUnitId[j], Object.keys(tempchart.units[i])[1]);
+                  if (!flag) {
+                    Object.values(tempchart.units[i])[1].splice(j, 1);
+                    j = j - 1;
+                  }
                 }
+              if(Object.values(tempchart.units[i])[1].length == 0){
+                tempchart.units.splice(i, 1);
+                i = i -1;
               }
-            if(Object.values(tempchart.units[i])[1].length == 0){
-              tempchart.units.splice(i, 1);
-              i = i -1;
             }
           }
+          setChartData(tempchart);
+          setUnitsfilterarray([]);
+          setCartypesfilterarray([]);
+          setUnitsfilterarray(tempchart.units);
+          setCartypesfilterarray(tempchart.tenetree);
+          toast.success(`שעון נמצא`);
         }
-        setChartData(tempchart);
-        setUnitsfilterarray([]);
-        setCartypesfilterarray([]);
-        setUnitsfilterarray(tempchart.units);
-        setCartypesfilterarray(tempchart.tenetree);
-        toast.success(`שעון נמצא`);
-      }
-      else {//שעון לא נמצא
-        toast.error(`שעון לא נמצא`);
-      }
+        else {//שעון לא נמצא
+          toast.error(`שעון לא נמצא`);
+        }
+       }).catch(err =>{console.log(err)})
+      
     }
   }
 

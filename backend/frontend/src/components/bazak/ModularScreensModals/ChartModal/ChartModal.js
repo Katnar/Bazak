@@ -81,45 +81,48 @@ const ChartModal = (props) => {
   const ImportChartfunc = async () => {
     let tempchartidimport = chartidimport;
     if (tempchartidimport != '') {
-      let response = await axios.get(`http://localhost:8000/api/modularscreens/chartbychartid/${tempchartidimport}`)
-      if (response.data.length > 0) {//שעון נמצא
-        let tempchart = { ...response.data[0] };
-        delete tempchart._id;
-        delete tempchart.chartid;
-        delete tempchart.screenid;
-        if (chartdata.chartid) { //for update
-          tempchart.chartid = chartdata.chartid;
-        }
-        if (chartdata.screenid) { //for update
-          tempchart.screenid = chartdata.screenid;
-        }
-        if (user.role != '0' || user.role != '5') {
-          var flag = true;
-          for (var i = 0; i < tempchart.units.length; i++) {
-             var targetUnitId = Object.values(tempchart.units[i])[1]
-              for(let j=0;j<Object.values(tempchart.units[i])[1].length;j++){
-                flag = await importHierarchyCheck(Object.keys(tempchart.units[i])[1], targetUnitId[j], Object.keys(tempchart.units[i])[1]);
-                if (!flag) {
-                  Object.values(tempchart.units[i])[1].splice(j, 1);
-                  j = j - 1;
+      await axios.get(`http://localhost:8000/api/modularscreens/chartbychartid/${tempchartidimport}`)
+      .then(response => {
+        if (response.data.length > 0) {//שעון נמצא
+          let tempchart = {...response.data[0]};
+          delete tempchart._id;
+          delete tempchart.chartid;
+          delete tempchart.screenid;
+          if (chartdata.chartid) { //for update
+            tempchart.chartid = chartdata.chartid;
+          }
+          if (chartdata.screenid) { //for update
+            tempchart.screenid = chartdata.screenid;
+          }
+          if (user.role != '0' || user.role != '5') {
+            var flag = true;
+            for (var i = 0; i < tempchart.units.length; i++) {
+               var targetUnitId = Object.values(tempchart.units[i])[1]
+                for(let j=0;j<Object.values(tempchart.units[i])[1].length;j++){
+                  flag = importHierarchyCheck(Object.keys(tempchart.units[i])[1], targetUnitId[j], Object.keys(tempchart.units[i])[1]);
+                  if (!flag) {
+                    Object.values(tempchart.units[i])[1].splice(j, 1);
+                    j = j - 1;
+                  }
                 }
+              if(Object.values(tempchart.units[i])[1].length == 0){
+                tempchart.units.splice(i, 1);
+                i = i -1;
               }
-            if(Object.values(tempchart.units[i])[1].length == 0){
-              tempchart.units.splice(i, 1);
-              i = i -1;
             }
           }
+          setChartData(tempchart);
+          setUnitsfilterarray([]);
+          setCartypesfilterarray([]);
+          setUnitsfilterarray(tempchart.units);
+          setCartypesfilterarray(tempchart.tenetree);
+          toast.success(`שעון נמצא`);
         }
-        setChartData(tempchart);
-        setUnitsfilterarray([]);
-        setCartypesfilterarray([]);
-        setUnitsfilterarray(tempchart.units);
-        setCartypesfilterarray(tempchart.tenetree);
-        toast.success(`שעון נמצא`);
-      }
-      else {//שעון לא נמצא
-        toast.error(`שעון לא נמצא`);
-      }
+        else {//שעון לא נמצא
+          toast.error(`שעון לא נמצא`);
+        }
+       }).catch(err =>{console.log(err)})
+      
     }
   }
 
@@ -585,11 +588,11 @@ const ChartModal = (props) => {
             </Col>
             <Row style={{flexWrap:'nowrap'}}>
             <Col style={{ padding: '0px',paddingRight:'15px',paddingLeft:'15px'}}>
-              <div style={{ textAlign: 'center', paddingTop: '10px'}}>ירוק <img height="20px" src={green}/></div>
+              <div style={{ textAlign: 'center', paddingTop: '10px',color: props.theme == "white-content" ? null:'white'}}>ירוק <img height="20px" src={green}/></div>
               <div style={{display:"flex", alignItems: 'center', width:'140px'}}><Input style={{marginLeft:'3px'}} type="number"  value={100} disabled/> - <Input style={{marginRight:'3px'}} type="number" value={yellowchange? redchange? '0' :chartdata.redcolor :chartdata.yellowcolor} onChange={handleChange} disabled/> </div>
             </Col>
             <Col style={{ padding: '0px',paddingRight:'15px',paddingLeft:'15px'}}>
-              <div name='yellow' onClick={handleColorClick} style={{ textAlign: 'center', paddingTop: '10px', cursor: 'pointer', color:'white', textDecoration: yellowchange ? 'line-through' :'none' }}>צהוב <img height="20px" src={yellow}/></div>
+              <div name='yellow' onClick={handleColorClick} style={{ textAlign: 'center', paddingTop: '10px', cursor: 'pointer',color: props.theme == "white-content" ? null:'white', textDecoration: yellowchange ? 'line-through' :'none' }}>צהוב <img height="20px" src={yellow}/></div>
               {yellowchange?
               <div style={{display:"flex", alignItems: 'center', width:'140px'}}><Input style={{marginLeft:'3px'}} type="number" name="yellowcolor" value={0} onChange={handleChange} step="10" min="0" max="90" disabled/>-<Input style={{marginRight:'3px'}} type="number"  value={0} disabled/> </div>
               :
@@ -597,7 +600,7 @@ const ChartModal = (props) => {
               }
             </Col>
             <Col style={{ padding: '0px',paddingRight:'15px',paddingLeft:'15px'}}>
-              <div name='red' onClick={handleColorClick}  style={{ textAlign: 'center', paddingTop: '10px', cursor: 'pointer', textDecoration: redchange ? 'line-through' :'none'  }}>אדום <img height="20px" src={red}/></div>
+              <div name='red' onClick={handleColorClick}  style={{ textAlign: 'center', paddingTop: '10px', cursor: 'pointer',color: props.theme == "white-content" ? null:'white', textDecoration: redchange ? 'line-through' :'none'  }}>אדום <img height="20px" src={red}/></div>
               {redchange?
               <div style={{display:"flex", alignItems: 'center', width:'140px'}}><Input style={{marginLeft:'3px'}} type="number" name="redcolor" value={0} onChange={handleChange} step="10" min="0" max="90" disabled/>-<Input style={{marginRight:'3px'}} type="number"  value={0} disabled/> </div>
               :
@@ -610,7 +613,7 @@ const ChartModal = (props) => {
           {chartdata.chartid ?
             <Row style={{ padding: '0px' }}>
               <Col style={{ padding: '0px' }} xs={12} md={12}>
-                <div style={{ textAlign: 'right', paddingTop: '10px' }}>מזהה שעון:  {chartdata.chartid}</div>
+                <div style={{display:'flex', textAlign: 'right', paddingTop: '10px',alignItems: 'baseline',color: props.theme == "white-content" ? null:'white' }}><h6 style={{paddingLeft:'5px'}}> מזהה שעון: </h6> {chartdata.chartid} </div>
               </Col>
             </Row>
             :
@@ -618,16 +621,16 @@ const ChartModal = (props) => {
 
           <Row style={{ padding: '0px' }}>
             <Col style={{ padding: '0px' }} xs={12} md={4}>
-              <div style={{ textAlign: 'right', paddingTop: '10px' }}>שם שעון: </div>
+              <div style={{ textAlign: 'right', paddingTop: '10px' }}> <h6>שם שעון:</h6></div>
               <Input type="text" name="name" value={chartdata.name} onChange={handleChange} />
-              <div style={{ textAlign: 'right', paddingTop: '10px' }}>(שם התרשים לא יכול להיות ארוך יותר מ-40 תווים)</div>
+              <div style={{ textAlign: 'right', paddingTop: '10px' }}><h6>(שם התרשים לא יכול להיות ארוך יותר מ-40 תווים)</h6></div>
             </Col>
           </Row>
           <Row style={{ padding: '0px' }}>
             <Col style={{ padding: '0px' }} xs={12} md={4}>
-              <div style={{ textAlign: 'right', paddingTop: '10px' }}> פירוט(לא חובה): </div>
+              <div style={{ textAlign: 'right', paddingTop: '10px' }}><h6> פירוט(לא חובה): </h6></div>
               <Input type="text" name="description" value={chartdata.description} onChange={handleChange} />
-              <div style={{ textAlign: 'right', paddingTop: '10px' }}>(פירוט לא יכול להיות ארוך יותר מ-40 תווים)</div>
+              <div style={{ textAlign: 'right', paddingTop: '10px' }}><h6>(פירוט לא יכול להיות ארוך יותר מ-40 תווים)</h6></div>
             </Col>
           </Row>
 
@@ -666,12 +669,12 @@ const ChartModal = (props) => {
 
           <Row style={{ padding: '0px' }}>
             <Col style={{ paddingRight: '0px', justifyContent: 'right', alignContent: 'right', textAlign: 'right' }} xs={12} md={6}>
-              <div style={{ textAlign: 'right', paddingTop: '10px' }}>מעמד</div>
+              <div style={{ textAlign: 'right', paddingTop: '10px' }}><h6> מעמד </h6></div>
               <NormalAnimatedMultiSelect data={possiblestands} handleChange2={handleChange8} name={'stand'} val={chartdata.stand} />
             </Col>
 
             <Col style={{ paddingRight: '0px', justifyContent: 'right', alignContent: 'right', textAlign: 'right' }} xs={12} md={6}>
-              <div style={{ textAlign: 'right', paddingTop: '10px' }}>סטאטוס כלים</div>
+              <div style={{ textAlign: 'right', paddingTop: '10px' }}><h6> סטאטוס כלים </h6></div>
               <NormalAnimatedMultiSelect data={possiblestatusses} handleChange2={handleChange8} name={'status'} val={chartdata.status} />
             </Col>
           </Row>

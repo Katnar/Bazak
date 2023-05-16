@@ -386,6 +386,7 @@ function ModularScreenPage(props) {
           ToggleForModal={ToggleForModal}
           chartid={chartidformodal}
           screenid={props.match.params.screenid}
+          theme = {props.theme}
           init={() => init()}
           index={charts.length}
         />
@@ -397,6 +398,7 @@ function ModularScreenPage(props) {
           chartid={chartidformodal}
           screenid={props.screenid}
           init={() => init()}
+          theme = {props.theme}
           index={charts.length}
         />
       )}
@@ -479,13 +481,13 @@ function ModularScreenPage(props) {
               mode == "edit" ?
               (
               <div className="draggableChart" draggable onDragStart={(e) => {handleDragStart(e, i); }} onDragEnter={ dragging ? (e) => { handleDragEnter(e, i); } : null } style={{ width: `${100 / screendata.chartsinline}%`}}>
-                <ChartCard chart={chart} mode={mode} chartid={chart.chartid} init={() => init()} Toggle={() => Togglechartmodal(chart.chartid)} cardatas={reduxcardata} theme={props.theme} screendata={screendata} charts={charts} />
+                <ChartCard chart={chart} theme={props.theme} mode={mode} chartid={chart.chartid} init={() => init()} Toggle={() => Togglechartmodal(chart.chartid)} cardatas={reduxcardata} screendata={screendata} charts={charts} />
               </div>
               )
               :
               (
                 <div style={{ width: `${100 / screendata.chartsinline}%`}}>
-               <ChartCard chart={chart} mode={mode} chartid={chart.chartid} init={() => init()} Toggle={() => Togglechartmodal(chart.chartid)} cardatas={reduxcardata} theme={props.theme} screendata={screendata} charts={charts} />
+               <ChartCard chart={chart} theme={props.theme} mode={mode} chartid={chart.chartid} init={() => init()} Toggle={() => Togglechartmodal(chart.chartid)} cardatas={reduxcardata} screendata={screendata} charts={charts} />
                </div>
               )
               

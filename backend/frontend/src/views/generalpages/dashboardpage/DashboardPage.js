@@ -173,7 +173,7 @@ function DashboardPage({ match, theme }) {
 			.get(`http://localhost:8000/api/systemonz_mashbit`)
 			.then((response) => {
 				// console.log(response.data);
-				setSystemsonz(response);
+				setSystemsonz(response.data);
 			})
 			.catch((error) => {
 				console.log(error);

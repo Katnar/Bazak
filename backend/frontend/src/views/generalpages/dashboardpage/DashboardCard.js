@@ -146,7 +146,7 @@ function DashboardCard(props) {
 		let temp_cardata_by_cartype_harigtipul = [];
 		let temp_cardata_by_cartype_takalotmizdamnot = [];
 		let temp_cardata_by_cartype_systemoz = [];
-		let temp_cardata_by_cartype_systemoz_mooshbat = [];
+		let temp_cardata_by_cartype_systemoz_mooshbat = 0;
 		let temp_cardata_by_cartype_hhstand_intipul = [];
 		let temp_cardata_by_cartype_hhstand_harigtipul = [];
 		let temp_cardata_by_cartype_hhstand_takalotmizdamnot = [];
@@ -213,18 +213,34 @@ function DashboardCard(props) {
 				temp_cardata_by_cartype_hhstand_takalotmizdamnot.push(
 					temp_cardata_by_cartype_not_instate[i]
 				);
-			if (temp_cardata_by_cartype_not_instate[i].tipuls == false) {
-				// console.log(temp_cardata_by_cartype_not_instate[i].kshirot);
-				temp_cardata_by_cartype_systemoz.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-				if (temp_cardata_by_cartype_not_instate[i].kshirot == "לא כשיר") {
-					// console.log(1);
-					temp_cardata_by_cartype_systemoz_mooshbat.push(
+			// console.log(temp_cardata_by_cartype_not_instate[i].kshirot);
+
+			const sys = props.systemsonz;
+			// console.log(props.systemsonz);
+			// console.log(temp_cardata_by_cartype_not_instate[i]);
+			sys.map((item) => {
+				if (
+					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+				) {
+					temp_cardata_by_cartype_systemoz.push(
 						temp_cardata_by_cartype_not_instate[i]
 					);
 				}
-			}
+			});
+			const fl = sys.filter(
+				(item) =>
+					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+			);
+			console.log(fl);
+			temp_cardata_by_cartype_systemoz_mooshbat = fl.length;
+
+			// if (temp_cardata_by_cartype_not_instate[i].kshirot == "לא כשיר") {
+			// 	// console.log(1);
+			// 	temp_cardata_by_cartype_systemoz_mooshbat.push(
+			// 		temp_cardata_by_cartype_not_instate[i]
+			// 	);
+			// }
+
 			// console.log(temp_cardata_by_cartype_not_instate[i].tipuls == false);
 			// temp_cardata_by_cartype_systemoz.push(
 			// 	temp_cardata_by_cartype_not_instate[i]
@@ -251,9 +267,10 @@ function DashboardCard(props) {
 		setCardata_by_cartype_hhstand_takalotmizdamnot(
 			temp_cardata_by_cartype_hhstand_takalotmizdamnot.length
 		);
+		console.log(temp_cardata_by_cartype_systemoz);
 		setCardata_by_cartype_systemonz(temp_cardata_by_cartype_systemoz.length);
 		setCardata_by_cartype_system_mooshbat(
-			temp_cardata_by_cartype_systemoz_mooshbat.length
+			temp_cardata_by_cartype_systemoz_mooshbat
 		);
 	}
 
@@ -661,18 +678,18 @@ function DashboardCard(props) {
 							<Progress
 								color="guyblue"
 								value={
-									cardata_by_cartype_system_mooshbat != 0
-										? (cardata_by_cartype_systemonz /
-												cardata_by_cartype_system_mooshbat) *
+									cardata_by_cartype_systemonz != 0
+										? (cardata_by_cartype_system_mooshbat /
+												cardata_by_cartype_systemonz) *
 										  100
 										: 0
 								}
 								style={{ height: "10px", marginBottom: "8px" }}
 							>
 								{" "}
-								{(cardata_by_cartype_system_mooshbat != 0
-									? (cardata_by_cartype_systemonz /
-											cardata_by_cartype_system_mooshbat) *
+								{(cardata_by_cartype_systemonz != 0
+									? (cardata_by_cartype_system_mooshbat /
+											cardata_by_cartype_systemonz) *
 									  100
 									: 0
 								).toFixed(0)}

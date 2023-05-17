@@ -109,7 +109,7 @@ function DashboardPage({ match, theme }) {
           match.params.systemtype == 'mkabaz' ?
             mkabazs.map((mkabaz,i) => (
               mkabaz ?
-              <DashboardTechCard theme={theme} systemtype={match.params.systemtype} systemname={mkabaz.name} systemsonZs={systemsonZs.filter(system => (system.systemType == match.params.systemname))}/>
+              <DashboardTechCard theme={theme} systemtype={match.params.systemtype} systemtypename={match.params.systemname} systemname={mkabaz.name} systemsonZs={systemsonZs.filter(system => (system.systemType == match.params.systemname))}/>
             : null))
             :null
           }

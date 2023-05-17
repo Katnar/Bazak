@@ -129,11 +129,11 @@ function DashboardCard(props) {
                          {props.theme == "white-content" ?
                              props.systemtype == 'allsystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/dividesystems/nosystemname`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3></>
                              :  props.systemtype == 'dividesystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/mkabaz/${props.systemname}`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.systemname}</h3></>
-                                :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', margin: '0px' }}>כשירות {props.systemname}</h3>
+                                :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', margin: '0px' }}>כשירות {props.systemtypename} {props.systemname}</h3>
                             : 
                                 props.systemtype == 'allsystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/dividesystems`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות טכנולוגיות ע"ג פלטפורמות</h3></>
                                 :  props.systemtype == 'dividesystems' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboardtechpage/mkabaz/${props.systemname}`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.systemname}</h3></>
-                                    :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', margin: '0px' }}>כשירות {props.systemname}</h3>
+                                    :  <h3 style={{ textAlign: 'center', fontWeight: 'bold', margin: '0px' }}>כשירות {props.systemtypename} {props.systemname}</h3>
                          }
                     </div>
                     </CardHeader>

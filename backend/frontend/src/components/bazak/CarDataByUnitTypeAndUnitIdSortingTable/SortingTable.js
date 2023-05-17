@@ -66,6 +66,7 @@ const SortingTable = (props) => {
 
 	function ToggleForModal(evt) {
 		setIscardataformopen(!iscardataformopen);
+		getSystems();
 		updatechangedcardata(); // update table..
 	}
 

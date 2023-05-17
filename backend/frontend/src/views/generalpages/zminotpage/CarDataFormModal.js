@@ -36,6 +36,7 @@ import editpic from "assets/img/write.png"
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import TechFormModalDelete from "./TechFormModalDelete";
 
 const CarDataFormModal = (props) => {
   const { user } = isAuthenticated();
@@ -60,6 +61,10 @@ const CarDataFormModal = (props) => {
   const [tipuls, setTipuls] = useState([]);
   //systems
   const [systems, setSystems] = useState([]);
+  //formdelete
+  const [istechformdeleteopen, setIstechformdeleteopen] = useState(false);
+  const [deleteId, setDeleteId] = useState();
+  const [deleteIndex, setDeleteIndex] = useState();
 
 
   const loadcardata = async () => {
@@ -89,15 +94,26 @@ const CarDataFormModal = (props) => {
             delete temp.tipuls
             delete temp.createdAt
             delete temp.updatedAt
+            delete temp.expected_repair
+            delete temp.takala_info
             tempTechnologies.push(temp)
             for(let j=0;j<tempsystemonZ[i].tipuls.length;j++){
-              tempsystemonZ[i].tipuls[j] = {...tempsystemonZ[i].tipuls[j],errorType: "technology",systemType: tempsystemonZ[i].systemType};
-              tempfinalspecialkeytwo.push(tempsystemonZ[i].tipuls[j])
+              if(tempsystemonZ[i].kshirot == "לא כשיר"){
+                tempsystemonZ[i].tipuls[j] = {...tempsystemonZ[i].tipuls[j],errorType: "technology",systemType: tempsystemonZ[i].systemType};
+                tempfinalspecialkeytwo.push(tempsystemonZ[i].tipuls[j])
+              }
+            }
+            if(tempcardata.expected_repair == ""){
+              tempcardata.expected_repair = tempsystemonZ[i].expected_repair;
+            }
+            if(tempcardata.takala_info == ""){
+              tempcardata.takala_info = tempsystemonZ[i].takala_info;
             }
           }
           let arr = tempcardata.tipuls.concat(tempfinalspecialkeytwo);
           setFinalSpecialKeytwo(arr);
           setTechnologies(tempTechnologies);
+          setCarData(tempcardata);
           }
          })
          
@@ -160,6 +176,25 @@ const CarDataFormModal = (props) => {
     setCarData(tempcardata);
   };
 
+  function ToggleDelete(t,index) {
+    setDeleteId(t.id)
+    setDeleteIndex(index)
+		setIstechformdeleteopen(!istechformdeleteopen);
+	}
+  function ToggleForModalDelete(evt) {
+    let tempfinalspecialkeytwo = [...finalspecialkeytwo];
+    for(let j=0;j<finalspecialkeytwo.length;j++){
+      if(tempfinalspecialkeytwo[j].systemType == technologies[deleteIndex].systemType){
+       tempfinalspecialkeytwo.splice(j,1)
+      }
+    }
+    setFinalSpecialKeytwo(tempfinalspecialkeytwo);
+    toast.info("בעקבות עדכון כשירות מערכת על גבי הכלי, סיבות אי הזמינות עודכנו בהתאם");
+
+    setTechnologies(currentSpec => currentSpec.filter(x => x.id !== deleteId));
+		setIstechformdeleteopen(!istechformdeleteopen);
+	}
+
   const getTipultypes = async () => {
     await axios
       .get(`http://localhost:8000/api/tipul`)
@@ -185,7 +220,6 @@ const CarDataFormModal = (props) => {
 
         for(let i=0;i<technologies.length;i++){// technologeies is the tempsystems that are attached to this makat
           let flag = true;
-          console.log(tempsystems.length)
           for(let j=0;j<tempsystems.length;j++){
             if(technologies[i].systemType == tempsystems[j].name){//current system on makat vs all the tempsystems from the new dropdown list
               console.log(technologies[i].systemType,tempsystems[j].name)
@@ -377,6 +411,7 @@ const CarDataFormModal = (props) => {
       delete tempcardata[name];
       setCarData(tempcardata);
     }
+    toast.error('במקרה של שינוי מק"ט, יש לבדוק אם המערכות שעל הצ יכולות להיות על המק"ט החדש');
   }
 
   const clickSubmit = (event) => {
@@ -471,6 +506,20 @@ const CarDataFormModal = (props) => {
          }
          if(technologies[j].kshirot == undefined || technologies[j].kshirot == ""){
           ErrorReason += " ,יש להגדיר כשירות לכל המערכות שעל הכלי";
+          flag = false;
+        }
+        let noerror = false;
+        for(let y=0;y<finalspecialkeytwo.length;y++){
+          if(technologies[j].kshirot == "לא כשיר"){
+             if(finalspecialkeytwo[y].systemType == technologies[j].systemType){
+              noerror = true;
+             }
+          }else{
+            noerror = true;
+          }
+        }
+        if(noerror == false){
+          ErrorReason += " ,במקרה שמערכת על כלי לא כשירה חובה להזין סיבת אי זמינות";
           flag = false;
         }
       }
@@ -613,31 +662,50 @@ const CarDataFormModal = (props) => {
         delete tempcardata.takala_info;
         delete tempcardata.expected_repair;
       } else {//for sorting tipuls between cardata and systemsonZ
-        for(let i=0;i<finalspecialkeytwo.length;i++){
-          if(tempfinalspecialkeytwo[i].errorType == "technology"){
-            for(let j=0;j<technologies.length;j++){
+        for(let j=0;j<technologies.length;j++){
+          if(tempsystemonZ[j].kshirot == "לא כשיר"){
+            for(let i=0;i<finalspecialkeytwo.length;i++){
               if(tempfinalspecialkeytwo[i].systemType == tempsystemonZ[j].systemType){
-               let temperror = {...tempfinalspecialkeytwo[i]};
-               let tempsystem = [{...tempsystemonZ[j].tipuls}];
-                 delete temperror.errorType;
-                 delete temperror.systemType;
-                 tempfinalspecialkeytwo[i] = temperror;
-                if(tempsystemonZ[j].tipuls == undefined){
-                  tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: tempfinalspecialkeytwo[i]};
-                }else{
-                  tempsystem.push(tempfinalspecialkeytwo[i]);
-                  tempsystemonZ[j].tipuls = tempsystem;
-                }
+                let temperror = {...tempfinalspecialkeytwo[i]};
+                let tempsystem = [{...tempsystemonZ[j].tipuls}];
+                  delete temperror.errorType;
+                  delete temperror.systemType;
+                  tempfinalspecialkeytwo[i] = temperror;
+                  if(tempsystemonZ[j].tipuls == undefined){
+                    tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: tempfinalspecialkeytwo[i]};
+                  }else{
+                    tempsystem.push(tempfinalspecialkeytwo[i]);
+                    tempsystemonZ[j].tipuls = tempsystem;
+                  }
+                 tempsystemonZ[j].expected_repair = cardata.expected_repair;
+                 tempsystemonZ[j].takala_info = cardata.takala_info;
               }
             }
           }else{
-            let temp = {...finalspecialkeytwo[i]}
-            delete temp.errorType
-            temptipuls.push(temp);
+            if(tempsystemonZ[j].tipuls){
+              tempsystemonZ[j].tipuls = [];
+            }
+            if(tempsystemonZ[j].expected_repair){
+               tempsystemonZ[j].expected_repair="";
+            }
+            if(tempsystemonZ[j].takala_info){
+               tempsystemonZ[j].takala_info="";
+            }
           }
-          tempcardata.tipuls = temptipuls;
         }
 
+        for(let l=0;l<finalspecialkeytwo.length;l++){
+           if(tempfinalspecialkeytwo[l].errorType == "Z"){
+            let temp = {...finalspecialkeytwo[l]}
+            delete temp.errorType
+            temptipuls.push(temp);
+           }
+        }
+        tempcardata.tipuls = temptipuls;
+        if(tempcardata.tipuls.length == 0){
+          tempcardata.expected_repair = '';
+          tempcardata.takala_info = '';
+        }
       }
 
       var isTechnology = false;
@@ -684,32 +752,52 @@ const CarDataFormModal = (props) => {
         tempcardata.takala_info = "";
         tempcardata.expected_repair = "";
       } else {//for sorting tipuls between cardata and systemsonZ
-        for(let i=0;i<finalspecialkeytwo.length;i++){
-          if(tempfinalspecialkeytwo[i].errorType == "technology"){
-            for(let j=0;j<technologies.length;j++){
+        for(let j=0;j<technologies.length;j++){
+          if(tempsystemonZ[j].kshirot == "לא כשיר"){
+            for(let i=0;i<finalspecialkeytwo.length;i++){
               if(tempfinalspecialkeytwo[i].systemType == tempsystemonZ[j].systemType){
-               let temperror = {...tempfinalspecialkeytwo[i]};
-               let tempsystem = [{...tempsystemonZ[j].tipuls}];
-                 delete temperror.errorType;
-                 delete temperror.systemType;
-                 tempfinalspecialkeytwo[i] = temperror;
-                if(tempsystemonZ[j].tipuls == undefined){
-                  tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: tempfinalspecialkeytwo[i]};
-                }else{
-                  tempsystem.push(tempfinalspecialkeytwo[i]);
-                  tempsystemonZ[j].tipuls = tempsystem;
-                }
+                let temperror = {...tempfinalspecialkeytwo[i]};
+                let tempsystem = [{...tempsystemonZ[j].tipuls}];
+                  delete temperror.errorType;
+                  delete temperror.systemType;
+                  tempfinalspecialkeytwo[i] = temperror;
+                  if(tempsystemonZ[j].tipuls == undefined){
+                    tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: tempfinalspecialkeytwo[i]};
+                  }else{
+                    tempsystem.push(tempfinalspecialkeytwo[i]);
+                    tempsystemonZ[j].tipuls = tempsystem;
+                  }
+                 tempsystemonZ[j].expected_repair = cardata.expected_repair;
+                 tempsystemonZ[j].takala_info = cardata.takala_info;
               }
             }
           }else{
-            let temp = {...finalspecialkeytwo[i]}
-            delete temp.errorType
-            temptipuls.push(temp);
+            if(tempsystemonZ[j].tipuls){
+              tempsystemonZ[j].tipuls = [];
+            }
+            if(tempsystemonZ[j].expected_repair){
+               tempsystemonZ[j].expected_repair="";
+            }
+            if(tempsystemonZ[j].takala_info){
+               tempsystemonZ[j].takala_info="";
+            }
           }
-          tempcardata.tipuls = temptipuls;
         }
 
+        for(let l=0;l<finalspecialkeytwo.length;l++){
+           if(tempfinalspecialkeytwo[l].errorType == "Z"){
+            let temp = {...finalspecialkeytwo[l]}
+            delete temp.errorType
+            temptipuls.push(temp);
+           }
+        }
+        tempcardata.tipuls = temptipuls;
+        if(tempcardata.tipuls.length == 0){
+          tempcardata.expected_repair = '';
+          tempcardata.takala_info = '';
+        }
       }
+
         var isTechnology = false;
         var newMakat;
         if(tempcardata.magadal == 'magadal04'){//change im army
@@ -733,28 +821,25 @@ const CarDataFormModal = (props) => {
       }
       //create archivecardata
       delete tempcardata._id;
+      tempcardata.archiveType = "1";
       let result2 = axios.post(
         `http://localhost:8000/api/archivecardata`,
         tempcardata
       );
-      toast.success(`צ' עודכן בהצלחה`);
-      props.ToggleForModal();
-    }
-  }
-
-   function fixtechnologies(){
-    for(let i=0;i<technologies.length;i++){// technologeies is the systems that are attached to this makat
-      let flag = true;
-      for(let j=0;j<systems.length;j++){
-        if(technologies[i].systemType == systems[j].name){//current system on makat vs all the systems from the new dropdown list
-          flag = false;
+      if(technologies.length > 0){
+        for(let x=0;x<technologies.length;x++){
+          tempsystemonZ[x].archiveType = "2";
+          console.log(tempsystemonZ)
+          let result3 = axios.post(
+            `http://localhost:8000/api/archivecardata`,
+            tempsystemonZ[x]
+          );
         }
       }
-      if(flag == true){
-        setTechnologies([]);
-      }
-    }
+      toast.success(`צ' עודכן בהצלחה`);
+      props.ToggleForModal();
   }
+}
 
   function init() {
     if (props.cardataid != undefined) {
@@ -811,6 +896,7 @@ const CarDataFormModal = (props) => {
       setCarData({});
       setFinalSpecialKeytwo([]);
       setTechnologies([]);
+      setDeleteId();
     }
   }, [props.isOpen]);
 
@@ -834,6 +920,14 @@ const CarDataFormModal = (props) => {
   }, [cardata.gdod]);
 
   return (
+    <>
+    <TechFormModalDelete
+				isOpen={istechformdeleteopen}
+				carnumber={cardata.carnumber}
+        index={deleteIndex}
+				Toggle={ToggleDelete}
+				ToggleForModal={ToggleForModalDelete}
+		/>
     <Modal
       style={{
         minHeight: "100%",
@@ -1257,7 +1351,7 @@ const CarDataFormModal = (props) => {
                   t.isLocked == "false" ?
                   <Row>
                     <img style={{ cursor: 'pointer', padding: '1px',height:'25px',marginTop:'28px',marginLeft: '15px' }} src={savepic} height='15px' onClick={() => { if(t.systemType){setTechnologies(currentSpec => produce(currentSpec, v => { v[index].isLocked = "true" }))}else{ toast.error("על מנת לשמור מערכת יש לציין את סוג המערכת");} }}/>
-                    <button className='btn-new-delete' style={{padding: '1px',height:'25px',marginTop:'28px'}} onClick={() => { setTechnologies(currentSpec => currentSpec.filter(x => x.id !== t.id)) }}><img src={deletepic} height='15px'></img></button>
+                    <button className='btn-new-delete' style={{padding: '1px',height:'25px',marginTop:'28px'}} onClick={() => ToggleDelete(t,index)}><img src={deletepic} height='15px'></img></button>
                     <Col xs={12} md={4}>
                      <div>
                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג מערכת</h6></p>
@@ -1293,7 +1387,7 @@ const CarDataFormModal = (props) => {
                      <p style={{ margin: '0px', float: 'right' }}><h6>כשירות</h6></p>
                      <Input onChange={(e) => {
                       const kshirot = e.target.value;
-                      if (e.target.value != "בחר")
+                      if (e.target.value != "בחר"){
                       setTechnologies(currentSpec => produce(currentSpec, v => { v[index].kshirot = kshirot }))
                       if (e.target.value == "לא כשיר"){
                         let isMashbit;
@@ -1306,7 +1400,21 @@ const CarDataFormModal = (props) => {
                           setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
                           toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
                         }
+                      }else{
+                        let tempfinalspecialkeytwo = [...finalspecialkeytwo];
+                        let flag = false;
+                        for(let j=0;j<finalspecialkeytwo.length;j++){
+                          if(tempfinalspecialkeytwo[j].systemType == t.systemType){
+                            flag = true;
+                           tempfinalspecialkeytwo.splice(j,1)
+                          }
                         }
+                        setFinalSpecialKeytwo(tempfinalspecialkeytwo);
+                        if(flag == true){
+                          toast.info("בעקבות עדכון כשירות מערכת על גבי הכלי, סיבות אי הזמינות עודכנו בהתאם");
+                        }
+                      }
+                    }
                       }}
                       value={t.kshirot ? t.kshirot : "בחר"} type="select" placeholder="כשירות">
                       <option value={"בחר"}>{"בחר"}</option>
@@ -1351,6 +1459,19 @@ const CarDataFormModal = (props) => {
                           setCarData({ ...cardata, ["zminot"]: "לא זמין", ["kshirot"]: "לא כשיר"});
                           toast.info("בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר");
                         }
+                        }else{
+                          let tempfinalspecialkeytwo = [...finalspecialkeytwo];
+                          let flag = false;
+                          for(let j=0;j<finalspecialkeytwo.length;j++){
+                            if(tempfinalspecialkeytwo[j].systemType == t.systemType){
+                              flag = true;
+                             tempfinalspecialkeytwo.splice(j,1)
+                            }
+                          }
+                          setFinalSpecialKeytwo(tempfinalspecialkeytwo);
+                          if(flag == true){
+                            toast.info("בעקבות עדכון כשירות מערכת על גבי הכלי, סיבות אי הזמינות עודכנו בהתאם");
+                          }
                         }
                       }}
                       value={t.kshirot ? t.kshirot : "בחר"} type="select" placeholder="כשירות">
@@ -2912,6 +3033,7 @@ const CarDataFormModal = (props) => {
         </Card>
       </ModalBody>
     </Modal>
+    </>
   );
 };
 export default withRouter(CarDataFormModal);

@@ -39,7 +39,7 @@ const CarDataFormModalDelete = (props) => {
 
   const loadcardata = async () => {
     await axios.get(`http://localhost:8000/api/cardata/${props.cardataid}`)
-      .then(response => {
+      .then(async(response) => {
         let tempcardata = response.data[0];
         if (tempcardata.latest_recalibration_date)
           tempcardata.latest_recalibration_date = tempcardata.latest_recalibration_date.slice(0, 10);
@@ -67,12 +67,13 @@ const CarDataFormModalDelete = (props) => {
     })
     //delete cardata units
     var tempcardataid = props.cardataid;
-    let tempcardata = { ...cardata }
+    let tempcardata = { ...cardata };
     tempcardata.gdod=null;
     tempcardata.hativa=null;
     tempcardata.ogda=null;
     tempcardata.pikod=null;
     let result = await axios.put(`http://localhost:8000/api/cardata/${tempcardataid}`, tempcardata)
+
     toast.success(`צ' נמחק בהצלחה`);
     props.ToggleForModal();
   }

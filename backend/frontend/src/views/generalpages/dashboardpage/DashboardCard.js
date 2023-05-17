@@ -66,6 +66,10 @@ function DashboardCard(props) {
 	] = useState(0);
 	const [cardata_by_cartype_systemonz, setCardata_by_cartype_systemonz] =
 		useState(0);
+	const [
+		cardata_by_cartype_systemonz__hh,
+		setCardata_by_cartype_systemonz__hh,
+	] = useState(0);
 	const [collapseOpen, setcollapseOpen] = useState(false);
 
 	const toggleCollapse = (event) => {
@@ -150,6 +154,7 @@ function DashboardCard(props) {
 		let temp_cardata_by_cartype_hhstand_intipul = [];
 		let temp_cardata_by_cartype_hhstand_harigtipul = [];
 		let temp_cardata_by_cartype_hhstand_takalotmizdamnot = [];
+		let temp_system_hh = [];
 		let unique = [];
 		let unique1 = [];
 		for (let i = 0; i < temp_cardata_by_cartype_not_instate.length; i++) {
@@ -160,6 +165,7 @@ function DashboardCard(props) {
 			let is_hhstand_harigtipul = false;
 			let is_hhstand_takalotmizdamnot = false;
 			let is_mooshbat_cus_system = false;
+			let is_system_hh_multival = false;
 
 			for (
 				let j = 0;
@@ -237,27 +243,45 @@ function DashboardCard(props) {
 					temp_cardata_by_cartype_systemoz.map((m) => [m.carnumber, m])
 				).values(),
 			];
-			console.log(unique);
+			// console.log(unique);
 			const fl = sys.filter(
 				(item) =>
 					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
 					item.mashbit[0].mashbit == true
 			);
 			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
-			console.log(unique1);
+			// console.log(unique1);
 			temp_cardata_by_cartype_systemoz_mooshbat = unique1.length;
+			sys.map((item) => {
+				try {
+					if (
+						item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+					) {
+						temp_system_hh.push(
+							item.tipuls
+								.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
+								.flat()
+						);
+					}
 
-			// if (temp_cardata_by_cartype_not_instate[i].kshirot == "לא כשיר") {
-			// 	// console.log(1);
-			// 	temp_cardata_by_cartype_systemoz_mooshbat.push(
-			// 		temp_cardata_by_cartype_not_instate[i]
-			// 	);
-			// }
-
-			// console.log(temp_cardata_by_cartype_not_instate[i].tipuls == false);
-			// temp_cardata_by_cartype_systemoz.push(
-			// 	temp_cardata_by_cartype_not_instate[i]
-			// );
+					// console.log(
+					// 	item.tipuls
+					// 		.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
+					// 		.flat()
+					// );
+				} catch (error) {
+					// console.log(error);
+				}
+			});
+			if (temp_system_hh != false) {
+				// console.log(temp_system_hh.flat());
+				if (temp_system_hh.length > 1) {
+					is_system_hh_multival = true;
+				}
+			} else {
+				// temp_system_hh.push(0);
+			}
+			console.log(temp_system_hh.flat());
 		}
 
 		setCardata_by_cartype(temp_cardata_by_cartype.length);
@@ -284,6 +308,13 @@ function DashboardCard(props) {
 		setCardata_by_cartype_systemonz(unique.length);
 		setCardata_by_cartype_system_mooshbat(
 			temp_cardata_by_cartype_systemoz_mooshbat
+		);
+		setCardata_by_cartype_systemonz__hh(
+			!temp_system_hh 
+				? 0
+				: temp_system_hh.length > 1
+				? temp_system_hh.reduce((acc, cv) => Number(acc) + Number(cv), 0)
+				: temp_system_hh[0]
 		);
 	}
 
@@ -685,7 +716,7 @@ function DashboardCard(props) {
 								{props.cartype.name} אי כשירות מערכת:{" "}
 								{cardata_by_cartype_system_mooshbat}{" "}
 								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_system_mooshbat})
+									(חלפים: {cardata_by_cartype_systemonz__hh})
 								</span>
 							</h6>
 							{/* {console.log(cardata_by_cartype_systemonz)} */}

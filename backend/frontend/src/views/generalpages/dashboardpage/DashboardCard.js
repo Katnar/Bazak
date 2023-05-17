@@ -150,6 +150,8 @@ function DashboardCard(props) {
 		let temp_cardata_by_cartype_hhstand_intipul = [];
 		let temp_cardata_by_cartype_hhstand_harigtipul = [];
 		let temp_cardata_by_cartype_hhstand_takalotmizdamnot = [];
+		let unique = [];
+		let unique1 = [];
 		for (let i = 0; i < temp_cardata_by_cartype_not_instate.length; i++) {
 			let is_intipul = false;
 			let is_harigtipul = false;
@@ -157,14 +159,13 @@ function DashboardCard(props) {
 			let is_hhstand_intipul = false;
 			let is_hhstand_harigtipul = false;
 			let is_hhstand_takalotmizdamnot = false;
+			let is_mooshbat_cus_system = false;
 
 			for (
 				let j = 0;
 				j < temp_cardata_by_cartype_not_instate[i].tipuls.length;
 				j++
 			) {
-				// console.log(temp_cardata_by_cartype_not_instate);
-
 				if (temp_cardata_by_cartype_not_instate[i].tipuls[j].type == "tipul") {
 					is_intipul = true;
 					if (temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands) {
@@ -216,24 +217,35 @@ function DashboardCard(props) {
 			// console.log(temp_cardata_by_cartype_not_instate[i].kshirot);
 
 			const sys = props.systemsonz;
-			console.log(props.systemsonz);
+			// console.log(props.systemsonz);
 			// console.log(temp_cardata_by_cartype_not_instate[i]);
 			sys.map((item) => {
 				if (
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
+					item.mashbit[0].mashbit == true
 				) {
-					temp_cardata_by_cartype_systemoz.push(
-						temp_cardata_by_cartype_not_instate[i]
-					);
+					// console.log(item);
+					if (item.kshirot != "כשיר") {
+						temp_cardata_by_cartype_systemoz.push(
+							temp_cardata_by_cartype_not_instate[i]
+						);
+					}
 				}
 			});
+			unique = [
+				...new Map(
+					temp_cardata_by_cartype_systemoz.map((m) => [m.carnumber, m])
+				).values(),
+			];
+			console.log(unique);
 			const fl = sys.filter(
 				(item) =>
 					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
 					item.mashbit[0].mashbit == true
 			);
-			console.log(fl);
-			temp_cardata_by_cartype_systemoz_mooshbat = fl.length;
+			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
+			console.log(unique1);
+			temp_cardata_by_cartype_systemoz_mooshbat = unique1.length;
 
 			// if (temp_cardata_by_cartype_not_instate[i].kshirot == "לא כשיר") {
 			// 	// console.log(1);
@@ -268,8 +280,8 @@ function DashboardCard(props) {
 		setCardata_by_cartype_hhstand_takalotmizdamnot(
 			temp_cardata_by_cartype_hhstand_takalotmizdamnot.length
 		);
-		console.log(temp_cardata_by_cartype_systemoz);
-		setCardata_by_cartype_systemonz(temp_cardata_by_cartype_systemoz.length);
+		// console.log(temp_cardata_by_cartype_systemoz);
+		setCardata_by_cartype_systemonz(unique.length);
 		setCardata_by_cartype_system_mooshbat(
 			temp_cardata_by_cartype_systemoz_mooshbat
 		);
@@ -676,6 +688,7 @@ function DashboardCard(props) {
 									(חלפים: {cardata_by_cartype_system_mooshbat})
 								</span>
 							</h6>
+							{/* {console.log(cardata_by_cartype_systemonz)} */}
 							<Progress
 								color="guyblue"
 								value={

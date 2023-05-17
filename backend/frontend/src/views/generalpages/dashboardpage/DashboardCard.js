@@ -216,7 +216,7 @@ function DashboardCard(props) {
 			// console.log(temp_cardata_by_cartype_not_instate[i].kshirot);
 
 			const sys = props.systemsonz;
-			// console.log(props.systemsonz);
+			console.log(props.systemsonz);
 			// console.log(temp_cardata_by_cartype_not_instate[i]);
 			sys.map((item) => {
 				if (
@@ -229,7 +229,8 @@ function DashboardCard(props) {
 			});
 			const fl = sys.filter(
 				(item) =>
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
+					item.mashbit[0].mashbit == true
 			);
 			console.log(fl);
 			temp_cardata_by_cartype_systemoz_mooshbat = fl.length;

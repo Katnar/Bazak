@@ -20,6 +20,7 @@ import { signin, authenticate, isAuthenticated } from "auth/index";
 import PropagateLoader from "react-spinners/PropagateLoader";
 
 import DashboardCard from "./DashboardCard";
+import DashboardTechCard from "./TechnologyCards/DashboardTechCard";
 import LatestUpdateDateComponent from "components/bazak/LatestUpdateDateComponent/LatestUpdateDateComponent";
 //redux
 import { useSelector, useDispatch } from "react-redux";
@@ -36,6 +37,7 @@ function DashboardPage({ match, theme }) {
 	const [cartypes, setCartypes] = useState([]);
 	//systems
 	const [systemsonZs, setSystemsonZs] = useState([]);
+	const [sysonz, setsysonz] = useState([]);
 	//spinner
 	const [isdataloaded, setIsdataloaded] = useState(false);
 	//redux
@@ -128,21 +130,34 @@ function DashboardPage({ match, theme }) {
 		setIsdataloaded(true);
 	};
 
-	const getMagadals = async () => {
-		await axios
-			.get(`http://localhost:8000/api/magadal`)
-			.then((response) => {
-				setCartypes(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
 	const getSystemsonZs = async () => {
 		await axios
 			.get(`http://localhost:8000/api/systemsonz`)
 			.then((response) => {
 				setSystemsonZs(response.data);
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	};
+
+	const getsysoz = async () => {
+		await axios
+			.get(`http://localhost:8000/api/systemonz_mashbit`)
+			.then((response) => {
+				console.log(response.data);
+				setsysonz(response.data);
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	};
+
+	const getMagadals = async () => {
+		await axios
+			.get(`http://localhost:8000/api/magadal`)
+			.then((response) => {
+				setCartypes(response.data);
 			})
 			.catch((error) => {
 				console.log(error);
@@ -180,17 +195,6 @@ function DashboardPage({ match, theme }) {
 			setCartypes(tempmagadmkabazs);
 		}
 	};
-	const getsystemoz = async () => {
-		await axios
-			.get(`http://localhost:8000/api/systemonz_mashbit`)
-			.then((response) => {
-				// console.log(response.data);
-				setSystemsonz(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
 
 	useEffect(() => {
 		if (reduxcardata.length > 0) {
@@ -201,13 +205,12 @@ function DashboardPage({ match, theme }) {
 	useEffect(() => {
 		if (reduxcardata.length > 0 && isdataloaded == false) {
 			init();
-			console.log(reduxcardata);
 		}
 	}, [reduxcardata]);
 
 	useEffect(() => {
 		getReduxCardDataByUnitTypeAndUnitId();
-		getsystemoz();
+		getsysoz();
 	}, []);
 
 	return !isdataloaded ? (
@@ -223,10 +226,18 @@ function DashboardPage({ match, theme }) {
 	) : (
 		<div>
 			<Row>
+				{match.params.cartype == "magadal" ? (
+					<DashboardTechCard
+						theme={theme}
+						systemtype="allsystems"
+						systemsonZs={systemsonZs}
+					/>
+				) : null}
 				{cartypes.map((cartype, i) =>
 					cartype ? (
 						<DashboardCard
 							theme={theme}
+							systemsonz={sysonz}
 							match={match}
 							cartype={cartype}
 							cardatas={cardatas}

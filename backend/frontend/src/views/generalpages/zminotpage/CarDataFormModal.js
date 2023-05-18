@@ -22,26 +22,6 @@ import {
 	Modal,
 	ModalBody,
 	ButtonGroup,
-	Button,
-	Card,
-	CardHeader,
-	CardBody,
-	CardTitle,
-	Container,
-	FormGroup,
-	Form,
-	Input,
-	InputGroupAddon,
-	InputGroupText,
-	InputGroup,
-	Row,
-	Alert,
-	Spinner,
-	Label,
-	Col,
-	Modal,
-	ModalBody,
-	ButtonGroup,
 } from "reactstrap";
 import axios from "axios";
 import history from "history.js";
@@ -52,7 +32,6 @@ import { toast } from "react-toastify";
 import Select from "components/general/Select/AnimatedSelect";
 import deletepic from "assets/img/delete.png";
 import savepic from "assets/img/save.png";
-import editpic from "assets/img/write.png";
 import editpic from "assets/img/write.png";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import ToggleButton from "@mui/material/ToggleButton";
@@ -365,8 +344,8 @@ const CarDataFormModal = (props) => {
 				if (value == "מעל 72 שעות") {
 					setCarData({
 						...cardata,
-						["zminot"]: "לא זמין",
-						["kshirot"]: "לא כשיר",
+						zminot: "לא זמין",
+						kshirot: "לא כשיר",
 						[evt.target.name]: value,
 					});
 					toast.info(
@@ -1644,8 +1623,8 @@ const CarDataFormModal = (props) => {
 																if (isMashbit == true) {
 																	setCarData({
 																		...cardata,
-																		["zminot"]: "לא זמין",
-																		["kshirot"]: "לא כשיר",
+																		zminot: "לא זמין",
+																		kshirot: "לא כשיר",
 																	});
 																	toast.info(
 																		"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
@@ -1730,8 +1709,8 @@ const CarDataFormModal = (props) => {
 																if (isMashbit == true) {
 																	setCarData({
 																		...cardata,
-																		["zminot"]: "לא זמין",
-																		["kshirot"]: "לא כשיר",
+																		zminot: "לא זמין",
+																		kshirot: "לא כשיר",
 																	});
 																	toast.info(
 																		"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"

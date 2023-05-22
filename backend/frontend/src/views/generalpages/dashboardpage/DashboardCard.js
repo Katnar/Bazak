@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 
 import { Link, withRouter, Redirect } from "react-router-dom";
-import {
-	buildStyles,
-	CircularProgressbar,
-	CircularProgressbarWithChildren,
-} from "react-circular-progressbar";
-import "react-circular-progressbar/dist/styles.css";
+import { buildStyles, CircularProgressbar, CircularProgressbarWithChildren } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 import ProgressProvider from "components/general/CircularProgressBarAnimation/ProgressProvider";
 import arrowhead from "assets/img/arrowhead.png";
 import arrowhead_white from "assets/img/arrowhead_white.png";
@@ -16,20 +12,19 @@ import green from "assets/img/green.png";
 
 // reactstrap components
 import {
-	Button,
-	ButtonGroup,
-	Card,
-	CardHeader,
-	CardBody,
-	CardFooter,
-	CardTitle,
-	Row,
-	Container,
-	Col,
-	Collapse,
-	Progress,
+    Button,
+    ButtonGroup,
+    Card,
+    CardHeader,
+    CardBody,
+    CardFooter,
+    CardTitle,
+    Row,
+    Container,
+    Col,
+    Collapse,
+    Progress,
 } from "reactstrap";
-import axios from "axios";
 
 function DashboardCard(props) { //instate - zamin/kashir
     const [cardata_by_cartype, setCardata_by_cartype] = useState(0)
@@ -48,78 +43,51 @@ function DashboardCard(props) { //instate - zamin/kashir
     //
     const [collapseOpen, setcollapseOpen] = useState(false);
 
-	const toggleCollapse = (event) => {
-		setcollapseOpen(!collapseOpen);
-	};
+    const toggleCollapse = (event) => {
+        setcollapseOpen(!collapseOpen);
+    };
 
-	function init() {
-		let temp_cardata_by_cartype;
-		let temp_cardata_by_cartype_instate;
-		let temp_cardata_by_cartype_not_instate;
+    function init() {
+        let temp_cardata_by_cartype;
+        let temp_cardata_by_cartype_instate;
+        let temp_cardata_by_cartype_not_instate;
 
-		if (props.theme == "white-content") {
-			switch (props.match.params.cartype) {
-				case "magadal":
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) =>
-							cardata.stand == "סדיר" && cardata.magadal == props.cartype._id
-					);
-					break;
-				case "magad":
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) =>
-							cardata.stand == "סדיר" && cardata.magad == props.cartype._id
-					);
-					break;
-				case "mkabaz":
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) =>
-							cardata.stand == "סדיר" && cardata.mkabaz == props.cartype._id
-					);
-					break;
-				default:
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) =>
-							cardata.stand == "סדיר" && cardata.magadal == props.cartype._id
-					);
-					break;
-			}
-			temp_cardata_by_cartype_instate = temp_cardata_by_cartype.filter(
-				(cardata) => cardata.stand == "סדיר" && cardata.zminot == "זמין"
-			);
-			temp_cardata_by_cartype_not_instate = temp_cardata_by_cartype.filter(
-				(cardata) => cardata.stand == "סדיר" && cardata.zminot != "זמין"
-			);
-		} else {
-			switch (props.match.params.cartype) {
-				case "magadal":
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) => cardata.magadal == props.cartype._id
-					);
-					break;
-				case "magad":
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) => cardata.magad == props.cartype._id
-					);
-					break;
-				case "mkabaz":
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) => cardata.mkabaz == props.cartype._id
-					);
-					break;
-				default:
-					temp_cardata_by_cartype = props.cardatas.filter(
-						(cardata) => cardata.magadal == props.cartype._id
-					);
-					break;
-			}
-			temp_cardata_by_cartype_instate = temp_cardata_by_cartype.filter(
-				(cardata) => cardata.kshirot == "כשיר"
-			);
-			temp_cardata_by_cartype_not_instate = temp_cardata_by_cartype.filter(
-				(cardata) => cardata.kshirot != "כשיר"
-			);
-		}
+        if (props.theme == 'white-content') {
+            switch (props.match.params.cartype) {
+                case 'magadal':
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.stand == 'סדיר') &&(cardata.magadal == props.cartype._id)));
+                    break;
+                case 'magad':
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.stand == 'סדיר') &&(cardata.magad == props.cartype._id)));
+                    break;
+                case 'mkabaz':
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.stand == 'סדיר') &&(cardata.mkabaz == props.cartype._id)));
+                    break;
+                default:
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.stand == 'סדיר') &&(cardata.magadal == props.cartype._id)));
+                    break;
+            }
+            temp_cardata_by_cartype_instate = temp_cardata_by_cartype.filter(cardata => ((cardata.stand == 'סדיר') && (cardata.zminot == 'זמין')));
+            temp_cardata_by_cartype_not_instate = temp_cardata_by_cartype.filter(cardata => ((cardata.stand == 'סדיר') && (cardata.zminot != 'זמין')));
+        }
+        else {
+            switch (props.match.params.cartype) {
+                case 'magadal':
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.magadal == props.cartype._id)));
+                    break;
+                case 'magad':
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.magad == props.cartype._id)));
+                    break;
+                case 'mkabaz':
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.mkabaz == props.cartype._id)));
+                    break;
+                default:
+                    temp_cardata_by_cartype = props.cardatas.filter(cardata => ((cardata.magadal == props.cartype._id)));
+                    break;
+            }
+            temp_cardata_by_cartype_instate = temp_cardata_by_cartype.filter(cardata => ((cardata.kshirot == 'כשיר')));
+            temp_cardata_by_cartype_not_instate = temp_cardata_by_cartype.filter(cardata => ((cardata.kshirot != 'כשיר')));
+        }
 
         //calculate intipul/harigtipul/takalotmizdamnot/hhstand
         let temp_cardata_by_cartype_intipul = [];
@@ -208,47 +176,9 @@ function DashboardCard(props) { //instate - zamin/kashir
             }
         }
 
-			const sys = props.systemsonz;
-			// console.log(props.systemsonz);
-			// console.log(temp_cardata_by_cartype_not_instate[i]);
-			sys.map((item) => {
-				if (
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
-					item.mashbit[0].mashbit == true
-				) {
-					// console.log(item);
-					if (item.kshirot != "כשיר") {
-						temp_cardata_by_cartype_systemoz.push(
-							temp_cardata_by_cartype_not_instate[i]
-						);
-					}
-				}
-			});
-			unique = [
-				...new Map(
-					temp_cardata_by_cartype_systemoz.map((m) => [m.carnumber, m])
-				).values(),
-			];
-			// console.log(unique);
-			const fl = sys.filter(
-				(item) =>
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
-					item.mashbit[0].mashbit == true
-			);
-			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
-			// console.log(unique1);
-			temp_cardata_by_cartype_systemoz_mooshbat = unique1.length;
-			sys.map((item) => {
-				try {
-					if (
-						item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
-					) {
-						temp_system_hh.push(
-							item.tipuls
-								.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-								.flat()
-						);
-					}
+        setCardata_by_cartype(temp_cardata_by_cartype.length)
+        setCardata_by_cartype_instate(temp_cardata_by_cartype_instate.length)
+        setCardata_by_cartype_not_instate(temp_cardata_by_cartype_not_instate.length)
 
         setCardata_by_cartype_intipul(temp_cardata_by_cartype_intipul.length);
         setCardata_by_cartype_harigtipul(temp_cardata_by_cartype_harigtipul.length);
@@ -261,338 +191,136 @@ function DashboardCard(props) { //instate - zamin/kashir
         setCardata_by_cartype_systemonz_hh(!temp_system_hh ? 0 : temp_system_hh.length > 1 ? temp_system_hh.reduce((acc,cv) => Number(acc) + Number(cv), 0) : temp_system_hh.length == 0 ? 0 : temp_system_hh[0]);
     }
 
-		setCardata_by_cartype(temp_cardata_by_cartype.length);
-		setCardata_by_cartype_instate(temp_cardata_by_cartype_instate.length);
-		setCardata_by_cartype_not_instate(
-			temp_cardata_by_cartype_not_instate.length
-		);
+    useEffect(() => {
+        init();
+    }, [props])
 
-		setCardata_by_cartype_intipul(temp_cardata_by_cartype_intipul.length);
-		setCardata_by_cartype_harigtipul(temp_cardata_by_cartype_harigtipul.length);
-		setCardata_by_cartype_takalotmizdamnot(
-			temp_cardata_by_cartype_takalotmizdamnot.length
-		);
-		setCardata_by_cartype_hhstand_intipul(
-			temp_cardata_by_cartype_hhstand_intipul.length
-		);
-		setCardata_by_cartype_hhstand_harigtipul(
-			temp_cardata_by_cartype_hhstand_harigtipul.length
-		);
-		setCardata_by_cartype_hhstand_takalotmizdamnot(
-			temp_cardata_by_cartype_hhstand_takalotmizdamnot.length
-		);
-		// console.log(temp_cardata_by_cartype_systemoz);
-		setCardata_by_cartype_systemonz(unique.length);
-		setCardata_by_cartype_system_mooshbat(
-			temp_cardata_by_cartype_systemoz_mooshbat
-		);
-		setCardata_by_cartype_systemonz__hh(
-			!temp_system_hh 
-				? 0
-				: temp_system_hh.length > 1
-				? temp_system_hh.reduce((acc, cv) => Number(acc) + Number(cv), 0)
-				: temp_system_hh[0]
-		);
-	}
+    return (
+        cardata_by_cartype != 0 ?
+            <Col xs={12} md={3}>
+                <Card style={{ boxShadow: 'rgb(123 123 123 / 20%) 0px 2px 5px 5px'}}>
+                    <CardHeader style={{padding:'0px'}}>
+                    <div style={{textAlign:'right'}}>
+                        {props.theme == "white-content" ?
+                            props.match.params.cartype == 'magadal' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/magad/${props.cartype._id}/true`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>זמינות {props.cartype.name}</h3></>
+                                : props.match.params.cartype == 'magad' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/mkabaz/${props.cartype._id}/true`}><img style={{cursor: 'pointer' }} src={arrowhead} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>זמינות {props.cartype.name}</h3></>
+                                    : <h3 style={{ textAlign: 'center', fontWeight: 'bold', margin: '0px' }}>זמינות {props.cartype.name}</h3>
 
-	// const getsystemashbit = async () => {
-	// 	await axios
-	// 	.get(`http://localhost:8000/api/systems
-	// }s
+                            : props.match.params.cartype == 'magadal' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/magad/${props.cartype._id}/true`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.cartype.name}</h3></>
+                                : props.match.params.cartype == 'magad' ? <><Link style={{ textDecoration: 'none', color: 'inherit' }} to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/mkabaz/${props.cartype._id}/true`}><img style={{cursor: 'pointer' }} src={arrowhead_white} height='40px'></img></Link><h3 style={{ textAlign: 'center', fontWeight: 'bold', marginTop: '-40px',marginBottom:'0px' }}>כשירות {props.cartype.name}</h3></>
+                                    : <h3 style={{ textAlign: 'center', fontWeight: 'bold', margin: '0px' }}>כשירות {props.cartype.name}</h3>
+                        }
+                        </div>
 
-	useEffect(() => {
-		init();
-	}, [props]);
+                    </CardHeader>
+                    <CardBody style={{ textAlign: 'center', margin: 'auto', cursor: 'pointer'  }} onClick={(e) => toggleCollapse(e)}>
+                        <div style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+                            {(cardata_by_cartype != 0 ? ((cardata_by_cartype_instate / cardata_by_cartype) * 100) : 0) < 60 ?
+                                <ProgressProvider valueStart={0} valueEnd={(cardata_by_cartype != 0 ? ((cardata_by_cartype_instate / cardata_by_cartype) * 100) : 0)}>
+                                    {value => <CircularProgressbarWithChildren value={value} /*text={`${value}%`}*/ styles={{
+                                        root: {},
+                                        path: {
+                                            stroke: `#ff2128`,
+                                            strokeLinecap: 'butt',
+                                            transition: 'stroke-dashoffset 0.5s ease 0s',
+                                        },
+                                        trail: {
+                                            stroke: 'rgb(141 141 141 / 30%)',
+                                            strokeLinecap: 'butt',
+                                            transform: 'rotate(0.25turn)',
+                                            transformOrigin: 'center center',
+                                        },
+                                        text: {
+                                            fill: '#ff2128',
+                                            fontSize: '18px',
+                                        },
+                                        background: {
+                                            fill: '#3e98c7',
+                                        },
+                                    }}>
+                                        <div>
+                                            <h2 style={{ margin: '0px' }}>{`${value.toFixed(0)}%`}</h2>
+                                        </div>
+                                        <div style={{ fontSize: 12, marginTop: -2 }}>
+                                            <h5 style={{ margin: '0px' }}>{cardata_by_cartype_instate + '/' + cardata_by_cartype}</h5>
+                                        </div>
+                                    </CircularProgressbarWithChildren>}
+                                </ProgressProvider>
+                                : (cardata_by_cartype != 0 ? ((cardata_by_cartype_instate / cardata_by_cartype) * 100) : 0) < 80 ?
+                                    <ProgressProvider valueStart={0} valueEnd={(cardata_by_cartype != 0 ? ((cardata_by_cartype_instate / cardata_by_cartype) * 100) : 0)}>
+                                        {value => <CircularProgressbarWithChildren value={value} /*text={`${value}%`}*/ styles={{
+                                            root: {},
+                                            path: {
+                                                stroke: `#ffca3a`,
+                                                strokeLinecap: 'butt',
+                                                transition: 'stroke-dashoffset 0.5s ease 0s',
+                                            },
+                                            trail: {
+                                                stroke: 'rgb(141 141 141 / 30%)',
+                                                strokeLinecap: 'butt',
+                                                transform: 'rotate(0.25turn)',
+                                                transformOrigin: 'center center',
+                                            },
+                                            text: {
+                                                fill: '#ffca3a',
+                                                fontSize: '18px',
+                                            },
+                                            background: {
+                                                fill: '#3e98c7',
+                                            },
+                                        }}>
+                                            <div>
+                                                <h2 style={{ margin: '0px' }}>{`${value.toFixed(0)}%`}</h2>
+                                            </div>
+                                            <div style={{ fontSize: 12, marginTop: -2 }}>
+                                                <h5 style={{ margin: '0px' }}>{cardata_by_cartype_instate + '/' + cardata_by_cartype}</h5>
+                                            </div>
+                                        </CircularProgressbarWithChildren>}
+                                    </ProgressProvider>
+                                    : (cardata_by_cartype != 0 ? ((cardata_by_cartype_instate / cardata_by_cartype) * 100) : 0) <= 100 ?
+                                        <ProgressProvider valueStart={0} valueEnd={(cardata_by_cartype != 0 ? ((cardata_by_cartype_instate / cardata_by_cartype) * 100) : 0)}>
+                                            {value => <CircularProgressbarWithChildren value={value} /*text={`${value}%`}*/ styles={{
+                                                root: {},
+                                                path: {
+                                                    stroke: `#8ac926`,
+                                                    strokeLinecap: 'butt',
+                                                    transition: 'stroke-dashoffset 0.5s ease 0s',
+                                                },
+                                                trail: {
+                                                    stroke: 'rgb(141 141 141 / 30%)',
+                                                    strokeLinecap: 'butt',
+                                                    transform: 'rotate(0.25turn)',
+                                                    transformOrigin: 'center center',
+                                                },
+                                                text: {
+                                                    fill: '#8ac926',
+                                                    fontSize: '18px',
+                                                },
+                                                background: {
+                                                    fill: '#3e98c7',
+                                                },
+                                            }}>
+                                                <div>
+                                                    <h2 style={{ margin: '0px' }}>{`${value.toFixed(0)}%`}</h2>
+                                                </div>
+                                                <div style={{ fontSize: 12, marginTop: -2 }}>
+                                                    <h5 style={{ margin: '0px' }}>{cardata_by_cartype_instate + '/' + cardata_by_cartype}</h5>
+                                                </div>
+                                            </CircularProgressbarWithChildren>}
+                                        </ProgressProvider>
+                                        : null}
+                        </div>
+                        {/* מקרא לצבעים */}
+                        <div style={{display: 'inline-flex', marginTop:'10px'}}>
+                            <img src={green} height="20px" style={{marginLeft:'5px'}}/>
+                            <p>80-100</p>
 
-	return cardata_by_cartype != 0 ? (
-		<Col xs={12} md={3}>
-			<Card style={{ boxShadow: "rgb(123 123 123 / 20%) 0px 2px 5px 5px" }}>
-				<CardHeader style={{ padding: "0px" }}>
-					<div style={{ textAlign: "right" }}>
-						{props.theme == "white-content" ? (
-							props.match.params.cartype == "magadal" ? (
-								<>
-									<Link
-										style={{ textDecoration: "none", color: "inherit" }}
-										to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/magad/${props.cartype._id}/true`}
-									>
-										<img
-											style={{ cursor: "pointer" }}
-											src={arrowhead}
-											height="40px"
-										></img>
-									</Link>
-									<h3
-										style={{
-											textAlign: "center",
-											fontWeight: "bold",
-											marginTop: "-40px",
-											marginBottom: "0px",
-										}}
-									>
-										זמינות {props.cartype.name}
-									</h3>
-								</>
-							) : props.match.params.cartype == "magad" ? (
-								<>
-									<Link
-										style={{ textDecoration: "none", color: "inherit" }}
-										to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/mkabaz/${props.cartype._id}/true`}
-									>
-										<img
-											style={{ cursor: "pointer" }}
-											src={arrowhead}
-											height="40px"
-										></img>
-									</Link>
-									<h3
-										style={{
-											textAlign: "center",
-											fontWeight: "bold",
-											marginTop: "-40px",
-											marginBottom: "0px",
-										}}
-									>
-										זמינות {props.cartype.name}
-									</h3>
-								</>
-							) : (
-								<h3
-									style={{
-										textAlign: "center",
-										fontWeight: "bold",
-										margin: "0px",
-									}}
-								>
-									זמינות {props.cartype.name}
-								</h3>
-							)
-						) : props.match.params.cartype == "magadal" ? (
-							<>
-								<Link
-									style={{ textDecoration: "none", color: "inherit" }}
-									to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/magad/${props.cartype._id}/true`}
-								>
-									<img
-										style={{ cursor: "pointer" }}
-										src={arrowhead_white}
-										height="40px"
-									></img>
-								</Link>
-								<h3
-									style={{
-										textAlign: "center",
-										fontWeight: "bold",
-										marginTop: "-40px",
-										marginBottom: "0px",
-									}}
-								>
-									כשירות {props.cartype.name}
-								</h3>
-							</>
-						) : props.match.params.cartype == "magad" ? (
-							<>
-								<Link
-									style={{ textDecoration: "none", color: "inherit" }}
-									to={`/dashboard/${props.match.params.unittype}/${props.match.params.unitid}/mkabaz/${props.cartype._id}/true`}
-								>
-									<img
-										style={{ cursor: "pointer" }}
-										src={arrowhead_white}
-										height="40px"
-									></img>
-								</Link>
-								<h3
-									style={{
-										textAlign: "center",
-										fontWeight: "bold",
-										marginTop: "-40px",
-										marginBottom: "0px",
-									}}
-								>
-									כשירות {props.cartype.name}
-								</h3>
-							</>
-						) : (
-							<h3
-								style={{
-									textAlign: "center",
-									fontWeight: "bold",
-									margin: "0px",
-								}}
-							>
-								כשירות {props.cartype.name}
-							</h3>
-						)}
-					</div>
-				</CardHeader>
-				<CardBody
-					style={{ textAlign: "center", margin: "auto", cursor: "pointer" }}
-					onClick={(e) => toggleCollapse(e)}
-				>
-					<div
-						style={{ width: "50%", marginLeft: "auto", marginRight: "auto" }}
-					>
-						{(cardata_by_cartype != 0
-							? (cardata_by_cartype_instate / cardata_by_cartype) * 100
-							: 0) < 60 ? (
-							<ProgressProvider
-								valueStart={0}
-								valueEnd={
-									cardata_by_cartype != 0
-										? (cardata_by_cartype_instate / cardata_by_cartype) * 100
-										: 0
-								}
-							>
-								{(value) => (
-									<CircularProgressbarWithChildren
-										value={value}
-										/*text={`${value}%`}*/ styles={{
-											root: {},
-											path: {
-												stroke: `#ff2128`,
-												strokeLinecap: "butt",
-												transition: "stroke-dashoffset 0.5s ease 0s",
-											},
-											trail: {
-												stroke: "rgb(141 141 141 / 30%)",
-												strokeLinecap: "butt",
-												transform: "rotate(0.25turn)",
-												transformOrigin: "center center",
-											},
-											text: {
-												fill: "#ff2128",
-												fontSize: "18px",
-											},
-											background: {
-												fill: "#3e98c7",
-											},
-										}}
-									>
-										<div>
-											<h2 style={{ margin: "0px" }}>{`${value.toFixed(
-												0
-											)}%`}</h2>
-										</div>
-										<div style={{ fontSize: 12, marginTop: -2 }}>
-											<h5 style={{ margin: "0px" }}>
-												{cardata_by_cartype_instate + "/" + cardata_by_cartype}
-											</h5>
-										</div>
-									</CircularProgressbarWithChildren>
-								)}
-							</ProgressProvider>
-						) : (cardata_by_cartype != 0
-								? (cardata_by_cartype_instate / cardata_by_cartype) * 100
-								: 0) < 80 ? (
-							<ProgressProvider
-								valueStart={0}
-								valueEnd={
-									cardata_by_cartype != 0
-										? (cardata_by_cartype_instate / cardata_by_cartype) * 100
-										: 0
-								}
-							>
-								{(value) => (
-									<CircularProgressbarWithChildren
-										value={value}
-										/*text={`${value}%`}*/ styles={{
-											root: {},
-											path: {
-												stroke: `#ffca3a`,
-												strokeLinecap: "butt",
-												transition: "stroke-dashoffset 0.5s ease 0s",
-											},
-											trail: {
-												stroke: "rgb(141 141 141 / 30%)",
-												strokeLinecap: "butt",
-												transform: "rotate(0.25turn)",
-												transformOrigin: "center center",
-											},
-											text: {
-												fill: "#ffca3a",
-												fontSize: "18px",
-											},
-											background: {
-												fill: "#3e98c7",
-											},
-										}}
-									>
-										<div>
-											<h2 style={{ margin: "0px" }}>{`${value.toFixed(
-												0
-											)}%`}</h2>
-										</div>
-										<div style={{ fontSize: 12, marginTop: -2 }}>
-											<h5 style={{ margin: "0px" }}>
-												{cardata_by_cartype_instate + "/" + cardata_by_cartype}
-											</h5>
-										</div>
-									</CircularProgressbarWithChildren>
-								)}
-							</ProgressProvider>
-						) : (cardata_by_cartype != 0
-								? (cardata_by_cartype_instate / cardata_by_cartype) * 100
-								: 0) <= 100 ? (
-							<ProgressProvider
-								valueStart={0}
-								valueEnd={
-									cardata_by_cartype != 0
-										? (cardata_by_cartype_instate / cardata_by_cartype) * 100
-										: 0
-								}
-							>
-								{(value) => (
-									<CircularProgressbarWithChildren
-										value={value}
-										/*text={`${value}%`}*/ styles={{
-											root: {},
-											path: {
-												stroke: `#8ac926`,
-												strokeLinecap: "butt",
-												transition: "stroke-dashoffset 0.5s ease 0s",
-											},
-											trail: {
-												stroke: "rgb(141 141 141 / 30%)",
-												strokeLinecap: "butt",
-												transform: "rotate(0.25turn)",
-												transformOrigin: "center center",
-											},
-											text: {
-												fill: "#8ac926",
-												fontSize: "18px",
-											},
-											background: {
-												fill: "#3e98c7",
-											},
-										}}
-									>
-										<div>
-											<h2 style={{ margin: "0px" }}>{`${value.toFixed(
-												0
-											)}%`}</h2>
-										</div>
-										<div style={{ fontSize: 12, marginTop: -2 }}>
-											<h5 style={{ margin: "0px" }}>
-												{cardata_by_cartype_instate + "/" + cardata_by_cartype}
-											</h5>
-										</div>
-									</CircularProgressbarWithChildren>
-								)}
-							</ProgressProvider>
-						) : null}
-					</div>
-					{/* מקרא לצבעים */}
-					<div style={{ display: "inline-flex", marginTop: "10px" }}>
-						<img src={green} height="20px" style={{ marginLeft: "5px" }} />
-						<p>80-100</p>
+                            <img src={yellow} height="20px" style={{marginLeft:'5px', marginRight:'10px'}}/>
+                            <p>60-80</p>
 
-						<img
-							src={yellow}
-							height="20px"
-							style={{ marginLeft: "5px", marginRight: "10px" }}
-						/>
-						<p>60-80</p>
+                            <img src={red} height="20px" style={{marginLeft:'5px', marginRight:'10px'}}/>
+                            <p>0-60</p>
+                        </div>
 
                         {collapseOpen ?
                             <div style={{ width: '80%', marginLeft: 'auto', marginRight: 'auto', paddingTop: '25px' }}>

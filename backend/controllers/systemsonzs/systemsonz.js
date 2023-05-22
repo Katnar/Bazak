@@ -1,4 +1,3 @@
-const SystemsOnZ = require("../../models/systemsonzs/systemsonz");
 const Systemsonz = require("../../models/systemsonzs/systemsonz");
 const mongoose = require("mongoose");
 
@@ -70,72 +69,6 @@ let mkabazBySystemonZ =
       'makats': 0
     }
   }
-];
-
-let mkabazBySystemonZ = [
-	{
-		$lookup: {
-			from: "cardatas",
-			localField: "carnumber",
-			foreignField: "carnumber",
-			as: "carnumber",
-		},
-	},
-	{
-		$unwind: {
-			path: "$carnumber",
-		},
-	},
-	{
-		$project: {
-			_id: 0,
-			tipuls: 1,
-			"carnumber.makat": 1,
-			systemType: 1,
-			id: 1,
-			kshirot: 1,
-		},
-	},
-	{
-		$lookup: {
-			from: "makats",
-			localField: "carnumber.makat",
-			foreignField: "_id",
-			as: "makats",
-		},
-	},
-	{
-		$project: {
-			tipuls: 1,
-			"makats.mkabaz": 1,
-			systemType: 1,
-			id: 1,
-			kshirot: 1,
-		},
-	},
-	{
-		$unwind: {
-			path: "$makats",
-		},
-	},
-	{
-		$lookup: {
-			from: "mkabazs",
-			localField: "makats.mkabaz",
-			foreignField: "_id",
-			as: "mkabazs",
-		},
-	},
-	{
-		$unwind: {
-			path: "$mkabazs",
-		},
-	},
-	{
-		$project: {
-			makats: 0,
-		},
-	},
 ];
 
 exports.find = (req, res) => {
@@ -226,3 +159,12 @@ exports.findByMkabaz = (req, res) => {
     res.send(systemsonzs)
     
    }
+
+   exports.systemonz_mashbit = (req,res) => {
+	agg.slice();
+	Systemsonz.aggregate(agg)
+	.then((data) => {
+		res.status(200).json(data);
+	})
+	.catch((err) => res.status(400).json("Error: " + err));
+   };

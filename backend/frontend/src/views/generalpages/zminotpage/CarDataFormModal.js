@@ -34,8 +34,6 @@ import deletepic from "assets/img/delete.png";
 import savepic from "assets/img/save.png";
 import editpic from "assets/img/write.png"
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import TechFormModalDelete from "./TechFormModalDelete";
 
 const CarDataFormModal = (props) => {
@@ -772,6 +770,15 @@ const CarDataFormModal = (props) => {
               }
             }
           }else{
+            if(tempsystemonZ[j].tipuls == undefined){
+              tempsystemonZ[j] = {...tempsystemonZ[j],tipuls: []};
+            }
+            if(tempsystemonZ[j].expected_repair == undefined){
+              tempsystemonZ[j] = {...tempsystemonZ[j],expected_repair: ""};
+            }
+            if(tempsystemonZ[j].takala_info == undefined){
+              tempsystemonZ[j] = {...tempsystemonZ[j],takala_info: ""};
+            }
             if(tempsystemonZ[j].tipuls){
               tempsystemonZ[j].tipuls = [];
             }
@@ -829,7 +836,6 @@ const CarDataFormModal = (props) => {
       if(technologies.length > 0){
         for(let x=0;x<technologies.length;x++){
           tempsystemonZ[x].archiveType = "2";
-          console.log(tempsystemonZ)
           let result3 = axios.post(
             `http://localhost:8000/api/archivecardata`,
             tempsystemonZ[x]
@@ -1545,21 +1551,17 @@ const CarDataFormModal = (props) => {
                               {p.type == "tipul" ? (
                                 <>
                                   <Row>
-                                    <ToggleButtonGroup
-                                      value={p.errorType}
-                                      color="primary"
-                                      exclusive
-                                      onChange={(e,value) => {if(value == undefined || value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}
-                                      aria-label= "error type"
-                                      style={{marginTop:"30px"}}
-                                    >
-                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
-                                      <h6> צ' </h6>
-                                      </ToggleButton>
-                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
-                                      <h6> מערכת </h6> 
-                                      </ToggleButton>
-                                    </ToggleButtonGroup>
+                                    <Col xs={12} md={2}>
+                                      <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג כלי</h6></p>
+                                      <Input onChange={(e) => {const value = e.target.value; if(value != "undefined"){if( value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}}
+                                            value={p.errorType} type="select" placeholder="בחירה">
+                                            <option value={"undefined"}>{"בחר"}</option>
+                                            <option value={"Z"}> צ' </option>
+                                            <option value={"technology"}> מערכת </option>
+                                      </Input>
+                                      </div>
+                                    </Col>
                                     {p.errorType == "technology" ?
                                     <Col xs={12} md={2}>
                                     <div>
@@ -1825,21 +1827,17 @@ const CarDataFormModal = (props) => {
                               ) : p.type == "harig_tipul" ? (
                                 <>
                                 <Row>
-                                    <ToggleButtonGroup
-                                      value={p.errorType}
-                                      color="primary"
-                                      exclusive
-                                      onChange={(e,value) => {if(value == undefined || value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}
-                                      aria-label= "error type"
-                                      style={{marginTop:"30px"}}
-                                    >
-                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
-                                        <h6>צ'</h6>
-                                      </ToggleButton>
-                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
-                                      <h6>מערכת</h6>
-                                      </ToggleButton>
-                                    </ToggleButtonGroup>
+                                    <Col xs={12} md={2}>
+                                      <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג כלי</h6></p>
+                                      <Input onChange={(e) => {const value = e.target.value; if(value != "undefined"){if( value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}}
+                                            value={p.errorType} type="select" placeholder="בחירה">
+                                            <option value={"undefined"}>{"בחר"}</option>
+                                            <option value={"Z"}> צ' </option>
+                                            <option value={"technology"}> מערכת </option>
+                                      </Input>
+                                      </div>
+                                    </Col>
                                     {p.errorType == "technology" ?
                                     <Col xs={12} md={2}>
                                     <div>
@@ -2146,20 +2144,17 @@ const CarDataFormModal = (props) => {
                               ) : p.type == "takala_mizdamenet" ? (
                                 <>
                                 <Row>
-                                    <ToggleButtonGroup
-                                      value={p.errorType}
-                                      color="primary"
-                                      exclusive
-                                      onChange={(e,value) => {if(value == undefined || value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}
-                                      style={{marginTop:"30px"}}
-                                    >
-                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
-                                        <h6>צ'</h6>
-                                      </ToggleButton>
-                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
-                                      <h6>מערכת</h6>
-                                      </ToggleButton>
-                                    </ToggleButtonGroup>
+                                    <Col xs={12} md={2}>
+                                      <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג כלי</h6></p>
+                                      <Input onChange={(e) => {const value = e.target.value; if(value != "undefined"){if( value == "Z" || value == "technology" && technologies.length>0){setFinalSpecialKeytwo(currentSpec => produce(currentSpec, v => { v[index].errorType =  value }))}else{toast.error("ל-צ' זה לא מקושרות מערכות");} if(value != "technology"){setFinalSpecialKeytwo((currentSpec) => produce(currentSpec, (v) => {delete v[index].systemType}))}}}}
+                                            value={p.errorType} type="select" placeholder="בחירה">
+                                            <option value={"undefined"}>{"בחר"}</option>
+                                            <option value={"Z"}> צ' </option>
+                                            <option value={"technology"}> מערכת </option>
+                                      </Input>
+                                      </div>
+                                    </Col>
                                     {p.errorType == "technology" ?
                                     <Col xs={12} md={2}>
                                     <div>
@@ -2602,20 +2597,16 @@ const CarDataFormModal = (props) => {
                             {p.type == "tipul" ? (
                               <>
                               <Row>
-                                    <ToggleButtonGroup
-                                      value={p.errorType}
-                                      color="primary"
-                                      exclusive
-                                      style={{marginTop:"30px"}}
-                                      disabled
-                                    >
-                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
-                                        <h6>צ'</h6>
-                                      </ToggleButton>
-                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
-                                      <h6>מערכת</h6>
-                                      </ToggleButton>
-                                    </ToggleButtonGroup>
+                                    <Col xs={12} md={2}>
+                                      <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג כלי</h6></p>
+                                      <Input value={p.errorType} type="select" placeholder="בחירה" disabled>
+                                            <option value={"undefined"}>{"בחר"}</option>
+                                            <option value={"Z"}> צ' </option>
+                                            <option value={"technology"}> מערכת </option>
+                                      </Input>
+                                      </div>
+                                    </Col>
                                     {p.errorType == "technology" ?
                                     <Col xs={12} md={2}>
                                     <div>
@@ -2709,20 +2700,16 @@ const CarDataFormModal = (props) => {
                             ) : p.type == "harig_tipul" ? (
                               <>
                               <Row>
-                                    <ToggleButtonGroup
-                                      value={p.errorType}
-                                      color="primary"
-                                      exclusive
-                                      style={{marginTop:"30px"}}
-                                      disabled
-                                    >
-                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
-                                        <h6>צ'</h6>
-                                      </ToggleButton>
-                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
-                                      <h6>מערכת</h6>
-                                      </ToggleButton>
-                                    </ToggleButtonGroup>
+                                    <Col xs={12} md={2}>
+                                      <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג כלי</h6></p>
+                                      <Input value={p.errorType} type="select" placeholder="בחירה" disabled>
+                                            <option value={"undefined"}>{"בחר"}</option>
+                                            <option value={"Z"}> צ' </option>
+                                            <option value={"technology"}> מערכת </option>
+                                      </Input>
+                                      </div>
+                                    </Col>
                                     {p.errorType == "technology" ?
                                     <Col xs={12} md={2}>
                                     <div>
@@ -2814,20 +2801,16 @@ const CarDataFormModal = (props) => {
                             ) : p.type == "takala_mizdamenet" ? (
                               <>
                               <Row>
-                                    <ToggleButtonGroup
-                                      value={p.errorType}
-                                      color="primary"
-                                      exclusive
-                                      style={{marginTop:"30px"}}
-                                      disabled
-                                    >
-                                      <ToggleButton value="Z" aria-label="Z" style={{height:"10px", width:"50px"}}>
-                                        <h6>צ'</h6>
-                                      </ToggleButton>
-                                      <ToggleButton value="technology" aria-label="technology" style={{height:"10px", width:"50px"}}>
-                                      <h6>מערכת</h6>
-                                      </ToggleButton>
-                                    </ToggleButtonGroup>
+                                    <Col xs={12} md={2}>
+                                      <div>
+                                      <p style={{ margin: '0px', float: 'right' }}><h6>סוג כלי</h6></p>
+                                      <Input value={p.errorType} type="select" placeholder="בחירה" disabled>
+                                            <option value={"undefined"}>{"בחר"}</option>
+                                            <option value={"Z"}> צ' </option>
+                                            <option value={"technology"}> מערכת </option>
+                                      </Input>
+                                      </div>
+                                    </Col>
                                     {p.errorType == "technology" ?
                                     <Col xs={12} md={2}>
                                     <div>

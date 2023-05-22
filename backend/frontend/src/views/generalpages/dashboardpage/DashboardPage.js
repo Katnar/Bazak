@@ -28,41 +28,42 @@ import { getCarDataFunc } from "redux/features/cardata/cardataSlice";
 import ModularScreenPage from "../modularscreenpage/ModularScreenPage";
 
 function DashboardPage({ match, theme }) {
-	//user
-	const { user } = isAuthenticated();
-	//is from unit tree
-	const { isfromunittree } = useParams();
-	//cardatas
-	const [cardatas, setCardatas] = useState([]);
-	const [cartypes, setCartypes] = useState([]);
-	//systems
-	const [systemsonZs, setSystemsonZs] = useState([]);
-	const [sysonz, setsysonz] = useState([]);
-	//spinner
-	const [isdataloaded, setIsdataloaded] = useState(false);
-	//redux
-	const dispatch = useDispatch();
-	const reduxcardata = useSelector((state) => state.cardata.value);
+  //user
+  const { user } = isAuthenticated()
+  //is from unit tree
+  const { isfromunittree } = useParams()
+  //cardatas
+  const [cardatas, setCardatas] = useState([]);
+  const [cartypes, setCartypes] = useState([]);
+  //systems
+  const [systemsonZs, setSystemsonZs] = useState([]);
+  const [sysonz, setsysonz] = useState([]);
+  //spinner
+  const [isdataloaded, setIsdataloaded] = useState(false);
+  //redux
+  const dispatch = useDispatch()
+  const reduxcardata = useSelector((state) => state.cardata.value)
 
-	async function init() {
-		setIsdataloaded(false);
-		filterreduxcardata();
-		getSystemsonZs();
-		switch (match.params.cartype) {
-			case "magadal":
-				await getMagadals();
-				break;
-			case "magad":
-				await getMagads(match.params.carid);
-				break;
-			case "mkabaz":
-				await getMkabazs(match.params.carid);
-				break;
-			default:
-				await getMagadals();
-				break;
-		}
-	}
+  async function init() {
+    setIsdataloaded(false);
+    filterreduxcardata();
+    getSystemsonZs();
+    getsoz();
+    switch (match.params.cartype) {
+      case 'magadal':
+        await getMagadals();
+        break;
+      case 'magad':
+        await getMagads(match.params.carid);
+        break;
+      case 'mkabaz':
+        await getMkabazs(match.params.carid);
+        break;
+      default:
+        await getMagadals();
+        break;
+    }
+  }
 
 	const getReduxCardDataByUnitTypeAndUnitId = async () => {
 		if (reduxcardata.length == 0) {
@@ -153,16 +154,25 @@ function DashboardPage({ match, theme }) {
 			});
 	};
 
-	const getMagadals = async () => {
-		await axios
-			.get(`http://localhost:8000/api/magadal`)
-			.then((response) => {
-				setCartypes(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
+  const getsoz = async () => {
+    await axios.get(`http://localhost:8000/api/systemonz_mashbit`)
+     .then((response) =>{
+      setsysonz(response.data);
+     })
+     .catch((error) => {
+      console.log(error);
+     })
+  }
+
+  const getMagadals = async () => {
+    await axios.get(`http://localhost:8000/api/magadal`)
+      .then(response => {
+        setCartypes(response.data)
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+  }
 
 	const getMagads = async (magadalid) => {
 		let tempmagadalsmagads = [];
@@ -213,56 +223,39 @@ function DashboardPage({ match, theme }) {
 		getsysoz();
 	}, []);
 
-	return !isdataloaded ? (
-		<div style={{ width: "50%", marginTop: "30%" }}>
-			<PropagateLoader color={"#ff4650"} loading={true} size={25} />
-		</div>
-	) : user.mainscreenid &&
-	  user.mainscreenid != null &&
-	  isfromunittree == "false" ? (
-		<>
-			<ModularScreenPage screenid={user.mainscreenid} theme={theme} />
-		</>
-	) : (
-		<div>
-			<Row>
-				{match.params.cartype == "magadal" ? (
-					<DashboardTechCard
-						theme={theme}
-						systemtype="allsystems"
-						systemsonZs={systemsonZs}
-					/>
-				) : null}
-				{cartypes.map((cartype, i) =>
-					cartype ? (
-						<DashboardCard
-							theme={theme}
-							systemsonz={sysonz}
-							match={match}
-							cartype={cartype}
-							cardatas={cardatas}
-						/>
-					) : null
-				)}
-			</Row>
-			<Row>
-				<Col xs={12} md={3} style={{ textAlign: "right" }}>
-					<LatestUpdateDateComponent
-						cardatas={cardatas}
-						isdataloaded={isdataloaded}
-					/>
-				</Col>
-				<Col xs={12} md={6}></Col>
-				<Col xs={12} md={3}>
-					<Link
-						to={`/zminotpage/${match.params.unittype}/${match.params.unitid}/${match.params.cartype}/${match.params.carid}/false/false`}
-					>
-						<button className="btn-new-blue">טבלת זמינות</button>
-					</Link>
-				</Col>
-			</Row>
-		</div>
-	);
+  return (
+    !isdataloaded ?
+      <div style={{ width: '50%', marginTop: '30%' }}>
+        <PropagateLoader color={'#ff4650'} loading={true} size={25} />
+      </div>
+      :
+      user.mainscreenid && user.mainscreenid != null && isfromunittree == "false" ?
+        <>
+        <ModularScreenPage screenid={user.mainscreenid} theme={theme}/>
+        </>
+        :
+        <div>
+          <Row>
+            {match.params.cartype == "magadal" ?
+            <DashboardTechCard theme={theme} systemtype="allsystems" systemsonZs={systemsonZs}/>
+            :null}
+            {cartypes.map((cartype, i) => (
+              cartype ?
+                <DashboardCard theme={theme} systemsonz={sysonz} match={match} cartype={cartype} cardatas={cardatas} />
+                : null))}
+          </Row>
+          <Row>
+            <Col xs={12} md={3} style={{ textAlign: 'right' }}>
+              <LatestUpdateDateComponent cardatas={cardatas} isdataloaded={isdataloaded} />
+            </Col>
+            <Col xs={12} md={6}>
+            </Col>
+            <Col xs={12} md={3}>
+              <Link to={`/zminotpage/${match.params.unittype}/${match.params.unitid}/${match.params.cartype}/${match.params.carid}/false/false`}><button className='btn-new-blue'>טבלת זמינות</button></Link>
+            </Col>
+          </Row>
+        </div>
+  );
 }
 
 export default withRouter(DashboardPage);

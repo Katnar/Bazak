@@ -31,46 +31,22 @@ import {
 } from "reactstrap";
 import axios from "axios";
 
-function DashboardCard(props) {
-	//instate - zamin/kashir
-	const [cardata_by_cartype, setCardata_by_cartype] = useState(0);
-	const [cardata_by_cartype_instate, setCardata_by_cartype_instate] =
-		useState(0);
-	const [cardata_by_cartype_not_instate, setCardata_by_cartype_not_instate] =
-		useState(0);
-	//
-	const [cardata_by_cartype_intipul, setCardata_by_cartype_intipul] =
-		useState(0);
-	const [cardata_by_cartype_harigtipul, setCardata_by_cartype_harigtipul] =
-		useState(0);
-	const [
-		cardata_by_cartype_takalotmizdamnot,
-		setCardata_by_cartype_takalotmizdamnot,
-	] = useState(0);
-	const [
-		cardata_by_cartype_hhstand_intipul,
-		setCardata_by_cartype_hhstand_intipul,
-	] = useState(0);
-	const [
-		cardata_by_cartype_hhstand_harigtipul,
-		setCardata_by_cartype_hhstand_harigtipul,
-	] = useState(0);
-	const [
-		cardata_by_cartype_hhstand_takalotmizdamnot,
-		setCardata_by_cartype_hhstand_takalotmizdamnot,
-	] = useState(0);
-	//
-	const [
-		cardata_by_cartype_system_mooshbat,
-		setCardata_by_cartype_system_mooshbat,
-	] = useState(0);
-	const [cardata_by_cartype_systemonz, setCardata_by_cartype_systemonz] =
-		useState(0);
-	const [
-		cardata_by_cartype_systemonz__hh,
-		setCardata_by_cartype_systemonz__hh,
-	] = useState(0);
-	const [collapseOpen, setcollapseOpen] = useState(false);
+function DashboardCard(props) { //instate - zamin/kashir
+    const [cardata_by_cartype, setCardata_by_cartype] = useState(0)
+    const [cardata_by_cartype_instate, setCardata_by_cartype_instate] = useState(0)
+    const [cardata_by_cartype_not_instate, setCardata_by_cartype_not_instate] = useState(0)
+    //
+    const [cardata_by_cartype_intipul, setCardata_by_cartype_intipul] = useState(0)
+    const [cardata_by_cartype_harigtipul, setCardata_by_cartype_harigtipul] = useState(0)
+    const [cardata_by_cartype_takalotmizdamnot, setCardata_by_cartype_takalotmizdamnot] = useState(0)
+    const [cardata_by_cartype_hhstand_intipul, setCardata_by_cartype_hhstand_intipul] = useState(0)
+    const [cardata_by_cartype_hhstand_harigtipul, setCardata_by_cartype_hhstand_harigtipul] = useState(0)
+    const [cardata_by_cartype_hhstand_takalotmizdamnot, setCardata_by_cartype_hhstand_takalotmizdamnot] = useState(0)
+    const [cardata_by_cartype_system_mooshbat, setCardata_by_cartype_system_mooshbat] = useState(0)
+    const [cardata_by_cartype_systemonz, setCardata_by_cartype_systemonz] = useState(0)
+    const [cardata_by_cartype_systemonz_hh, setCardata_by_cartype_systemonz_hh] = useState(0)
+    //
+    const [collapseOpen, setcollapseOpen] = useState(false);
 
 	const toggleCollapse = (event) => {
 		setcollapseOpen(!collapseOpen);
@@ -145,82 +121,92 @@ function DashboardCard(props) {
 			);
 		}
 
-		//calculate intipul/harigtipul/takalotmizdamnot/hhstand
-		let temp_cardata_by_cartype_intipul = [];
-		let temp_cardata_by_cartype_harigtipul = [];
-		let temp_cardata_by_cartype_takalotmizdamnot = [];
-		let temp_cardata_by_cartype_systemoz = [];
-		let temp_cardata_by_cartype_systemoz_mooshbat = 0;
-		let temp_cardata_by_cartype_hhstand_intipul = [];
-		let temp_cardata_by_cartype_hhstand_harigtipul = [];
-		let temp_cardata_by_cartype_hhstand_takalotmizdamnot = [];
-		let temp_system_hh = [];
-		let unique = [];
-		let unique1 = [];
-		for (let i = 0; i < temp_cardata_by_cartype_not_instate.length; i++) {
-			let is_intipul = false;
-			let is_harigtipul = false;
-			let is_takalotmizdamnot = false;
-			let is_hhstand_intipul = false;
-			let is_hhstand_harigtipul = false;
-			let is_hhstand_takalotmizdamnot = false;
-			let is_mooshbat_cus_system = false;
-			let is_system_hh_multival = false;
+        //calculate intipul/harigtipul/takalotmizdamnot/hhstand
+        let temp_cardata_by_cartype_intipul = [];
+        let temp_cardata_by_cartype_harigtipul = [];
+        let temp_cardata_by_cartype_takalotmizdamnot = [];
+        let temp_cardata_by_cartype_systemonz = [];
+        let temp_cardata_by_cartype_systemonz_mooshbat = 0;
+        let temp_cardata_by_cartype_hhstand_intipul = [];
+        let temp_cardata_by_cartype_hhstand_harigtipul = [];
+        let temp_cardata_by_cartype_hhstand_takalotmizdamnot = [];
+        let temp_system_hh = [];
+        let unique = [];
+        let unique1 = [];
 
-			for (
-				let j = 0;
-				j < temp_cardata_by_cartype_not_instate[i].tipuls.length;
-				j++
-			) {
-				if (temp_cardata_by_cartype_not_instate[i].tipuls[j].type == "tipul") {
-					is_intipul = true;
-					if (temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands) {
-						is_hhstand_intipul = true;
-					}
-				}
-				if (
-					temp_cardata_by_cartype_not_instate[i].tipuls[j].type == "harig_tipul"
-				) {
-					is_harigtipul = true;
-					if (temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands) {
-						is_hhstand_harigtipul = true;
-					}
-				}
-				if (
-					temp_cardata_by_cartype_not_instate[i].tipuls[j].type ==
-					"takala_mizdamenet"
-				) {
-					is_takalotmizdamnot = true;
-					if (temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands) {
-						is_hhstand_takalotmizdamnot = true;
-					}
-				}
-			}
-			if (is_intipul)
-				temp_cardata_by_cartype_intipul.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-			if (is_harigtipul)
-				temp_cardata_by_cartype_harigtipul.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-			if (is_takalotmizdamnot)
-				temp_cardata_by_cartype_takalotmizdamnot.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-			if (is_hhstand_intipul)
-				temp_cardata_by_cartype_hhstand_intipul.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-			if (is_hhstand_harigtipul)
-				temp_cardata_by_cartype_hhstand_harigtipul.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-			if (is_hhstand_takalotmizdamnot)
-				temp_cardata_by_cartype_hhstand_takalotmizdamnot.push(
-					temp_cardata_by_cartype_not_instate[i]
-				);
-			// console.log(temp_cardata_by_cartype_not_instate[i].kshirot);
+        for (let i = 0; i < temp_cardata_by_cartype_not_instate.length; i++) {
+            let is_intipul = false;
+            let is_harigtipul = false;
+            let is_takalotmizdamnot = false;
+            let is_hhstand_intipul = false;
+            let is_hhstand_harigtipul = false;
+            let is_hhstand_takalotmizdamnot = false;
+            let is_system_hh_multival = false;
+
+            for (let j = 0; j < temp_cardata_by_cartype_not_instate[i].tipuls.length; j++) {
+                if (temp_cardata_by_cartype_not_instate[i].tipuls[j].type == 'tipul') {
+                    is_intipul = true;
+                    if(temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands){
+                        is_hhstand_intipul = true;
+                    }
+                }
+                if (temp_cardata_by_cartype_not_instate[i].tipuls[j].type == 'harig_tipul') {
+                    is_harigtipul = true;
+                    if(temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands){
+                        is_hhstand_harigtipul = true;
+                    }
+                }
+                if (temp_cardata_by_cartype_not_instate[i].tipuls[j].type == 'takala_mizdamenet') {
+                    is_takalotmizdamnot = true;
+                    if(temp_cardata_by_cartype_not_instate[i].tipuls[j].hh_stands){
+                        is_hhstand_takalotmizdamnot = true;
+                    }
+                }
+            }
+
+            if (is_intipul)
+                temp_cardata_by_cartype_intipul.push(temp_cardata_by_cartype_not_instate[i])
+            if (is_harigtipul)
+                temp_cardata_by_cartype_harigtipul.push(temp_cardata_by_cartype_not_instate[i])
+            if (is_takalotmizdamnot)
+                temp_cardata_by_cartype_takalotmizdamnot.push(temp_cardata_by_cartype_not_instate[i])
+            if (is_hhstand_intipul)
+                temp_cardata_by_cartype_hhstand_intipul.push(temp_cardata_by_cartype_not_instate[i])
+            if (is_hhstand_harigtipul)
+                temp_cardata_by_cartype_hhstand_harigtipul.push(temp_cardata_by_cartype_not_instate[i])
+            if (is_hhstand_takalotmizdamnot)
+                temp_cardata_by_cartype_hhstand_takalotmizdamnot.push(temp_cardata_by_cartype_not_instate[i])
+        
+            const sys = props.systemsonz;
+            sys.map((item) =>{
+                if(item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber && item.mashbit[0].mashbit == true){
+                    if(item.kshirot != "כשיר"){
+                        temp_cardata_by_cartype_systemonz.push(temp_cardata_by_cartype_not_instate[i]);
+                    }
+                }
+            });
+            unique = [...new Map(temp_cardata_by_cartype_systemonz.map((m) => [m.carnumber,m])).values(),];
+            const fl = sys.filter((item) => item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber && item.mashbit[0].mashbit == true);
+            unique1 = [...new Map(fl.map((m) => [m.carnumber,m])).values()];
+            temp_cardata_by_cartype_systemonz_mooshbat = unique1.length;
+            sys.map((item) => {
+                try{
+                    if(item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber){
+                        let temp = [];
+                        temp.push(item.tipuls.map((m) => m.hh_stands.map((a) => a.missing_makat_2)).flat());
+                        temp[0] = temp[0].reduce((acc,cv) => Number(acc) + Number(cv), 0);
+                        temp_system_hh.push(temp);
+                    }
+                } catch(error){
+
+                }
+            });
+            if(temp_system_hh != false){
+                if(temp_system_hh.length > 1){
+                    is_system_hh_multival = true;
+                }
+            }
+        }
 
 			const sys = props.systemsonz;
 			// console.log(props.systemsonz);
@@ -264,25 +250,16 @@ function DashboardCard(props) {
 						);
 					}
 
-					// console.log(
-					// 	item.tipuls
-					// 		.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-					// 		.flat()
-					// );
-				} catch (error) {
-					// console.log(error);
-				}
-			});
-			if (temp_system_hh != false) {
-				// console.log(temp_system_hh.flat());
-				if (temp_system_hh.length > 1) {
-					is_system_hh_multival = true;
-				}
-			} else {
-				// temp_system_hh.push(0);
-			}
-			console.log(temp_system_hh.flat());
-		}
+        setCardata_by_cartype_intipul(temp_cardata_by_cartype_intipul.length);
+        setCardata_by_cartype_harigtipul(temp_cardata_by_cartype_harigtipul.length);
+        setCardata_by_cartype_takalotmizdamnot(temp_cardata_by_cartype_takalotmizdamnot.length);
+        setCardata_by_cartype_hhstand_intipul(temp_cardata_by_cartype_hhstand_intipul.length);
+        setCardata_by_cartype_hhstand_harigtipul(temp_cardata_by_cartype_hhstand_harigtipul.length);
+        setCardata_by_cartype_hhstand_takalotmizdamnot(temp_cardata_by_cartype_hhstand_takalotmizdamnot.length);
+        setCardata_by_cartype_systemonz(unique.length);
+        setCardata_by_cartype_system_mooshbat(temp_cardata_by_cartype_systemonz_mooshbat);
+        setCardata_by_cartype_systemonz_hh(!temp_system_hh ? 0 : temp_system_hh.length > 1 ? temp_system_hh.reduce((acc,cv) => Number(acc) + Number(cv), 0) : temp_system_hh.length == 0 ? 0 : temp_system_hh[0]);
+    }
 
 		setCardata_by_cartype(temp_cardata_by_cartype.length);
 		setCardata_by_cartype_instate(temp_cardata_by_cartype_instate.length);
@@ -617,135 +594,22 @@ function DashboardCard(props) {
 						/>
 						<p>60-80</p>
 
-						<img
-							src={red}
-							height="20px"
-							style={{ marginLeft: "5px", marginRight: "10px" }}
-						/>
-						<p>0-60</p>
-					</div>
-
-					{collapseOpen ? (
-						<div
-							style={{
-								width: "80%",
-								marginLeft: "auto",
-								marginRight: "auto",
-								paddingTop: "25px",
-							}}
-						>
-							{console.log()}
-							<h6>
-								{props.cartype.name} בטיפול: {cardata_by_cartype_intipul}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_hhstand_intipul})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_cartype_not_instate != 0
-										? (cardata_by_cartype_intipul /
-												cardata_by_cartype_not_instate) *
-										  100
-										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{(cardata_by_cartype_not_instate != 0
-									? (cardata_by_cartype_intipul /
-											cardata_by_cartype_not_instate) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-							<h6>
-								{props.cartype.name} חריגי טיפול:{" "}
-								{cardata_by_cartype_harigtipul}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_hhstand_harigtipul})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_cartype_not_instate != 0
-										? (cardata_by_cartype_harigtipul /
-												cardata_by_cartype_not_instate) *
-										  100
-										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{(cardata_by_cartype_not_instate != 0
-									? (cardata_by_cartype_harigtipul /
-											cardata_by_cartype_not_instate) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-							<h6>
-								{props.cartype.name} בתקלות מזדמנות:{" "}
-								{cardata_by_cartype_takalotmizdamnot}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_hhstand_takalotmizdamnot})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_cartype_not_instate != 0
-										? (cardata_by_cartype_takalotmizdamnot /
-												cardata_by_cartype_not_instate) *
-										  100
-										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{(cardata_by_cartype_not_instate != 0
-									? (cardata_by_cartype_takalotmizdamnot /
-											cardata_by_cartype_not_instate) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-							<h6>
-								{props.cartype.name} אי כשירות מערכת:{" "}
-								{cardata_by_cartype_system_mooshbat}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_systemonz__hh})
-								</span>
-							</h6>
-							{/* {console.log(cardata_by_cartype_systemonz)} */}
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_cartype_systemonz != 0
-										? (cardata_by_cartype_system_mooshbat /
-												cardata_by_cartype_systemonz) *
-										  100
-										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{" "}
-								{(cardata_by_cartype_systemonz != 0
-									? (cardata_by_cartype_system_mooshbat /
-											cardata_by_cartype_systemonz) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-						</div>
-					) : null}
-				</CardBody>
-			</Card>
-		</Col>
-	) : null;
+                        {collapseOpen ?
+                            <div style={{ width: '80%', marginLeft: 'auto', marginRight: 'auto', paddingTop: '25px' }}>
+                                <h6>{props.cartype.name} בטיפול: {cardata_by_cartype_intipul} <span style={{color:'DarkTurquoise'}}>(חלפים: {cardata_by_cartype_hhstand_intipul})</span></h6>
+                                <Progress color="guyblue" value={(cardata_by_cartype_not_instate != 0 ? ((cardata_by_cartype_intipul / cardata_by_cartype_not_instate) * 100) : 0)} style={{ height: '10px', marginBottom: '8px' }}>{(cardata_by_cartype_not_instate != 0 ? ((cardata_by_cartype_intipul / cardata_by_cartype_not_instate) * 100) : 0).toFixed(0)}%</Progress>
+                                <h6>{props.cartype.name} חריגי טיפול:  {cardata_by_cartype_harigtipul} <span style={{color:'DarkTurquoise'}}>(חלפים: {cardata_by_cartype_hhstand_harigtipul})</span></h6>
+                                <Progress color="guyblue" value={(cardata_by_cartype_not_instate != 0 ? ((cardata_by_cartype_harigtipul / cardata_by_cartype_not_instate) * 100) : 0)} style={{ height: '10px', marginBottom: '8px' }}>{(cardata_by_cartype_not_instate != 0 ? ((cardata_by_cartype_harigtipul / cardata_by_cartype_not_instate) * 100) : 0).toFixed(0)}%</Progress>
+                                <h6>{props.cartype.name} בתקלות מזדמנות: {cardata_by_cartype_takalotmizdamnot} <span style={{color:'DarkTurquoise'}}>(חלפים: {cardata_by_cartype_hhstand_takalotmizdamnot})</span></h6>
+                                <Progress color="guyblue" value={(cardata_by_cartype_not_instate != 0 ? ((cardata_by_cartype_takalotmizdamnot / cardata_by_cartype_not_instate) * 100) : 0)} style={{ height: '10px', marginBottom: '8px' }}>{(cardata_by_cartype_not_instate != 0 ? ((cardata_by_cartype_takalotmizdamnot / cardata_by_cartype_not_instate) * 100) : 0).toFixed(0)}%</Progress>
+                                <h6>{props.cartype.name} אי כשירות מערכת: {" "} {cardata_by_cartype_system_mooshbat}{" "} <span style={{color:'DarkTurquoise'}}>(חלפים: {cardata_by_cartype_systemonz_hh})</span></h6>
+                                <Progress color="guyblue" value={(cardata_by_cartype_systemonz != 0 ? ((cardata_by_cartype_system_mooshbat / cardata_by_cartype_systemonz) * 100) : 0)} style={{ height: '10px', marginBottom: '8px' }}>{" "}{(cardata_by_cartype_systemonz != 0 ? ((cardata_by_cartype_system_mooshbat / cardata_by_cartype_systemonz) * 100) : 0).toFixed(0)}%</Progress>
+                            </div>
+                            : null}
+                    </CardBody>
+                </Card>
+            </Col> : null
+    );
 }
 
 export default withRouter(DashboardCard);

@@ -138,6 +138,29 @@ function DashboardCard(props) {
 					temp_systems_by_lo_kashir[i]
 				);
 		}
+		let temp = [];
+		temp = temp_systems_by_lo_kashir_hhstand_intipul.map((item) => {
+			return item.tipuls
+				.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
+				.flat();
+		});
+		let temp1 = [];
+		temp1 = temp_systems_by_lo_kashir_hhstand_harigtipul.map((item) => {
+			return item.tipuls
+				.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
+				.flat();
+		});
+		let temp2 = [];
+		temp2 = temp_systems_by_lo_kashir_hhstand_takalotmizdamnot.map((item) => {
+			return item.tipuls
+				.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
+				.flat();
+		});
+		// console.log(temp_systems_by_lo_kashir_hhstand_harigtipul);
+		// console.log(temp_systems_by_lo_kashir_hhstand_takalotmizdamnot);
+		// console.log(temp.flat(2));
+		// console.log(temp.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0));
+		// console.log(hh_intipul_missing_makat_2);
 
 		setSystems(temp_systems.length);
 		setSystems_by_kashir(temp_systems_by_kashir.length);
@@ -150,13 +173,13 @@ function DashboardCard(props) {
 			temp_systems_by_lo_kashir_takalotmizdamnot.length
 		);
 		setSystems_by_lo_kashir_hhstand_intipul(
-			temp_systems_by_lo_kashir_hhstand_intipul.length
+			temp.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
 		);
 		setSystems_by_lo_kashir_hhstand_harigtipul(
-			temp_systems_by_lo_kashir_hhstand_harigtipul.length
+			temp1.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
 		);
 		setSystems_by_lo_kashir_hhstand_takalotmizdamnot(
-			temp_systems_by_lo_kashir_hhstand_takalotmizdamnot.length
+			temp2.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
 		);
 	}
 

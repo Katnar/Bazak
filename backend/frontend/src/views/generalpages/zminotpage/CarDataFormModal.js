@@ -922,14 +922,18 @@ const CarDataFormModal = (props) => {
 				`http://localhost:8000/api/archivecardata`,
 				tempcardata
 			);
-			if (technologies.length > 0) {
-				for (let x = 0; x < technologies.length; x++) {
-					tempsystemonZ[x].archiveType = "2";
-					let result3 = axios.post(
-						`http://localhost:8000/api/archivecardata`,
-						tempsystemonZ[x]
-					);
+			try {
+				if (technologies.length > 0) {
+					for (let x = 0; x < technologies.length; x++) {
+						tempsystemonZ[x].archiveType = "2";
+						let result3 = axios.post(
+							`http://localhost:8000/api/archivecardata`,
+							tempsystemonZ[x]
+						);
+					}
 				}
+			} catch (error) {
+				console.log(error);
 			}
 			toast.success(`צ' עודכן בהצלחה`);
 			props.ToggleForModal();
@@ -1317,6 +1321,7 @@ const CarDataFormModal = (props) => {
 													alignItems: "center",
 												}}
 											>
+												{/* {console.log(systems)} */}
 												{makats.map((makat, index) =>
 													makat._id == cardata.makat ? makat.description : null
 												)}
@@ -1590,14 +1595,18 @@ const CarDataFormModal = (props) => {
 												display: "flex",
 											}}
 											onClick={() => {
-												setTechnologies((currentSpec) => [
-													{
-														id: generate(),
-														carnumber: cardata.carnumber,
-														isLocked: "false",
-													},
-													...currentSpec,
-												]);
+												if (systems.length > 0) {
+													setTechnologies((currentSpec) => [
+														{
+															id: generate(),
+															carnumber: cardata.carnumber,
+															isLocked: "false",
+														},
+														...currentSpec,
+													]);
+												} else {
+													toast.error('מק"ט ריק');
+												}
 											}}
 										>
 											+
@@ -2146,7 +2155,7 @@ const CarDataFormModal = (props) => {
 																									cardata.zminot == "זמין"
 																								) {
 																									toast.error(
-																										"במקרה והכלי זמין ושכיר לא ניתן להזין עליו סיבות אי זמניות"
+																										"במקרה והכלי זמין וכשיר לא ניתן להזין עליו סיבות אי זמינות"
 																									);
 																								} else {
 																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))

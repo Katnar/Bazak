@@ -205,6 +205,10 @@ const CarDataFormModal = (props) => {
 			currentSpec.filter((x) => x.id !== deleteId)
 		);
 		setIstechformdeleteopen(!istechformdeleteopen);
+		console.log(technologies);
+		if (technologies.length > 0) {
+			setTakalaopen(false);
+		}
 	}
 	function toggleexitmodaldel(evt) {
 		setIstechformdeleteopen(!istechformdeleteopen);
@@ -1787,7 +1791,17 @@ const CarDataFormModal = (props) => {
 																				}
 																			}
 																			if (!isMashbit) {
-																				setTakalaopen(false);
+																				if (
+																					technologies.length > 0
+																						? technologies
+																								.map(
+																									(tec) => tec.kshirot == "כשיר"
+																								)
+																								.includes(true)
+																						: technologies.length > 0
+																				) {
+																					setTakalaopen(false);
+																				}
 																			}
 																		}
 																		let tempfinalspecialkeytwo = [
@@ -1914,7 +1928,17 @@ const CarDataFormModal = (props) => {
 																			}
 																		}
 																		if (!isMashbit) {
-																			setTakalaopen(false);
+																			if (
+																				technologies.length > 0
+																					? technologies
+																							.map(
+																								(tec) => tec.kshirot == "כשיר"
+																							)
+																							.includes(true)
+																					: technologies.length > 0
+																			) {
+																				setTakalaopen(false);
+																			}
 																		}
 																	}
 																	let tempfinalspecialkeytwo = [

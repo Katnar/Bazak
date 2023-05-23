@@ -1899,12 +1899,15 @@ const CarDataFormModal = (props) => {
 																		j < finalspecialkeytwo.length;
 																		j++
 																	) {
-																		if (
-																			tempfinalspecialkeytwo[j].systemType ==
-																			t.systemType
-																		) {
-																			flag = true;
-																			tempfinalspecialkeytwo.splice(j, 1);
+																		if (tempfinalspecialkeytwo[j]) {
+																			console.log(tempfinalspecialkeytwo[j]);
+																			if (
+																				tempfinalspecialkeytwo[j].systemType ==
+																				t.systemType
+																			) {
+																				flag = true;
+																				tempfinalspecialkeytwo.splice(j, 1);
+																			}
 																		}
 																	}
 																	setFinalSpecialKeytwo(tempfinalspecialkeytwo);

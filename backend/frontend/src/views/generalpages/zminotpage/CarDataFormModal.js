@@ -206,6 +206,9 @@ const CarDataFormModal = (props) => {
 		);
 		setIstechformdeleteopen(!istechformdeleteopen);
 	}
+	function toggleexitmodaldel(evt) {
+		setIstechformdeleteopen(!istechformdeleteopen);
+	}
 
 	const getTipultypes = async () => {
 		await axios
@@ -534,40 +537,6 @@ const CarDataFormModal = (props) => {
 				flag = false;
 			}
 
-			for (let j = 0; j < technologies.length; j++) {
-				if (
-					technologies[j].systemType == undefined ||
-					technologies[j].systemType == ""
-				) {
-					ErrorReason += " ,יש להגדיר סוג מערכת לכל המערכות שעל הכלי";
-					flag = false;
-				}
-				if (
-					technologies[j].kshirot == undefined ||
-					technologies[j].kshirot == ""
-				) {
-					ErrorReason += " ,יש להגדיר כשירות לכל המערכות שעל הכלי";
-					flag = false;
-				}
-				let noerror = false;
-				for (let y = 0; y < finalspecialkeytwo.length; y++) {
-					if (technologies[j].kshirot == "לא כשיר") {
-						if (
-							finalspecialkeytwo[y].systemType == technologies[j].systemType
-						) {
-							noerror = true;
-						}
-					} else {
-						noerror = true;
-					}
-				}
-				if (noerror == false) {
-					ErrorReason +=
-						" ,במקרה שמערכת על כלי לא כשירה חובה להזין סיבת אי זמינות";
-					flag = false;
-				}
-			}
-
 			for (let i = 0; i < finalspecialkeytwo.length; i++) {
 				if (
 					finalspecialkeytwo[i].errorType == undefined ||
@@ -634,8 +603,65 @@ const CarDataFormModal = (props) => {
 				}
 			}
 		}
+		if (
+			cardata.kshirot == "לא כשיר" ||
+			cardata.zminot == "לא זמין" ||
+			takalaopen
+		) {
+			if (
+				cardata.expected_repair == undefined ||
+				cardata.expected_repair == ""
+			) {
+				ErrorReason += "חובה להזין צפי תיקון";
+				flag = false;
+			}
+		}
+
+		for (let j = 0; j < technologies.length; j++) {
+			console.log(technologies[j]);
+			if (
+				technologies[j].systemType == undefined ||
+				technologies[j].systemType == ""
+			) {
+				ErrorReason += " ,יש להגדיר סוג מערכת לכל המערכות שעל הכלי";
+				flag = false;
+			}
+			if (
+				technologies[j].kshirot == undefined ||
+				technologies[j].kshirot == ""
+			) {
+				ErrorReason += " ,יש להגדיר כשירות לכל המערכות שעל הכלי";
+				flag = false;
+			}
+			let noerror = false;
+			// console.log(finalspecialkeytwo);
+			// console.log(finalspecialkeytwo.length);
+			if (finalspecialkeytwo.length > 0) {
+				for (let y = 0; y < finalspecialkeytwo.length; y++) {
+					if (technologies[j].kshirot == "לא כשיר") {
+						if (
+							finalspecialkeytwo[y].systemType == technologies[j].systemType
+						) {
+							noerror = true;
+						}
+					} else {
+						noerror = true;
+					}
+				}
+			} else {
+				noerror = true;
+			}
+			console.log(noerror);
+			if (noerror == false) {
+				ErrorReason +=
+					" ,במקרה שמערכת על כלי לא כשירה חובה להזין סיבת אי זמינות";
+				flag = false;
+			}
+		}
 
 		if (flag == true) {
+			console.log(cardata.expected_repair);
+
 			if (props.cardataid != undefined) {
 				UpdateCarData();
 			} else {
@@ -1024,6 +1050,7 @@ const CarDataFormModal = (props) => {
 				carnumber={cardata.carnumber}
 				index={deleteIndex}
 				Toggle={ToggleDelete}
+				exit={toggleexitmodaldel}
 				ToggleForModal={ToggleForModalDelete}
 			/>
 			<Modal
@@ -2161,17 +2188,30 @@ const CarDataFormModal = (props) => {
 																										"במקרה והכלי זמין וכשיר לא ניתן להזין עליו סיבות אי זמינות"
 																									);
 																								} else {
-																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
-																									// console.log(technologies.map(tec => tec.kshirot == "כשיר").includes(true))
+																									console.log(
+																										technologies.map(
+																											(tec) =>
+																												tec.kshirot == "לא כשיר"
+																										)
+																									);
+																									console.log(
+																										technologies
+																											.map(
+																												(tec) =>
+																													tec.kshirot ==
+																													"לא כשיר"
+																											)
+																											.includes(true)
+																									);
 																									if (
 																										value == "Z" ||
 																										(value == "technology" &&
 																											(technologies.length > 0
-																												? !technologies
+																												? technologies
 																														.map(
 																															(tec) =>
 																																tec.kshirot ==
-																																"כשיר"
+																																"לא כשיר"
 																														)
 																														.includes(true)
 																												: technologies.length >

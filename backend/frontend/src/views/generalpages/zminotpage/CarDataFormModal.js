@@ -1027,6 +1027,46 @@ const CarDataFormModal = (props) => {
 			setDeleteId();
 		}
 	}, [props.isOpen]);
+	//* technologies kashir/not
+	useEffect(() => {
+		// console.log(technologies);
+		// console.log(systems);
+		if (
+			technologies.length > 0
+				? technologies.map((tec) => tec.kshirot == "לא כשיר").includes(true)
+				: technologies.length > 0
+		) {
+			// console.log("check");
+			setTakalaopen(true);
+		}
+	}, [technologies]);
+	useEffect(() => {
+		if (technologies.length > 0) {
+			const ismshbit = technologies.map((tec) => {
+				return systems.map((sys) => {
+					// console.log(sys.name == tec.systemType);
+					// console.log(sys.mashbit);
+					// console.log(tec.kshirot == "לא כשיר");
+					if (
+						sys.name == tec.systemType &&
+						sys.mashbit &&
+						tec.kshirot == "לא כשיר"
+					) {
+						return true;
+					}
+				});
+			});
+			// console.log(ismshbit.flat().includes(true));
+			if (ismshbit.flat().includes(true)) {
+				if (cardata.kshirot == "כשיר") {
+					toast.error(
+						"במקרה ומערכת משביתה היא לא כשירה הכלי לא יכול להיות זמין או כשיר  "
+					);
+				}
+				setCarData({ ...cardata, kshirot: "לא כשיר" });
+			}
+		}
+	}, [cardata.kshirot]);
 
 	//new 18.8.22
 
@@ -1791,17 +1831,7 @@ const CarDataFormModal = (props) => {
 																				}
 																			}
 																			if (!isMashbit) {
-																				if (
-																					technologies.length > 0
-																						? technologies
-																								.map(
-																									(tec) => tec.kshirot == "כשיר"
-																								)
-																								.includes(true)
-																						: technologies.length > 0
-																				) {
-																					setTakalaopen(false);
-																				}
+																				setTakalaopen(false);
 																			}
 																		}
 																		let tempfinalspecialkeytwo = [
@@ -1928,17 +1958,7 @@ const CarDataFormModal = (props) => {
 																			}
 																		}
 																		if (!isMashbit) {
-																			if (
-																				technologies.length > 0
-																					? technologies
-																							.map(
-																								(tec) => tec.kshirot == "כשיר"
-																							)
-																							.includes(true)
-																					: technologies.length > 0
-																			) {
-																				setTakalaopen(false);
-																			}
+																			setTakalaopen(false);
 																		}
 																	}
 																	let tempfinalspecialkeytwo = [
@@ -1951,7 +1971,7 @@ const CarDataFormModal = (props) => {
 																		j++
 																	) {
 																		if (tempfinalspecialkeytwo[j]) {
-																			console.log(tempfinalspecialkeytwo[j]);
+																			// console.log(tempfinalspecialkeytwo[j]);
 																			if (
 																				tempfinalspecialkeytwo[j].systemType ==
 																				t.systemType

@@ -856,72 +856,80 @@ const CarDataFormModal = (props) => {
 			let tempsystemonZ = { ...technologies };
 			let tempfinalspecialkeytwo = { ...finalspecialkeytwo };
 			let temptipuls = [];
+			// if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
+			// 	tempcardata.tipuls = [];
+			// 	tempcardata.takala_info = "";
+			// 	tempcardata.expected_repair = "";
+			// } else {
 			if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
 				tempcardata.tipuls = [];
-				tempcardata.takala_info = "";
-				tempcardata.expected_repair = "";
-			} else {
-				//for sorting tipuls between cardata and systemsonZ
-				for (let j = 0; j < technologies.length; j++) {
-					if (tempsystemonZ[j].kshirot == "לא כשיר") {
-						for (let i = 0; i < finalspecialkeytwo.length; i++) {
-							if (
-								tempfinalspecialkeytwo[i].systemType ==
-								tempsystemonZ[j].systemType
-							) {
-								let temperror = { ...tempfinalspecialkeytwo[i] };
-								let tempsystem = [{ ...tempsystemonZ[j].tipuls }];
-								delete temperror.errorType;
-								delete temperror.systemType;
-								tempfinalspecialkeytwo[i] = temperror;
-								if (tempsystemonZ[j].tipuls == undefined) {
-									tempsystemonZ[j] = {
-										...tempsystemonZ[j],
-										tipuls: tempfinalspecialkeytwo[i],
-									};
-								} else {
-									tempsystem.push(tempfinalspecialkeytwo[i]);
-									tempsystemonZ[j].tipuls = tempsystem;
-								}
-								tempsystemonZ[j].expected_repair = cardata.expected_repair;
-								tempsystemonZ[j].takala_info = cardata.takala_info;
+			}
+			// console.log(tempcardata.tipuls);
+			//for sorting tipuls between cardata and systemsonZ
+			for (let j = 0; j < technologies.length; j++) {
+				if (tempsystemonZ[j].kshirot == "לא כשיר") {
+					for (let i = 0; i < finalspecialkeytwo.length; i++) {
+						if (
+							tempfinalspecialkeytwo[i].systemType ==
+							tempsystemonZ[j].systemType
+						) {
+							let temperror = { ...tempfinalspecialkeytwo[i] };
+							let tempsystem = [{ ...tempsystemonZ[j].tipuls }];
+							delete temperror.errorType;
+							delete temperror.systemType;
+							tempfinalspecialkeytwo[i] = temperror;
+							if (tempsystemonZ[j].tipuls == undefined) {
+								tempsystemonZ[j] = {
+									...tempsystemonZ[j],
+									tipuls: tempfinalspecialkeytwo[i],
+								};
+							} else {
+								tempsystem.push(tempfinalspecialkeytwo[i]);
+								tempsystemonZ[j].tipuls = tempsystem;
 							}
-						}
-					} else {
-						if (tempsystemonZ[j].tipuls == undefined) {
-							tempsystemonZ[j] = { ...tempsystemonZ[j], tipuls: [] };
-						}
-						if (tempsystemonZ[j].expected_repair == undefined) {
-							tempsystemonZ[j] = { ...tempsystemonZ[j], expected_repair: "" };
-						}
-						if (tempsystemonZ[j].takala_info == undefined) {
-							tempsystemonZ[j] = { ...tempsystemonZ[j], takala_info: "" };
-						}
-						if (tempsystemonZ[j].tipuls) {
-							tempsystemonZ[j].tipuls = [];
-						}
-						if (tempsystemonZ[j].expected_repair) {
-							tempsystemonZ[j].expected_repair = "";
-						}
-						if (tempsystemonZ[j].takala_info) {
-							tempsystemonZ[j].takala_info = "";
+							tempsystemonZ[j].expected_repair = cardata.expected_repair;
+							tempsystemonZ[j].takala_info = cardata.takala_info;
 						}
 					}
+				} else {
+					if (tempsystemonZ[j].tipuls == undefined) {
+						tempsystemonZ[j] = { ...tempsystemonZ[j], tipuls: [] };
+					}
+					if (tempsystemonZ[j].expected_repair == undefined) {
+						tempsystemonZ[j] = { ...tempsystemonZ[j], expected_repair: "" };
+					}
+					if (tempsystemonZ[j].takala_info == undefined) {
+						tempsystemonZ[j] = { ...tempsystemonZ[j], takala_info: "" };
+					}
+					if (tempsystemonZ[j].tipuls) {
+						tempsystemonZ[j].tipuls = [];
+					}
+					if (tempsystemonZ[j].expected_repair) {
+						tempsystemonZ[j].expected_repair = "";
+					}
+					if (tempsystemonZ[j].takala_info) {
+						tempsystemonZ[j].takala_info = "";
+					}
 				}
+			}
 
-				for (let l = 0; l < finalspecialkeytwo.length; l++) {
-					if (tempfinalspecialkeytwo[l].errorType == "Z") {
-						let temp = { ...finalspecialkeytwo[l] };
-						delete temp.errorType;
+			for (let l = 0; l < finalspecialkeytwo.length; l++) {
+				if (tempfinalspecialkeytwo[l].errorType == "Z") {
+					let temp = { ...finalspecialkeytwo[l] };
+					delete temp.errorType;
+					if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
+						toast.error("הכלי זמין וכשיר סיבת אי זמניות על צ נמחקה");
+					} else {
 						temptipuls.push(temp);
 					}
 				}
-				tempcardata.tipuls = temptipuls;
-				if (tempcardata.tipuls.length == 0) {
-					tempcardata.expected_repair = "";
-					tempcardata.takala_info = "";
-				}
 			}
+			tempcardata.tipuls = temptipuls;
+			if (tempcardata.tipuls.length == 0) {
+				tempcardata.expected_repair = "";
+				tempcardata.takala_info = "";
+			}
+			// }
 
 			var isTechnology = false;
 			var newMakat;
@@ -1039,8 +1047,10 @@ const CarDataFormModal = (props) => {
 		) {
 			// console.log("check");
 			setTakalaopen(true);
+		} else {
+			setTakalaopen(false);
 		}
-	}, [technologies]);
+	}, [technologies, cardata.kshirot, cardata.zminot]);
 	useEffect(() => {
 		if (technologies.length > 0) {
 			const ismshbit = technologies.map((tec) => {
@@ -1059,15 +1069,15 @@ const CarDataFormModal = (props) => {
 			});
 			// console.log(ismshbit.flat().includes(true));
 			if (ismshbit.flat().includes(true)) {
-				if (cardata.kshirot == "כשיר") {
+				if (cardata.kshirot == "כשיר" || cardata.zminot == "זמין") {
 					toast.error(
 						"במקרה ומערכת משביתה היא לא כשירה הכלי לא יכול להיות זמין או כשיר  "
 					);
 				}
-				setCarData({ ...cardata, kshirot: "לא כשיר" });
+				setCarData({ ...cardata, kshirot: "לא כשיר", zminot: "לא זמין" });
 			}
 		}
-	}, [cardata.kshirot]);
+	}, [cardata.kshirot, cardata.zminot]);
 
 	//new 18.8.22
 
@@ -1677,7 +1687,7 @@ const CarDataFormModal = (props) => {
 														...currentSpec,
 													]);
 												} else {
-													toast.error('מק"ט ריק');
+													toast.error('על מק"ט זה לא קיימות מערכות');
 												}
 											}}
 										>

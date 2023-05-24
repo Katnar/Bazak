@@ -1025,6 +1025,7 @@ const CarDataFormModal = (props) => {
 			setFinalSpecialKeytwo([]);
 			setTechnologies([]);
 			setDeleteId();
+			setTakalaopen(false);
 		}
 	}, [props.isOpen]);
 	//* technologies kashir/not

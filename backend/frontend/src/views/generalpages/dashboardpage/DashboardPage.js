@@ -123,7 +123,7 @@ function DashboardPage({ match, theme }) {
 		let myArrayFiltered3 = []; //filter ismushbat
 
 		myArrayFiltered3 = myArrayFiltered2.filter((el) => {
-			return "מושבת" != el.status;
+			return "מושבת" != el.status && "מיועד להשבתה" != el.status;
 		});
 
 		setCardatas(myArrayFiltered3);

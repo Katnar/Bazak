@@ -34,8 +34,6 @@ import deletepic from "assets/img/delete.png";
 import savepic from "assets/img/save.png";
 import editpic from "assets/img/write.png";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import TechFormModalDelete from "./TechFormModalDelete";
 
 const CarDataFormModal = (props) => {
@@ -61,6 +59,11 @@ const CarDataFormModal = (props) => {
 	const [tipuls, setTipuls] = useState([]);
 	//systems
 	const [systems, setSystems] = useState([]);
+	const [takalaopen, setTakalaopen] = useState(false);
+	//formdelete
+	const [istechformdeleteopen, setIstechformdeleteopen] = useState(false);
+	const [deleteId, setDeleteId] = useState();
+	const [deleteIndex, setDeleteIndex] = useState();
 
 	const loadcardata = async () => {
 		await axios
@@ -91,19 +94,31 @@ const CarDataFormModal = (props) => {
 								delete temp.tipuls;
 								delete temp.createdAt;
 								delete temp.updatedAt;
+								delete temp.expected_repair;
+								delete temp.takala_info;
 								tempTechnologies.push(temp);
 								for (let j = 0; j < tempsystemonZ[i].tipuls.length; j++) {
-									tempsystemonZ[i].tipuls[j] = {
-										...tempsystemonZ[i].tipuls[j],
-										errorType: "technology",
-										systemType: tempsystemonZ[i].systemType,
-									};
-									tempfinalspecialkeytwo.push(tempsystemonZ[i].tipuls[j]);
+									if (tempsystemonZ[i].kshirot == "לא כשיר") {
+										tempsystemonZ[i].tipuls[j] = {
+											...tempsystemonZ[i].tipuls[j],
+											errorType: "technology",
+											systemType: tempsystemonZ[i].systemType,
+										};
+										tempfinalspecialkeytwo.push(tempsystemonZ[i].tipuls[j]);
+									}
+								}
+								if (tempcardata.expected_repair == "") {
+									tempcardata.expected_repair =
+										tempsystemonZ[i].expected_repair;
+								}
+								if (tempcardata.takala_info == "") {
+									tempcardata.takala_info = tempsystemonZ[i].takala_info;
 								}
 							}
 							let arr = tempcardata.tipuls.concat(tempfinalspecialkeytwo);
 							setFinalSpecialKeytwo(arr);
 							setTechnologies(tempTechnologies);
+							setCarData(tempcardata);
 						}
 					});
 
@@ -166,6 +181,39 @@ const CarDataFormModal = (props) => {
 		setCarData(tempcardata);
 	};
 
+	function ToggleDelete(t, index) {
+		setDeleteId(t.id);
+		setDeleteIndex(index);
+		setIstechformdeleteopen(!istechformdeleteopen);
+	}
+	function ToggleForModalDelete(evt) {
+		let tempfinalspecialkeytwo = [...finalspecialkeytwo];
+		for (let j = 0; j < finalspecialkeytwo.length; j++) {
+			if (
+				tempfinalspecialkeytwo[j].systemType ==
+				technologies[deleteIndex].systemType
+			) {
+				tempfinalspecialkeytwo.splice(j, 1);
+			}
+		}
+		setFinalSpecialKeytwo(tempfinalspecialkeytwo);
+		toast.info(
+			"בעקבות עדכון כשירות מערכת על גבי הכלי, סיבות אי הזמינות עודכנו בהתאם"
+		);
+
+		setTechnologies((currentSpec) =>
+			currentSpec.filter((x) => x.id !== deleteId)
+		);
+		setIstechformdeleteopen(!istechformdeleteopen);
+		console.log(technologies);
+		if (technologies.length > 0) {
+			setTakalaopen(false);
+		}
+	}
+	function toggleexitmodaldel(evt) {
+		setIstechformdeleteopen(!istechformdeleteopen);
+	}
+
 	const getTipultypes = async () => {
 		await axios
 			.get(`http://localhost:8000/api/tipul`)
@@ -195,7 +243,6 @@ const CarDataFormModal = (props) => {
 				for (let i = 0; i < technologies.length; i++) {
 					// technologeies is the tempsystems that are attached to this makat
 					let flag = true;
-					console.log(tempsystems.length);
 					for (let j = 0; j < tempsystems.length; j++) {
 						if (technologies[i].systemType == tempsystems[j].name) {
 							//current system on makat vs all the tempsystems from the new dropdown list
@@ -395,6 +442,9 @@ const CarDataFormModal = (props) => {
 			delete tempcardata[name];
 			setCarData(tempcardata);
 		}
+		toast.error(
+			'במקרה של שינוי מק"ט, יש לבדוק אם המערכות שעל הצ יכולות להיות על המק"ט החדש'
+		);
 	}
 
 	const clickSubmit = (event) => {
@@ -491,23 +541,6 @@ const CarDataFormModal = (props) => {
 				flag = false;
 			}
 
-			for (let j = 0; j < technologies.length; j++) {
-				if (
-					technologies[j].systemType == undefined ||
-					technologies[j].systemType == ""
-				) {
-					ErrorReason += " ,יש להגדיר סוג מערכת לכל המערכות שעל הכלי";
-					flag = false;
-				}
-				if (
-					technologies[j].kshirot == undefined ||
-					technologies[j].kshirot == ""
-				) {
-					ErrorReason += " ,יש להגדיר כשירות לכל המערכות שעל הכלי";
-					flag = false;
-				}
-			}
-
 			for (let i = 0; i < finalspecialkeytwo.length; i++) {
 				if (
 					finalspecialkeytwo[i].errorType == undefined ||
@@ -574,8 +607,65 @@ const CarDataFormModal = (props) => {
 				}
 			}
 		}
+		if (
+			cardata.kshirot == "לא כשיר" ||
+			cardata.zminot == "לא זמין" ||
+			takalaopen
+		) {
+			if (
+				cardata.expected_repair == undefined ||
+				cardata.expected_repair == ""
+			) {
+				ErrorReason += "חובה להזין צפי תיקון";
+				flag = false;
+			}
+		}
+
+		for (let j = 0; j < technologies.length; j++) {
+			console.log(technologies[j]);
+			if (
+				technologies[j].systemType == undefined ||
+				technologies[j].systemType == ""
+			) {
+				ErrorReason += " ,יש להגדיר סוג מערכת לכל המערכות שעל הכלי";
+				flag = false;
+			}
+			if (
+				technologies[j].kshirot == undefined ||
+				technologies[j].kshirot == ""
+			) {
+				ErrorReason += " ,יש להגדיר כשירות לכל המערכות שעל הכלי";
+				flag = false;
+			}
+			let noerror = false;
+			// console.log(finalspecialkeytwo);
+			// console.log(finalspecialkeytwo.length);
+			if (finalspecialkeytwo.length > 0) {
+				for (let y = 0; y < finalspecialkeytwo.length; y++) {
+					if (technologies[j].kshirot == "לא כשיר") {
+						if (
+							finalspecialkeytwo[y].systemType == technologies[j].systemType
+						) {
+							noerror = true;
+						}
+					} else {
+						noerror = true;
+					}
+				}
+			} else {
+				noerror = true;
+			}
+			console.log(noerror);
+			if (noerror == false) {
+				ErrorReason +=
+					" ,במקרה שמערכת על כלי לא כשירה חובה להזין סיבת אי זמינות";
+				flag = false;
+			}
+		}
 
 		if (flag == true) {
+			console.log(cardata.expected_repair);
+
 			if (props.cardataid != undefined) {
 				UpdateCarData();
 			} else {
@@ -674,9 +764,9 @@ const CarDataFormModal = (props) => {
 				delete tempcardata.expected_repair;
 			} else {
 				//for sorting tipuls between cardata and systemsonZ
-				for (let i = 0; i < finalspecialkeytwo.length; i++) {
-					if (tempfinalspecialkeytwo[i].errorType == "technology") {
-						for (let j = 0; j < technologies.length; j++) {
+				for (let j = 0; j < technologies.length; j++) {
+					if (tempsystemonZ[j].kshirot == "לא כשיר") {
+						for (let i = 0; i < finalspecialkeytwo.length; i++) {
 							if (
 								tempfinalspecialkeytwo[i].systemType ==
 								tempsystemonZ[j].systemType
@@ -695,14 +785,34 @@ const CarDataFormModal = (props) => {
 									tempsystem.push(tempfinalspecialkeytwo[i]);
 									tempsystemonZ[j].tipuls = tempsystem;
 								}
+								tempsystemonZ[j].expected_repair = cardata.expected_repair;
+								tempsystemonZ[j].takala_info = cardata.takala_info;
 							}
 						}
 					} else {
-						let temp = { ...finalspecialkeytwo[i] };
+						if (tempsystemonZ[j].tipuls) {
+							tempsystemonZ[j].tipuls = [];
+						}
+						if (tempsystemonZ[j].expected_repair) {
+							tempsystemonZ[j].expected_repair = "";
+						}
+						if (tempsystemonZ[j].takala_info) {
+							tempsystemonZ[j].takala_info = "";
+						}
+					}
+				}
+
+				for (let l = 0; l < finalspecialkeytwo.length; l++) {
+					if (tempfinalspecialkeytwo[l].errorType == "Z") {
+						let temp = { ...finalspecialkeytwo[l] };
 						delete temp.errorType;
 						temptipuls.push(temp);
 					}
-					tempcardata.tipuls = temptipuls;
+				}
+				tempcardata.tipuls = temptipuls;
+				if (tempcardata.tipuls.length == 0) {
+					tempcardata.expected_repair = "";
+					tempcardata.takala_info = "";
 				}
 			}
 
@@ -746,43 +856,81 @@ const CarDataFormModal = (props) => {
 			let tempsystemonZ = { ...technologies };
 			let tempfinalspecialkeytwo = { ...finalspecialkeytwo };
 			let temptipuls = [];
+			// if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
+			// 	tempcardata.tipuls = [];
+			// 	tempcardata.takala_info = "";
+			// 	tempcardata.expected_repair = "";
+			// } else {
 			if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
 				tempcardata.tipuls = [];
-				tempcardata.takala_info = "";
-				tempcardata.expected_repair = "";
-			} else {
-				//for sorting tipuls between cardata and systemsonZ
-				for (let i = 0; i < finalspecialkeytwo.length; i++) {
-					if (tempfinalspecialkeytwo[i].errorType == "technology") {
-						for (let j = 0; j < technologies.length; j++) {
-							if (
-								tempfinalspecialkeytwo[i].systemType ==
-								tempsystemonZ[j].systemType
-							) {
-								let temperror = { ...tempfinalspecialkeytwo[i] };
-								let tempsystem = [{ ...tempsystemonZ[j].tipuls }];
-								delete temperror.errorType;
-								delete temperror.systemType;
-								tempfinalspecialkeytwo[i] = temperror;
-								if (tempsystemonZ[j].tipuls == undefined) {
-									tempsystemonZ[j] = {
-										...tempsystemonZ[j],
-										tipuls: tempfinalspecialkeytwo[i],
-									};
-								} else {
-									tempsystem.push(tempfinalspecialkeytwo[i]);
-									tempsystemonZ[j].tipuls = tempsystem;
-								}
+			}
+			// console.log(tempcardata.tipuls);
+			//for sorting tipuls between cardata and systemsonZ
+			for (let j = 0; j < technologies.length; j++) {
+				if (tempsystemonZ[j].kshirot == "לא כשיר") {
+					for (let i = 0; i < finalspecialkeytwo.length; i++) {
+						if (
+							tempfinalspecialkeytwo[i].systemType ==
+							tempsystemonZ[j].systemType
+						) {
+							let temperror = { ...tempfinalspecialkeytwo[i] };
+							let tempsystem = [{ ...tempsystemonZ[j].tipuls }];
+							delete temperror.errorType;
+							delete temperror.systemType;
+							tempfinalspecialkeytwo[i] = temperror;
+							if (tempsystemonZ[j].tipuls == undefined) {
+								tempsystemonZ[j] = {
+									...tempsystemonZ[j],
+									tipuls: tempfinalspecialkeytwo[i],
+								};
+							} else {
+								tempsystem.push(tempfinalspecialkeytwo[i]);
+								tempsystemonZ[j].tipuls = tempsystem;
 							}
+							tempsystemonZ[j].expected_repair = cardata.expected_repair;
+							tempsystemonZ[j].takala_info = cardata.takala_info;
 						}
-					} else {
-						let temp = { ...finalspecialkeytwo[i] };
-						delete temp.errorType;
-						temptipuls.push(temp);
 					}
-					tempcardata.tipuls = temptipuls;
+				} else {
+					if (tempsystemonZ[j].tipuls == undefined) {
+						tempsystemonZ[j] = { ...tempsystemonZ[j], tipuls: [] };
+					}
+					if (tempsystemonZ[j].expected_repair == undefined) {
+						tempsystemonZ[j] = { ...tempsystemonZ[j], expected_repair: "" };
+					}
+					if (tempsystemonZ[j].takala_info == undefined) {
+						tempsystemonZ[j] = { ...tempsystemonZ[j], takala_info: "" };
+					}
+					if (tempsystemonZ[j].tipuls) {
+						tempsystemonZ[j].tipuls = [];
+					}
+					if (tempsystemonZ[j].expected_repair) {
+						tempsystemonZ[j].expected_repair = "";
+					}
+					if (tempsystemonZ[j].takala_info) {
+						tempsystemonZ[j].takala_info = "";
+					}
 				}
 			}
+
+			for (let l = 0; l < finalspecialkeytwo.length; l++) {
+				if (tempfinalspecialkeytwo[l].errorType == "Z") {
+					let temp = { ...finalspecialkeytwo[l] };
+					delete temp.errorType;
+					if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
+						toast.error("הכלי זמין וכשיר סיבת אי זמניות על צ נמחקה");
+					} else {
+						temptipuls.push(temp);
+					}
+				}
+			}
+			tempcardata.tipuls = temptipuls;
+			if (tempcardata.tipuls.length == 0) {
+				tempcardata.expected_repair = "";
+				tempcardata.takala_info = "";
+			}
+			// }
+
 			var isTechnology = false;
 			var newMakat;
 			if (tempcardata.magadal == "magadal04") {
@@ -807,28 +955,26 @@ const CarDataFormModal = (props) => {
 			}
 			//create archivecardata
 			delete tempcardata._id;
+			tempcardata.archiveType = "1";
 			let result2 = axios.post(
 				`http://localhost:8000/api/archivecardata`,
 				tempcardata
 			);
+			try {
+				if (technologies.length > 0) {
+					for (let x = 0; x < technologies.length; x++) {
+						tempsystemonZ[x].archiveType = "2";
+						let result3 = axios.post(
+							`http://localhost:8000/api/archivecardata`,
+							tempsystemonZ[x]
+						);
+					}
+				}
+			} catch (error) {
+				console.log(error);
+			}
 			toast.success(`צ' עודכן בהצלחה`);
 			props.ToggleForModal();
-		}
-	}
-
-	function fixtechnologies() {
-		for (let i = 0; i < technologies.length; i++) {
-			// technologeies is the systems that are attached to this makat
-			let flag = true;
-			for (let j = 0; j < systems.length; j++) {
-				if (technologies[i].systemType == systems[j].name) {
-					//current system on makat vs all the systems from the new dropdown list
-					flag = false;
-				}
-			}
-			if (flag == true) {
-				setTechnologies([]);
-			}
 		}
 	}
 
@@ -886,8 +1032,52 @@ const CarDataFormModal = (props) => {
 			setCarData({});
 			setFinalSpecialKeytwo([]);
 			setTechnologies([]);
+			setDeleteId();
+			setTakalaopen(false);
 		}
 	}, [props.isOpen]);
+	//* technologies kashir/not
+	useEffect(() => {
+		// console.log(technologies);
+		// console.log(systems);
+		if (
+			technologies.length > 0
+				? technologies.map((tec) => tec.kshirot == "לא כשיר").includes(true)
+				: technologies.length > 0
+		) {
+			// console.log("check");
+			setTakalaopen(true);
+		} else {
+			setTakalaopen(false);
+		}
+	}, [technologies, cardata.kshirot, cardata.zminot]);
+	useEffect(() => {
+		if (technologies.length > 0) {
+			const ismshbit = technologies.map((tec) => {
+				return systems.map((sys) => {
+					// console.log(sys.name == tec.systemType);
+					// console.log(sys.mashbit);
+					// console.log(tec.kshirot == "לא כשיר");
+					if (
+						sys.name == tec.systemType &&
+						sys.mashbit &&
+						tec.kshirot == "לא כשיר"
+					) {
+						return true;
+					}
+				});
+			});
+			// console.log(ismshbit.flat().includes(true));
+			if (ismshbit.flat().includes(true)) {
+				if (cardata.kshirot == "כשיר" || cardata.zminot == "זמין") {
+					toast.error(
+						"במקרה ומערכת משביתה היא לא כשירה הכלי לא יכול להיות זמין או כשיר  "
+					);
+				}
+				setCarData({ ...cardata, kshirot: "לא כשיר", zminot: "לא זמין" });
+			}
+		}
+	}, [cardata.kshirot, cardata.zminot]);
 
 	//new 18.8.22
 
@@ -909,48 +1099,2849 @@ const CarDataFormModal = (props) => {
 	}, [cardata.gdod]);
 
 	return (
-		<Modal
-			style={{
-				minHeight: "100%",
-				maxHeight: "100%",
-				minWidth: "80%",
-				maxWidth: "80%",
-				justifyContent: "center",
-				alignSelf: "center",
-				marginTop:
-					finalspecialkeytwo.length > 0
-						? (finalspecialkeytwo.length * 114) / 2 + "px"
-						: "auto",
-				direction: "rtl",
-			}}
-			isOpen={props.isOpen}
-			centered
-			fullscreen
-			scrollable
-			size=""
-			toggle={props.Toggle}
-		>
-			<ModalBody>
-				<Card>
-					<CardHeader style={{ direction: "rtl" }}>
-						<CardTitle
-							tag="h4"
-							style={{
-								direction: "rtl",
-								textAlign: "center",
-								fontWeight: "bold",
-							}}
-						>
-							טופס זמינות כלי
-						</CardTitle>
-						{/*headline*/}
-					</CardHeader>
-					<CardBody style={{ direction: "rtl" }}>
-						{user.site_permission == undefined ||
-						user.site_permission == "צפייה ועריכה" ? (
-							<Container>
-								<Row>
-									{props.cardataid ? (
+		<>
+			<TechFormModalDelete
+				isOpen={istechformdeleteopen}
+				carnumber={cardata.carnumber}
+				index={deleteIndex}
+				Toggle={ToggleDelete}
+				exit={toggleexitmodaldel}
+				ToggleForModal={ToggleForModalDelete}
+			/>
+			<Modal
+				style={{
+					minHeight: "100%",
+					maxHeight: "100%",
+					minWidth: "80%",
+					maxWidth: "80%",
+					justifyContent: "center",
+					alignSelf: "center",
+					marginTop:
+						finalspecialkeytwo.length > 0
+							? (finalspecialkeytwo.length * 114) / 2 + "px"
+							: "auto",
+					direction: "rtl",
+				}}
+				isOpen={props.isOpen}
+				centered
+				fullscreen
+				scrollable
+				size=""
+				toggle={props.Toggle}
+			>
+				<ModalBody>
+					<Card>
+						<CardHeader style={{ direction: "rtl" }}>
+							<CardTitle
+								tag="h4"
+								style={{
+									direction: "rtl",
+									textAlign: "center",
+									fontWeight: "bold",
+								}}
+							>
+								טופס זמינות כלי
+							</CardTitle>
+							{/*headline*/}
+						</CardHeader>
+						<CardBody style={{ direction: "rtl" }}>
+							{user.site_permission == undefined ||
+							user.site_permission == "צפייה ועריכה" ? (
+								<Container>
+									<Row>
+										{props.cardataid ? (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6 style={{}}>צ'</h6>
+												<Input
+													placeholder="צ'"
+													type="string"
+													name="carnumber"
+													value={cardata.carnumber}
+													onChange={handleChange}
+													disabled
+												/>
+											</Col>
+										) : (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<Row>
+													<Col xs={12} md={8}>
+														<h6 style={{}}>צ'</h6>
+														<Input
+															placeholder="צ'"
+															type="string"
+															name="carnumber"
+															value={cardata.carnumber}
+															onChange={handleChange}
+														/>
+													</Col>
+													<Col
+														xs={12}
+														md={4}
+														style={{ padding: "0px", textAlign: "center" }}
+													>
+														<button
+															className="btn-new-blue"
+															style={{ margin: "0px", marginTop: "1.3rem" }}
+															onClick={CheckCarnumberAndSetFormdata}
+														>
+															חפש
+														</button>
+													</Col>
+												</Row>
+											</Col>
+										)}
+
+										<Col
+											style={{
+												justifyContent: "right",
+												alignContent: "right",
+												textAlign: "right",
+											}}
+										>
+											<h6 style={{}}>משפחה</h6>
+											<Input
+												placeholder="משפחה"
+												type="string"
+												name="family"
+												value={cardata.family}
+												onChange={handleChange}
+											/>
+										</Col>
+										<Col
+											style={{
+												justifyContent: "right",
+												alignContent: "right",
+												textAlign: "right",
+											}}
+										>
+											<h6 style={{}}>סטאטוס הכלי</h6>
+											<Input
+												placeholder="סטאטוס הכלי"
+												type="select"
+												name="status"
+												value={cardata.status}
+												onChange={handleChange}
+											>
+												<option value={"בחר"}>{"בחר"}</option>
+												<option value={"פעיל"}>{"פעיל"}</option>
+												<option value={"מושבת"}>{"מושבת"}</option>
+												<option value={"מיועד להשבתה"}>{"מיועד להשבתה"}</option>
+												{user.role == "0" ? (
+													<option value={"עצור"}>{"עצור"}</option>
+												) : null}
+											</Input>
+										</Col>
+									</Row>
+
+									<Row>
+										{!cardata.magad &&
+										(props.cardataid == undefined ||
+											cardata.magadal != "magadal04") ? ( //change to the magadal of technologies in the database in army
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מאגד על</h6>
+												<Select
+													data={
+														props.cardataid != undefined
+															? magadals.filter(
+																	(magadal) => magadal.name != "טכנולוגיות"
+															  )
+															: magadals
+													}
+													handleChange2={handleChange2}
+													name={"magadal"}
+													val={cardata.magadal ? cardata.magadal : undefined}
+												/>
+											</Col>
+										) : (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מאגד על</h6>
+												<Select
+													data={magadals}
+													handleChange2={handleChange2}
+													name={"magadal"}
+													val={cardata.magadal ? cardata.magadal : undefined}
+													isDisabled={true}
+												/>
+											</Col>
+										)}
+
+										{cardata.magadal && !cardata.mkabaz ? (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מאגד</h6>
+												<Select
+													data={magads}
+													handleChange2={handleChange2}
+													name={"magad"}
+													val={cardata.magad ? cardata.magad : undefined}
+												/>
+											</Col>
+										) : (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מאגד</h6>
+												<Select
+													data={magads}
+													handleChange2={handleChange2}
+													name={"magad"}
+													val={cardata.magad ? cardata.magad : undefined}
+													isDisabled={true}
+												/>
+											</Col>
+										)}
+
+										{cardata.magad && !cardata.makat ? (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מקבץ</h6>
+												<Select
+													data={mkabazs}
+													handleChange2={handleChange2}
+													name={"mkabaz"}
+													val={cardata.mkabaz ? cardata.mkabaz : undefined}
+												/>
+											</Col>
+										) : (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מקבץ</h6>
+												<Select
+													data={mkabazs}
+													handleChange2={handleChange2}
+													name={"mkabaz"}
+													val={cardata.mkabaz ? cardata.mkabaz : undefined}
+													isDisabled={true}
+												/>
+											</Col>
+										)}
+
+										{cardata.mkabaz ? (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מק"ט</h6>
+												<Select
+													data={makats}
+													handleChange2={handleChange2}
+													name={"makat"}
+													val={cardata.makat ? cardata.makat : undefined}
+												/>
+											</Col>
+										) : (
+											<Col
+												style={{
+													justifyContent: "right",
+													alignContent: "right",
+													textAlign: "right",
+												}}
+											>
+												<h6>מק"ט</h6>
+												<Select
+													data={makats}
+													handleChange2={handleChange2}
+													name={"makat"}
+													val={cardata.makat ? cardata.makat : undefined}
+													isDisabled={true}
+												/>
+											</Col>
+										)}
+
+										{cardata.makat ? (
+											<Col
+												style={{
+													display: "flex",
+													justifyContent: "center",
+													alignContent: "center",
+													alignItems: "center",
+												}}
+											>
+												{/* {console.log(systems)} */}
+												{makats.map((makat, index) =>
+													makat._id == cardata.makat ? makat.description : null
+												)}
+											</Col>
+										) : (
+											<Col
+												style={{
+													display: "flex",
+													justifyContent: "center",
+													alignContent: "center",
+													alignItems: "center",
+												}}
+											></Col>
+										)}
+									</Row>
+
+									<Row style={{ paddingTop: "10px" }}>
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ? (
+											<>
+												{!cardata.ogda ? (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>פיקוד</h6>
+														<Select
+															data={pikods}
+															handleChange2={handleChange2}
+															name={"pikod"}
+															val={cardata.pikod ? cardata.pikod : undefined}
+														/>
+													</Col>
+												) : (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>פיקוד</h6>
+														<Select
+															data={pikods}
+															handleChange2={handleChange2}
+															name={"pikod"}
+															val={cardata.pikod ? cardata.pikod : undefined}
+															isDisabled={true}
+														/>
+													</Col>
+												)}
+											</>
+										) : null}
+
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ||
+										props.unittype == "pikod" ? (
+											<>
+												{cardata.pikod && !cardata.hativa ? (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>אוגדה</h6>
+														<Select
+															data={ogdas}
+															handleChange2={handleChange2}
+															name={"ogda"}
+															val={cardata.ogda ? cardata.ogda : undefined}
+														/>
+													</Col>
+												) : (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>אוגדה</h6>
+														<Select
+															data={ogdas}
+															handleChange2={handleChange2}
+															name={"ogda"}
+															val={cardata.ogda ? cardata.ogda : undefined}
+															isDisabled={true}
+														/>
+													</Col>
+												)}
+											</>
+										) : null}
+
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ||
+										props.unittype == "pikod" ||
+										props.unittype == "ogda" ? (
+											<>
+												{cardata.ogda && !cardata.gdod ? (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>חטיבה</h6>
+														<Select
+															data={hativas}
+															handleChange2={handleChange2}
+															name={"hativa"}
+															val={cardata.hativa ? cardata.hativa : undefined}
+														/>
+													</Col>
+												) : (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>חטיבה</h6>
+														<Select
+															data={hativas}
+															handleChange2={handleChange2}
+															name={"hativa"}
+															val={cardata.hativa ? cardata.hativa : undefined}
+															isDisabled={true}
+														/>
+													</Col>
+												)}
+											</>
+										) : null}
+
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ||
+										props.unittype == "pikod" ||
+										props.unittype == "ogda" ||
+										props.unittype == "hativa" ? (
+											<>
+												{cardata.hativa ? (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>גדוד</h6>
+														<Select
+															data={gdods}
+															handleChange2={handleChange2}
+															name={"gdod"}
+															val={cardata.gdod ? cardata.gdod : undefined}
+														/>
+													</Col>
+												) : (
+													<Col
+														style={{
+															justifyContent: "right",
+															alignContent: "right",
+															textAlign: "right",
+														}}
+													>
+														<h6>גדוד</h6>
+														<Select
+															data={gdods}
+															handleChange2={handleChange2}
+															name={"gdod"}
+															val={cardata.gdod ? cardata.gdod : undefined}
+															isDisabled={true}
+														/>
+													</Col>
+												)}
+											</>
+										) : null}
+									</Row>
+
+									<Row>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>פלוגה</h6>
+											</div>
+											<Input
+												placeholder="פלוגה"
+												type="string"
+												name="pluga"
+												value={cardata.pluga}
+												onChange={handleChange}
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>שבצ"ק</h6>
+											</div>
+											<Input
+												placeholder={`שבצ"ק`}
+												type="string"
+												name="shabzak"
+												value={cardata.shabzak}
+												onChange={handleChange}
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מיקום בימ"ח</h6>
+											</div>
+											<Input
+												placeholder={`מיקום בימ"ח`}
+												type="string"
+												name="mikum_bimh"
+												value={cardata.mikum_bimh}
+												onChange={handleChange}
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מעמד הכלי</h6>
+											</div>
+											<Input
+												placeholder="מעמד הכלי"
+												type="select"
+												name="stand"
+												value={cardata.stand}
+												onChange={handleChange}
+											>
+												<option value={"בחר"}>בחר</option>
+												<option value={"סדיר"}>סדיר</option>
+												<option value={"הכן"}>הכן</option>
+												<option value={'הח"י'}>הח"י</option>
+											</Input>
+										</Col>
+									</Row>
+
+									<h4
+										style={{
+											direction: "rtl",
+											textAlign: "center",
+											fontWeight: "bold",
+										}}
+									>
+										זמינות/כשירות
+									</h4>
+
+									<div
+										style={{
+											textAlign: "right",
+											paddingTop: "10px",
+											fontWeight: "bold",
+										}}
+									>
+										<h6>טכנולוגיות על גבי אמל"ח</h6>
+									</div>
+									{cardata.makat ? (
+										<button
+											className="btn-new-blue"
+											style={{
+												position: "relative",
+												padding: "11px 17px",
+												borderRadius: "50%",
+												display: "flex",
+											}}
+											onClick={() => {
+												if (systems.length > 0) {
+													setTechnologies((currentSpec) => [
+														{
+															id: generate(),
+															carnumber: cardata.carnumber,
+															isLocked: "false",
+														},
+														...currentSpec,
+													]);
+												} else {
+													toast.error('על מק"ט זה לא קיימות מערכות');
+												}
+											}}
+										>
+											+
+										</button>
+									) : (
+										<button
+											className="btn-new-blue"
+											style={{
+												position: "relative",
+												padding: "11px 17px",
+												borderRadius: "50%",
+												display: "flex",
+											}}
+											onClick={() => {
+												toast.error('מק"ט ריק');
+											}}
+										>
+											+
+										</button>
+									)}
+
+									{technologies.map((t, index) => {
+										return t.isLocked == "false" ? (
+											<Row>
+												<img
+													style={{
+														cursor: "pointer",
+														padding: "1px",
+														height: "25px",
+														marginTop: "28px",
+														marginLeft: "15px",
+													}}
+													src={savepic}
+													height="15px"
+													onClick={() => {
+														if (t.systemType) {
+															setTechnologies((currentSpec) =>
+																produce(currentSpec, (v) => {
+																	v[index].isLocked = "true";
+																})
+															);
+														} else {
+															toast.error(
+																"על מנת לשמור מערכת יש לציין את סוג המערכת"
+															);
+														}
+													}}
+												/>
+												<button
+													className="btn-new-delete"
+													style={{
+														padding: "1px",
+														height: "25px",
+														marginTop: "28px",
+													}}
+													onClick={() => ToggleDelete(t, index)}
+												>
+													<img src={deletepic} height="15px"></img>
+												</button>
+												<Col xs={12} md={4}>
+													<div>
+														<p style={{ margin: "0px", float: "right" }}>
+															<h6>סוג מערכת</h6>
+														</p>
+														<Input
+															onChange={(e) => {
+																const tech = e.target.value;
+																let flag = false;
+																if (tech != "בחר")
+																	if (technologies.length > 1) {
+																		for (
+																			let i = 0;
+																			i < technologies.length;
+																			i++
+																		) {
+																			if (technologies[i].systemType == tech) {
+																				flag = true;
+																			}
+																		}
+																	}
+																if (flag == false) {
+																	setTechnologies((currentSpec) =>
+																		produce(currentSpec, (v) => {
+																			v[index].systemType = tech;
+																		})
+																	);
+																	setTechnologies((currentSpec) =>
+																		produce(currentSpec, (v) => {
+																			v[index].isLocked = "true";
+																		})
+																	);
+																} else {
+																	toast.error("מערכת זו כבר מקושרת ל-צ' זה");
+																}
+															}}
+															value={t.systemType ? t.systemType : "בחר"}
+															type="select"
+															placeholder="סוג מערכת"
+														>
+															<option value={"בחר"}>{"בחר"}</option>
+															{systems.map((system, i) =>
+																system ? (
+																	<option value={system.name}>
+																		{system.name}
+																	</option>
+																) : null
+															)}
+														</Input>
+													</div>
+												</Col>
+												<Col xs={12} md={4}>
+													<div>
+														<p style={{ margin: "0px", float: "right" }}>
+															<h6>כשירות</h6>
+														</p>
+														<Input
+															onChange={(e) => {
+																const kshirot = e.target.value;
+																if (e.target.value != "בחר") {
+																	setTechnologies((currentSpec) =>
+																		produce(currentSpec, (v) => {
+																			v[index].kshirot = kshirot;
+																		})
+																	);
+																	if (e.target.value == "לא כשיר") {
+																		let isMashbit;
+																		for (let i = 0; i < systems.length; i++) {
+																			if (systems[i].name == t.systemType) {
+																				isMashbit = systems[i].mashbit;
+																			}
+																		}
+																		if (isMashbit == true) {
+																			setCarData({
+																				...cardata,
+																				zminot: "לא זמין",
+																				kshirot: "לא כשיר",
+																			});
+																			toast.info(
+																				"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
+																			);
+																		}
+																		if (!isMashbit) {
+																			setTakalaopen(true);
+																		}
+																	} else {
+																		if (e.target.value == "כשיר") {
+																			let isMashbit;
+																			for (let i = 0; i < systems.length; i++) {
+																				if (systems[i].name == t.systemType) {
+																					isMashbit = systems[i].mashbit;
+																				}
+																			}
+																			if (!isMashbit) {
+																				setTakalaopen(false);
+																			}
+																		}
+																		let tempfinalspecialkeytwo = [
+																			...finalspecialkeytwo,
+																		];
+																		let flag = false;
+																		for (
+																			let j = 0;
+																			j < finalspecialkeytwo.length;
+																			j++
+																		) {
+																			if (
+																				tempfinalspecialkeytwo[j].systemType ==
+																				t.systemType
+																			) {
+																				flag = true;
+																				tempfinalspecialkeytwo.splice(j, 1);
+																			}
+																		}
+																		setFinalSpecialKeytwo(
+																			tempfinalspecialkeytwo
+																		);
+																		if (flag == true) {
+																			toast.info(
+																				"בעקבות עדכון כשירות מערכת על גבי הכלי, סיבות אי הזמינות עודכנו בהתאם"
+																			);
+																		}
+																	}
+																}
+															}}
+															value={t.kshirot ? t.kshirot : "בחר"}
+															type="select"
+															placeholder="כשירות"
+														>
+															<option value={"בחר"}>{"בחר"}</option>
+															<option value={"כשיר"}>{"כשיר"}</option>
+															<option value={"לא כשיר"}>{"לא כשיר"}</option>
+														</Input>
+													</div>
+												</Col>
+											</Row>
+										) : (
+											<Row>
+												<img
+													style={{
+														cursor: "pointer",
+														padding: "1px",
+														height: "25px",
+														marginTop: "28px",
+														marginLeft: "15px",
+													}}
+													src={editpic}
+													height="15px"
+													onClick={() => {
+														setTechnologies((currentSpec) =>
+															produce(currentSpec, (v) => {
+																v[index].isLocked = "false";
+															})
+														);
+													}}
+												/>
+												<Col xs={12} md={4}>
+													<div>
+														<p style={{ margin: "0px", float: "right" }}>
+															<h6>סוג מערכת</h6>
+														</p>
+														<Input
+															value={t.systemType ? t.systemType : "בחר"}
+															type="select"
+															placeholder="סוג מערכת"
+															disabled
+														>
+															<option value={"בחר"}>{"בחר"}</option>
+															{systems.map((system, i) =>
+																system ? (
+																	<option value={system.name}>
+																		{system.name}
+																	</option>
+																) : null
+															)}
+														</Input>
+													</div>
+												</Col>
+												<Col xs={12} md={4}>
+													<div>
+														<p style={{ margin: "0px", float: "right" }}>
+															<h6>כשירות</h6>
+														</p>
+														<Input
+															onChange={(e) => {
+																const kshirot = e.target.value;
+																if (e.target.value != "בחר")
+																	setTechnologies((currentSpec) =>
+																		produce(currentSpec, (v) => {
+																			v[index].kshirot = kshirot;
+																		})
+																	);
+																if (e.target.value == "לא כשיר") {
+																	let isMashbit;
+																	for (let i = 0; i < systems.length; i++) {
+																		if (systems[i].name == t.systemType) {
+																			isMashbit = systems[i].mashbit;
+																		}
+																	}
+																	if (isMashbit == true) {
+																		setCarData({
+																			...cardata,
+																			zminot: "לא זמין",
+																			kshirot: "לא כשיר",
+																		});
+																		toast.info(
+																			"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
+																		);
+																	}
+																	if (!isMashbit) {
+																		setTakalaopen(true);
+																	}
+																} else {
+																	if (e.target.value == "כשיר") {
+																		let isMashbit;
+																		for (let i = 0; i < systems.length; i++) {
+																			if (systems[i].name == t.systemType) {
+																				isMashbit = systems[i].mashbit;
+																			}
+																		}
+																		if (!isMashbit) {
+																			setTakalaopen(false);
+																		}
+																	}
+																	let tempfinalspecialkeytwo = [
+																		...finalspecialkeytwo,
+																	];
+																	let flag = false;
+																	for (
+																		let j = 0;
+																		j < finalspecialkeytwo.length;
+																		j++
+																	) {
+																		if (tempfinalspecialkeytwo[j]) {
+																			// console.log(tempfinalspecialkeytwo[j]);
+																			if (
+																				tempfinalspecialkeytwo[j].systemType ==
+																				t.systemType
+																			) {
+																				flag = true;
+																				tempfinalspecialkeytwo.splice(j, 1);
+																			}
+																		}
+																	}
+																	setFinalSpecialKeytwo(tempfinalspecialkeytwo);
+																	if (flag == true) {
+																		toast.info(
+																			"בעקבות עדכון כשירות מערכת על גבי הכלי, סיבות אי הזמינות עודכנו בהתאם"
+																		);
+																	}
+																}
+															}}
+															value={t.kshirot ? t.kshirot : "בחר"}
+															type="select"
+															placeholder="כשירות"
+														>
+															<option value={"בחר"}>{"בחר"}</option>
+															<option value={"כשיר"}>{"כשיר"}</option>
+															<option value={"לא כשיר"}>{"לא כשיר"}</option>
+														</Input>
+													</div>
+												</Col>
+											</Row>
+										);
+									})}
+
+									<Row>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>זמינות</h6>
+											</div>
+											<Input
+												style={{ border: "2px solid" }}
+												placeholder="זמינות"
+												type="select"
+												name="zminot"
+												value={cardata.zminot}
+												onChange={handleChange}
+											>
+												<option value={"בחר"}>בחר</option>
+												<option value={"זמין"}>זמין</option>
+												<option value={"לא זמין"}>לא זמין</option>
+											</Input>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>כשירות למלחמה</h6>
+											</div>
+											<Input
+												style={{ border: "2px solid" }}
+												placeholder="כשירות למלחמה"
+												type="select"
+												name="kshirot"
+												value={cardata.kshirot}
+												onChange={handleChange}
+											>
+												<option value={"בחר"}>בחר</option>
+												<option value={"כשיר"}>כשיר</option>
+												<option value={"לא כשיר"}>לא כשיר</option>
+											</Input>
+										</Col>
+									</Row>
+
+									{cardata.kshirot == "לא כשיר" ||
+									cardata.zminot == "לא זמין" ||
+									takalaopen ? (
+										<>
+											{/* tipuls */}
+											<div
+												style={{
+													textAlign: "right",
+													paddingTop: "10px",
+													fontWeight: "bold",
+												}}
+											>
+												<h6>סיבות אי זמינות</h6>
+											</div>
+
+											<div>
+												{finalspecialkeytwo.length == 0 ? (
+													<Row>
+														<Col
+															style={{
+																display: "flex",
+																justifyContent: "center",
+															}}
+														>
+															<Button
+																style={{ width: "100px", padding: "5px" }}
+																type="button"
+																onClick={() => {
+																	setFinalSpecialKeytwo((currentSpec) => [
+																		...currentSpec,
+																		{ id: generate(), type: "tipul" },
+																	]);
+																}}
+															>
+																הוסף טיפול
+															</Button>
+														</Col>
+														<Col
+															style={{
+																display: "flex",
+																justifyContent: "center",
+															}}
+														>
+															<Button
+																style={{ width: "100px", padding: "5px" }}
+																type="button"
+																onClick={() => {
+																	setFinalSpecialKeytwo((currentSpec) => [
+																		...currentSpec,
+																		{ id: generate(), type: "harig_tipul" },
+																	]);
+																}}
+															>
+																הוסף חריגת טיפול
+															</Button>
+														</Col>
+														<Col
+															style={{
+																display: "flex",
+																justifyContent: "center",
+															}}
+														>
+															<Button
+																style={{ width: "100px", padding: "5px" }}
+																type="button"
+																onClick={() => {
+																	setFinalSpecialKeytwo((currentSpec) => [
+																		...currentSpec,
+																		{
+																			id: generate(),
+																			type: "takala_mizdamenet",
+																		},
+																	]);
+																}}
+															>
+																הוסף תקלה מזדמנת
+															</Button>
+														</Col>
+													</Row>
+												) : (
+													finalspecialkeytwo.map((p, index) => {
+														return (
+															<div>
+																{index == 0 ? (
+																	<Row>
+																		<Col
+																			style={{
+																				display: "flex",
+																				justifyContent: "center",
+																			}}
+																		>
+																			<Button
+																				style={{
+																					width: "100px",
+																					padding: "5px",
+																				}}
+																				type="button"
+																				onClick={() => {
+																					setFinalSpecialKeytwo(
+																						(currentSpec) => [
+																							...currentSpec,
+																							{ id: generate(), type: "tipul" },
+																						]
+																					);
+																				}}
+																			>
+																				הוסף טיפול
+																			</Button>
+																		</Col>
+																		<Col
+																			style={{
+																				display: "flex",
+																				justifyContent: "center",
+																			}}
+																		>
+																			<Button
+																				style={{
+																					width: "100px",
+																					padding: "5px",
+																				}}
+																				type="button"
+																				onClick={() => {
+																					setFinalSpecialKeytwo(
+																						(currentSpec) => [
+																							...currentSpec,
+																							{
+																								id: generate(),
+																								type: "harig_tipul",
+																							},
+																						]
+																					);
+																				}}
+																			>
+																				הוסף חריגת טיפול
+																			</Button>
+																		</Col>
+																		<Col
+																			style={{
+																				display: "flex",
+																				justifyContent: "center",
+																			}}
+																		>
+																			<Button
+																				style={{
+																					width: "100px",
+																					padding: "5px",
+																				}}
+																				type="button"
+																				onClick={() => {
+																					setFinalSpecialKeytwo(
+																						(currentSpec) => [
+																							...currentSpec,
+																							{
+																								id: generate(),
+																								type: "takala_mizdamenet",
+																							},
+																						]
+																					);
+																				}}
+																			>
+																				הוסף תקלה מזדמנת
+																			</Button>
+																		</Col>
+																	</Row>
+																) : null}
+
+																{p.type == "tipul" ? (
+																	<>
+																		<Row>
+																			<Col xs={12} md={2}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>סוג כלי</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const value = e.target.value;
+																							if (value != "undefined") {
+																								if (
+																									value == "Z" &&
+																									cardata.kshirot == "כשיר" &&
+																									cardata.zminot == "זמין"
+																								) {
+																									toast.error(
+																										"במקרה והכלי זמין וכשיר לא ניתן להזין עליו סיבות אי זמינות"
+																									);
+																								} else {
+																									console.log(
+																										technologies.map(
+																											(tec) =>
+																												tec.kshirot == "לא כשיר"
+																										)
+																									);
+																									console.log(
+																										technologies
+																											.map(
+																												(tec) =>
+																													tec.kshirot ==
+																													"לא כשיר"
+																											)
+																											.includes(true)
+																									);
+																									if (
+																										value == "Z" ||
+																										(value == "technology" &&
+																											(technologies.length > 0
+																												? technologies
+																														.map(
+																															(tec) =>
+																																tec.kshirot ==
+																																"לא כשיר"
+																														)
+																														.includes(true)
+																												: technologies.length >
+																												  0))
+																									) {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														v[index].errorType =
+																															value;
+																													}
+																												)
+																										);
+																									} else {
+																										{
+																											/* text tec is kashir / not system on z */
+																										}
+																										if (
+																											technologies
+																												.map(
+																													(tec) =>
+																														tec.kshirot ==
+																														"כשיר"
+																												)
+																												.includes(true)
+																										) {
+																											toast.error(
+																												"במקרה שכל המערכות כשירות לא ניתן להזין עליהן סיבות אי זמניות"
+																											);
+																										} else {
+																											toast.error(
+																												"ל-צ' זה לא מקושרות מערכות"
+																											);
+																										}
+																									}
+																									if (value != "technology") {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														delete v[index]
+																															.systemType;
+																													}
+																												)
+																										);
+																									}
+																								}
+																							}
+																						}}
+																						value={p.errorType}
+																						type="select"
+																						placeholder="בחירה"
+																					>
+																						<option value={"undefined"}>
+																							{"בחר"}
+																						</option>
+																						<option value={"Z"}> צ' </option>
+																						<option value={"technology"}>
+																							{" "}
+																							מערכת{" "}
+																						</option>
+																					</Input>
+																				</div>
+																			</Col>
+																			{p.errorType == "technology" ? (
+																				<Col xs={12} md={2}>
+																					<div>
+																						<p
+																							style={{
+																								margin: "0px",
+																								float: "right",
+																							}}
+																						>
+																							<h6>בחר מערכת</h6>
+																						</p>
+																						<Input
+																							onChange={(e) => {
+																								const systemType =
+																									e.target.value;
+																								if (e.target.value != "בחר")
+																									setFinalSpecialKeytwo(
+																										(currentSpec) =>
+																											produce(
+																												currentSpec,
+																												(v) => {
+																													v[index].systemType =
+																														systemType;
+																												}
+																											)
+																									);
+																							}}
+																							value={p.systemType}
+																							type="select"
+																							placeholder="מערכת"
+																						>
+																							<option value={"בחר"}>
+																								{"בחר"}
+																							</option>
+																							{technologies.map(
+																								(technology, i) =>
+																									technology.kshirot ==
+																									"לא כשיר" ? (
+																										<option
+																											value={
+																												technology.systemType
+																											}
+																										>
+																											{technology.systemType}
+																										</option>
+																									) : null
+																							)}
+																						</Input>
+																					</div>
+																				</Col>
+																			) : null}
+
+																			<Col xs={12} md={3}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>סוג הטיפול</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const tipul = e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].tipul = tipul;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.tipul}
+																						type="select"
+																						placeholder="סוג הטיפול"
+																					>
+																						<option value={"בחר"}>
+																							{"בחר"}
+																						</option>
+																						{tipuls.map((tipul, i) =>
+																							tipul ? (
+																								<option value={tipul.name}>
+																									{tipul.name}
+																								</option>
+																							) : null
+																						)}
+																					</Input>
+																				</div>
+																			</Col>
+																			<Col xs={12} md={3}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>תאריך כניסה לטיפול</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const tipul_entry_date =
+																								e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[
+																													index
+																												].tipul_entry_date =
+																													tipul_entry_date;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.tipul_entry_date}
+																						type="date"
+																						placeholder="תאריך כניסה לטיפול"
+																						min="1900-01-01"
+																						max="2040-01-01"
+																					/>
+																				</div>
+																			</Col>
+																			<Col xs={12} md={2}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>מיקום הטיפול</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const mikum_tipul =
+																								e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].mikum_tipul =
+																													mikum_tipul;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.mikum_tipul}
+																						type="select"
+																						placeholder="מיקום הטיפול"
+																					>
+																						<option value={"בחר"}>
+																							{"בחר"}
+																						</option>
+																						<option value={"ביחידה"}>
+																							{"ביחידה"}
+																						</option>
+																						<option value={"אגד ארצי"}>
+																							{"אגד ארצי"}
+																						</option>
+																						<option
+																							value={`מש"א`}
+																						>{`מש"א`}</option>
+																						<option value={"אחזקות חוץ"}>
+																							{"אחזקות חוץ"}
+																						</option>
+																					</Input>
+																				</div>
+																			</Col>
+																		</Row>
+																		{/* הוספת ח"ח */}
+																		<Row>
+																			<div>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																						marginLeft: "5px",
+																						marginRight: "15px",
+																						fontWeight: "bold",
+																						fontSize: "15px",
+																					}}
+																				>
+																					<h5>האם עומד על ח"ח</h5>
+																				</p>
+																				{p.hh_stands ? (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_hh_stand"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands = [
+																													{
+																														id: generate(),
+																														type: "hh_stand",
+																													},
+																												];
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.hh_stands;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																						checked
+																					/>
+																				) : (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_hh_stand"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands = [
+																													{
+																														id: generate(),
+																														type: "hh_stand",
+																													},
+																												];
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.hh_stands;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																					/>
+																				)}
+																			</div>
+																		</Row>
+																		{p.hh_stands ? (
+																			<>
+																				<Row>
+																					<Col>
+																						<Button
+																							style={{
+																								width: "100px",
+																								padding: "5px",
+																								display: "flex",
+																							}}
+																							type="button"
+																							onClick={() => {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands[
+																													p.hh_stands.length
+																												] = {
+																													id: generate(),
+																													type: "hh_stand",
+																												};
+																											}
+																										)
+																								);
+																							}}
+																						>
+																							הוסף עומד על ח"ח
+																						</Button>
+																					</Col>
+																				</Row>
+																				{p.hh_stands.map((hh_stand, i) => {
+																					return (
+																						<>
+																							<Row>
+																								<Col xs={12} md={6}>
+																									<div>
+																										<p
+																											style={{
+																												margin: "0px",
+																												float: "right",
+																											}}
+																										>
+																											<h6>מק"ט חסר</h6>
+																										</p>
+																										<Input
+																											onChange={(e) => {
+																												const missing_makat_1 =
+																													e.target.value;
+																												if (
+																													e.target.value !=
+																													"בחר"
+																												)
+																													setFinalSpecialKeytwo(
+																														(currentSpec) =>
+																															produce(
+																																currentSpec,
+																																(v) => {
+																																	v[
+																																		index
+																																	].hh_stands[
+																																		i
+																																	].missing_makat_1 =
+																																		missing_makat_1;
+																																}
+																															)
+																													);
+																											}}
+																											value={
+																												p.hh_stands[i]
+																													.missing_makat_1
+																													? p.hh_stands[i]
+																															.missing_makat_1
+																													: ""
+																											}
+																											type="string"
+																											placeholder={`מק"ט חסר`}
+																										></Input>
+																									</div>
+																								</Col>
+																								<Col xs={12} md={6}>
+																									<div>
+																										<p
+																											style={{
+																												margin: "0px",
+																												float: "right",
+																											}}
+																										>
+																											<h6>כמות</h6>
+																										</p>
+																										<Input
+																											onChange={(e) => {
+																												const missing_makat_2 =
+																													e.target.value;
+																												if (
+																													missing_makat_2 ==
+																														null ||
+																													!isNaN(
+																														missing_makat_2
+																													)
+																												)
+																													setFinalSpecialKeytwo(
+																														(currentSpec) =>
+																															produce(
+																																currentSpec,
+																																(v) => {
+																																	v[
+																																		index
+																																	].hh_stands[
+																																		i
+																																	].missing_makat_2 =
+																																		missing_makat_2;
+																																}
+																															)
+																													);
+																											}}
+																											value={
+																												p.hh_stands[i]
+																													.missing_makat_2
+																													? p.hh_stands[i]
+																															.missing_makat_2
+																													: ""
+																											}
+																											type="string"
+																											placeholder={`כמות`}
+																										></Input>
+																									</div>
+																								</Col>
+																							</Row>
+																							<Button
+																								style={{ display: "block" }}
+																								type="button"
+																								onClick={() => {
+																									let newArr = JSON.parse(
+																										JSON.stringify(
+																											finalspecialkeytwo
+																										)
+																									);
+																									newArr[
+																										index
+																									].hh_stands.splice(i, 1);
+																									setFinalSpecialKeytwo(newArr);
+																								}}
+																							>
+																								<img
+																									src={deletepic}
+																									height="20px"
+																								></img>
+																							</Button>
+																						</>
+																					);
+																				})}
+																			</>
+																		) : null}
+																		{/* הוספת ח"ח */}
+																	</>
+																) : p.type == "harig_tipul" ? (
+																	<>
+																		<Row>
+																			<Col xs={12} md={2}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>סוג כלי</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const value = e.target.value;
+																							if (value != "undefined") {
+																								if (
+																									value == "Z" &&
+																									cardata.kshirot == "כשיר" &&
+																									cardata.zminot == "זמין"
+																								) {
+																									toast.error(
+																										"במקרה והכלי זמין ושכיר לא ניתן להזין עליו סיבות אי זמניות"
+																									);
+																								} else {
+																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
+																									// console.log(technologies.map(tec => tec.kshirot == "כשיר").includes(true))
+																									if (
+																										value == "Z" ||
+																										(value == "technology" &&
+																											(technologies.length > 0
+																												? !technologies
+																														.map(
+																															(tec) =>
+																																tec.kshirot ==
+																																"כשיר"
+																														)
+																														.includes(true)
+																												: technologies.length >
+																												  0))
+																									) {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														v[index].errorType =
+																															value;
+																													}
+																												)
+																										);
+																									} else {
+																										{
+																											/* text tec is kashir / not system on z */
+																										}
+																										if (
+																											technologies
+																												.map(
+																													(tec) =>
+																														tec.kshirot ==
+																														"כשיר"
+																												)
+																												.includes(true)
+																										) {
+																											toast.error(
+																												"במקרה שכל המערכות כשירות לא ניתן להזין עליהן סיבות אי זמניות"
+																											);
+																										} else {
+																											toast.error(
+																												"ל-צ' זה לא מקושרות מערכות"
+																											);
+																										}
+																									}
+																									if (value != "technology") {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														delete v[index]
+																															.systemType;
+																													}
+																												)
+																										);
+																									}
+																								}
+																							}
+																						}}
+																						value={p.errorType}
+																						type="select"
+																						placeholder="בחירה"
+																					>
+																						<option value={"undefined"}>
+																							{"בחר"}
+																						</option>
+																						<option value={"Z"}> צ' </option>
+																						<option value={"technology"}>
+																							{" "}
+																							מערכת{" "}
+																						</option>
+																					</Input>
+																				</div>
+																			</Col>
+																			{p.errorType == "technology" ? (
+																				<Col xs={12} md={2}>
+																					<div>
+																						<p
+																							style={{
+																								margin: "0px",
+																								float: "right",
+																							}}
+																						>
+																							<h6>בחר מערכת</h6>
+																						</p>
+																						<Input
+																							onChange={(e) => {
+																								const systemType =
+																									e.target.value;
+																								if (e.target.value != "בחר")
+																									setFinalSpecialKeytwo(
+																										(currentSpec) =>
+																											produce(
+																												currentSpec,
+																												(v) => {
+																													v[index].systemType =
+																														systemType;
+																												}
+																											)
+																									);
+																							}}
+																							value={p.systemType}
+																							type="select"
+																							placeholder="מערכת"
+																						>
+																							<option value={"בחר"}>
+																								{"בחר"}
+																							</option>
+																							{technologies.map(
+																								(technology, i) =>
+																									technology.kshirot ==
+																									"לא כשיר" ? (
+																										<option
+																											value={
+																												technology.systemType
+																											}
+																										>
+																											{technology.systemType}
+																										</option>
+																									) : null
+																							)}
+																						</Input>
+																					</div>
+																				</Col>
+																			) : null}
+																			<Col xs={12} md={4}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>חריג טיפול</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const harig_tipul =
+																								e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].harig_tipul =
+																													harig_tipul;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.harig_tipul}
+																						type="select"
+																						placeholder="חריג טיפול"
+																					>
+																						<option value={"בחר"}>
+																							{"בחר"}
+																						</option>
+																						{tipuls.map((tipul, i) =>
+																							tipul ? (
+																								<option value={tipul.name}>
+																									{tipul.name}
+																								</option>
+																							) : null
+																						)}
+																					</Input>
+																				</div>
+																			</Col>
+																			<Col xs={12} md={4}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>תאריך חריגת טיפול</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const harig_tipul_date =
+																								e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[
+																													index
+																												].harig_tipul_date =
+																													harig_tipul_date;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.harig_tipul_date}
+																						type="date"
+																						placeholder="תאריך חריגת טיפול"
+																						min="1900-01-01"
+																						max="2040-01-01"
+																					/>
+																				</div>
+																			</Col>
+																		</Row>
+																		{/* הוספת ח"ח ומעמל */}
+																		<Row>
+																			<div style={{ paddingLeft: "10px" }}>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																						marginLeft: "5px",
+																						marginRight: "15px",
+																						fontWeight: "bold",
+																						fontSize: "15px",
+																					}}
+																				>
+																					<h5>האם עומד על ח"ח</h5>
+																				</p>
+																				{p.hh_stands ? (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_hh_stand"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands = [
+																													{
+																														id: generate(),
+																														type: "hh_stand",
+																													},
+																												];
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.hh_stands;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																						checked
+																					/>
+																				) : (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_hh_stand"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands = [
+																													{
+																														id: generate(),
+																														type: "hh_stand",
+																													},
+																												];
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.hh_stands;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																					/>
+																				)}
+																			</div>
+																			<div>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																						marginLeft: "5px",
+																						marginRight: "15px",
+																						fontWeight: "bold",
+																						fontSize: "15px",
+																					}}
+																				>
+																					<h5>האם בוצע טיפול מעמ”ל</h5>
+																				</p>
+																				{p.is_maamal ? (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_maamal"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[
+																													index
+																												].is_maamal = true;
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.is_maamal;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																						checked
+																					/>
+																				) : (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_maamal"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[
+																													index
+																												].is_maamal = true;
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.is_maamal;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																					/>
+																				)}
+																			</div>
+																		</Row>
+																		{p.hh_stands ? (
+																			<>
+																				<Row>
+																					<Col>
+																						<Button
+																							style={{
+																								width: "100px",
+																								padding: "5px",
+																								display: "flex",
+																							}}
+																							type="button"
+																							onClick={() => {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands[
+																													p.hh_stands.length
+																												] = {
+																													id: generate(),
+																													type: "hh_stand",
+																												};
+																											}
+																										)
+																								);
+																							}}
+																						>
+																							הוסף עומד על ח"ח
+																						</Button>
+																					</Col>
+																				</Row>
+																				{p.hh_stands.map((hh_stand, i) => {
+																					return (
+																						<>
+																							<Row>
+																								<Col xs={12} md={6}>
+																									<div>
+																										<p
+																											style={{
+																												margin: "0px",
+																												float: "right",
+																											}}
+																										>
+																											<h6>מק"ט חסר</h6>
+																										</p>
+																										<Input
+																											onChange={(e) => {
+																												const missing_makat_1 =
+																													e.target.value;
+																												if (
+																													e.target.value !=
+																													"בחר"
+																												)
+																													setFinalSpecialKeytwo(
+																														(currentSpec) =>
+																															produce(
+																																currentSpec,
+																																(v) => {
+																																	v[
+																																		index
+																																	].hh_stands[
+																																		i
+																																	].missing_makat_1 =
+																																		missing_makat_1;
+																																}
+																															)
+																													);
+																											}}
+																											value={
+																												p.hh_stands[i]
+																													.missing_makat_1
+																													? p.hh_stands[i]
+																															.missing_makat_1
+																													: ""
+																											}
+																											type="string"
+																											placeholder={`מק"ט חסר`}
+																										></Input>
+																									</div>
+																								</Col>
+																								<Col xs={12} md={6}>
+																									<div>
+																										<p
+																											style={{
+																												margin: "0px",
+																												float: "right",
+																											}}
+																										>
+																											<h6>כמות</h6>
+																										</p>
+																										<Input
+																											onChange={(e) => {
+																												const missing_makat_2 =
+																													e.target.value;
+																												if (
+																													missing_makat_2 ==
+																														null ||
+																													!isNaN(
+																														missing_makat_2
+																													)
+																												)
+																													setFinalSpecialKeytwo(
+																														(currentSpec) =>
+																															produce(
+																																currentSpec,
+																																(v) => {
+																																	v[
+																																		index
+																																	].hh_stands[
+																																		i
+																																	].missing_makat_2 =
+																																		missing_makat_2;
+																																}
+																															)
+																													);
+																											}}
+																											value={
+																												p.hh_stands[i]
+																													.missing_makat_2
+																													? p.hh_stands[i]
+																															.missing_makat_2
+																													: ""
+																											}
+																											type="string"
+																											placeholder={`כמות`}
+																										></Input>
+																									</div>
+																								</Col>
+																							</Row>
+																							<Button
+																								style={{ display: "block" }}
+																								type="button"
+																								onClick={() => {
+																									let newArr = JSON.parse(
+																										JSON.stringify(
+																											finalspecialkeytwo
+																										)
+																									);
+																									newArr[
+																										index
+																									].hh_stands.splice(i, 1);
+																									setFinalSpecialKeytwo(newArr);
+																								}}
+																							>
+																								<img
+																									src={deletepic}
+																									height="20px"
+																								></img>
+																							</Button>
+																						</>
+																					);
+																				})}
+																			</>
+																		) : null}
+																		{/* הוספת ח"ח */}
+																	</>
+																) : p.type == "takala_mizdamenet" ? (
+																	<>
+																		<Row>
+																			<Col xs={12} md={2}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>סוג כלי</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const value = e.target.value;
+																							if (value != "undefined") {
+																								if (
+																									value == "Z" &&
+																									cardata.kshirot == "כשיר" &&
+																									cardata.zminot == "זמין"
+																								) {
+																									toast.error(
+																										"במקרה והכלי זמין ושכיר לא ניתן להזין עליו סיבות אי זמניות"
+																									);
+																								} else {
+																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
+																									// console.log(technologies.map(tec => tec.kshirot == "כשיר").includes(true))
+																									if (
+																										value == "Z" ||
+																										(value == "technology" &&
+																											(technologies.length > 0
+																												? !technologies
+																														.map(
+																															(tec) =>
+																																tec.kshirot ==
+																																"כשיר"
+																														)
+																														.includes(true)
+																												: technologies.length >
+																												  0))
+																									) {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														v[index].errorType =
+																															value;
+																													}
+																												)
+																										);
+																									} else {
+																										{
+																											/* text tec is kashir / not system on z */
+																										}
+																										if (
+																											technologies
+																												.map(
+																													(tec) =>
+																														tec.kshirot ==
+																														"כשיר"
+																												)
+																												.includes(true)
+																										) {
+																											toast.error(
+																												"במקרה שכל המערכות כשירות לא ניתן להזין עליהן סיבות אי זמניות"
+																											);
+																										} else {
+																											toast.error(
+																												"ל-צ' זה לא מקושרות מערכות"
+																											);
+																										}
+																									}
+																									if (value != "technology") {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														delete v[index]
+																															.systemType;
+																													}
+																												)
+																										);
+																									}
+																								}
+																							}
+																						}}
+																						value={p.errorType}
+																						type="select"
+																						placeholder="בחירה"
+																					>
+																						<option value={"undefined"}>
+																							{"בחר"}
+																						</option>
+																						<option value={"Z"}> צ' </option>
+																						<option value={"technology"}>
+																							{" "}
+																							מערכת{" "}
+																						</option>
+																					</Input>
+																				</div>
+																			</Col>
+																			{p.errorType == "technology" ? (
+																				<Col xs={12} md={2}>
+																					<div>
+																						<p
+																							style={{
+																								margin: "0px",
+																								float: "right",
+																							}}
+																						>
+																							<h6>בחר מערכת</h6>
+																						</p>
+																						<Input
+																							onChange={(e) => {
+																								const systemType =
+																									e.target.value;
+																								if (e.target.value != "בחר")
+																									setFinalSpecialKeytwo(
+																										(currentSpec) =>
+																											produce(
+																												currentSpec,
+																												(v) => {
+																													v[index].systemType =
+																														systemType;
+																												}
+																											)
+																									);
+																							}}
+																							value={p.systemType}
+																							type="select"
+																							placeholder="מערכת"
+																						>
+																							<option value={"בחר"}>
+																								{"בחר"}
+																							</option>
+																							{technologies.map(
+																								(technology, i) =>
+																									technology.kshirot ==
+																									"לא כשיר" ? (
+																										<option
+																											value={
+																												technology.systemType
+																											}
+																										>
+																											{technology.systemType}
+																										</option>
+																									) : null
+																							)}
+																						</Input>
+																					</div>
+																				</Col>
+																			) : null}
+																			<Col xs={12} md={4}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>תקלה מזדמנת</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const takala_mizdamenet =
+																								e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[
+																													index
+																												].takala_mizdamenet =
+																													takala_mizdamenet;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.takala_mizdamenet}
+																						type="select"
+																						placeholder="תקלה מזדמנת"
+																					>
+																						<option value={"בחר"}>
+																							{"בחר"}
+																						</option>
+																						<option value={"קלה"}>
+																							{"קלה"}
+																						</option>
+																						<option value={"בינונית"}>
+																							{"בינונית"}
+																						</option>
+																						<option value={"קשה"}>
+																							{"קשה"}
+																						</option>
+																					</Input>
+																				</div>
+																			</Col>
+																			<Col xs={12} md={4}>
+																				<div>
+																					<p
+																						style={{
+																							margin: "0px",
+																							float: "right",
+																						}}
+																					>
+																						<h6>תאריך תקלה מזמנת</h6>
+																					</p>
+																					<Input
+																						onChange={(e) => {
+																							const takala_mizdamenet_date =
+																								e.target.value;
+																							if (e.target.value != "בחר")
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[
+																													index
+																												].takala_mizdamenet_date =
+																													takala_mizdamenet_date;
+																											}
+																										)
+																								);
+																						}}
+																						value={p.takala_mizdamenet_date}
+																						type="date"
+																						placeholder="תאריך תקלה מזמנת"
+																						min="1900-01-01"
+																						max="2040-01-01"
+																					/>
+																				</div>
+																			</Col>
+																		</Row>
+																		{/* הוספת ח"ח */}
+																		<Row>
+																			<div>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																						marginLeft: "5px",
+																						marginRight: "15px",
+																						fontWeight: "bold",
+																						fontSize: "15px",
+																					}}
+																				>
+																					<h5>האם עומד על ח"ח</h5>
+																				</p>
+																				{p.hh_stands ? (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_hh_stand"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands = [
+																													{
+																														id: generate(),
+																														type: "hh_stand",
+																													},
+																												];
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.hh_stands;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																						checked
+																					/>
+																				) : (
+																					<Input
+																						style={{
+																							width: "18px",
+																							height: "18px",
+																						}}
+																						id="Is_hh_stand"
+																						type="checkbox"
+																						onChange={(e) => {
+																							if (e.target.checked == true) {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands = [
+																													{
+																														id: generate(),
+																														type: "hh_stand",
+																													},
+																												];
+																											}
+																										)
+																								);
+																							} else {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												delete v[index]
+																													.hh_stands;
+																											}
+																										)
+																								);
+																							}
+																						}}
+																					/>
+																				)}
+																			</div>
+																		</Row>
+																		{p.hh_stands ? (
+																			<>
+																				<Row>
+																					<Col>
+																						<Button
+																							style={{
+																								width: "100px",
+																								padding: "5px",
+																								display: "flex",
+																							}}
+																							type="button"
+																							onClick={() => {
+																								setFinalSpecialKeytwo(
+																									(currentSpec) =>
+																										produce(
+																											currentSpec,
+																											(v) => {
+																												v[index].hh_stands[
+																													p.hh_stands.length
+																												] = {
+																													id: generate(),
+																													type: "hh_stand",
+																												};
+																											}
+																										)
+																								);
+																							}}
+																						>
+																							הוסף עומד על ח"ח
+																						</Button>
+																					</Col>
+																				</Row>
+																				{p.hh_stands.map((hh_stand, i) => {
+																					return (
+																						<>
+																							<Row>
+																								<Col xs={12} md={6}>
+																									<div>
+																										<p
+																											style={{
+																												margin: "0px",
+																												float: "right",
+																											}}
+																										>
+																											<h6>מק"ט חסר</h6>
+																										</p>
+																										<Input
+																											onChange={(e) => {
+																												const missing_makat_1 =
+																													e.target.value;
+																												if (
+																													e.target.value !=
+																													"בחר"
+																												)
+																													setFinalSpecialKeytwo(
+																														(currentSpec) =>
+																															produce(
+																																currentSpec,
+																																(v) => {
+																																	v[
+																																		index
+																																	].hh_stands[
+																																		i
+																																	].missing_makat_1 =
+																																		missing_makat_1;
+																																}
+																															)
+																													);
+																											}}
+																											value={
+																												p.hh_stands[i]
+																													.missing_makat_1
+																													? p.hh_stands[i]
+																															.missing_makat_1
+																													: ""
+																											}
+																											type="string"
+																											placeholder={`מק"ט חסר`}
+																										></Input>
+																									</div>
+																								</Col>
+																								<Col xs={12} md={6}>
+																									<div>
+																										<p
+																											style={{
+																												margin: "0px",
+																												float: "right",
+																											}}
+																										>
+																											<h6>כמות</h6>
+																										</p>
+																										<Input
+																											onChange={(e) => {
+																												const missing_makat_2 =
+																													e.target.value;
+																												if (
+																													missing_makat_2 ==
+																														null ||
+																													!isNaN(
+																														missing_makat_2
+																													)
+																												)
+																													setFinalSpecialKeytwo(
+																														(currentSpec) =>
+																															produce(
+																																currentSpec,
+																																(v) => {
+																																	v[
+																																		index
+																																	].hh_stands[
+																																		i
+																																	].missing_makat_2 =
+																																		missing_makat_2;
+																																}
+																															)
+																													);
+																											}}
+																											value={
+																												p.hh_stands[i]
+																													.missing_makat_2
+																													? p.hh_stands[i]
+																															.missing_makat_2
+																													: ""
+																											}
+																											type="string"
+																											placeholder={`כמות`}
+																										></Input>
+																									</div>
+																								</Col>
+																							</Row>
+																							<Button
+																								style={{ display: "block" }}
+																								type="button"
+																								onClick={() => {
+																									let newArr = JSON.parse(
+																										JSON.stringify(
+																											finalspecialkeytwo
+																										)
+																									);
+																									newArr[
+																										index
+																									].hh_stands.splice(i, 1);
+																									setFinalSpecialKeytwo(newArr);
+																								}}
+																							>
+																								<img
+																									src={deletepic}
+																									height="20px"
+																								></img>
+																							</Button>
+																						</>
+																					);
+																				})}
+																			</>
+																		) : null}
+																		{/* הוספת ח"ח */}
+																	</>
+																) : null}
+
+																<Button
+																	type="button"
+																	onClick={() => {
+																		setFinalSpecialKeytwo((currentSpec) =>
+																			currentSpec.filter((x) => x.id !== p.id)
+																		);
+																	}}
+																>
+																	<img src={deletepic} height="20px"></img>
+																</Button>
+															</div>
+														);
+													})
+												)}
+											</div>
+											{/* tipuls */}
+
+											<Row>
+												<Col>
+													<div
+														style={{ textAlign: "right", paddingTop: "10px" }}
+													>
+														<h6>מהות התקלה</h6>
+													</div>
+													<Input
+														placeholder="מהות התקלה"
+														type="textarea"
+														name="takala_info"
+														value={cardata.takala_info}
+														onChange={handleChange}
+													/>
+												</Col>
+											</Row>
+
+											<Row>
+												<Col>
+													<div
+														style={{ textAlign: "right", paddingTop: "10px" }}
+													>
+														<h6>צפי תיקון</h6>
+													</div>
+													<Input
+														placeholder="צפי תיקון"
+														type="select"
+														name="expected_repair"
+														value={cardata.expected_repair}
+														onChange={handleChange}
+													>
+														<option value={"בחר"}>{"בחר"}</option>
+														<option value={"עד 6 שעות"}>{"עד 6 שעות"}</option>
+														<option value={"עד 12 שעות"}>{"עד 12 שעות"}</option>
+														<option value={"עד 24 שעות"}>{"עד 24 שעות"}</option>
+														<option value={"עד 72 שעות"}>{"עד 72 שעות"}</option>
+														<option value={"מעל 72 שעות"}>
+															{"מעל 72 שעות"}
+														</option>
+													</Input>
+												</Col>
+											</Row>
+
+											{/* <Row>
+                    <Col xs={12} md={8}>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <div>
+                        <p style={{ margin: '0px', float: 'left' }}>כמות ימי אי זמינות: 5 ימים</p>
+                      </div>
+                    </Col>
+                  </Row> */}
+										</>
+									) : null}
+
+									<Row>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מיקום</h6>
+											</div>
+											<Input
+												placeholder="מיקום"
+												type="string"
+												name="mikum"
+												value={cardata.mikum}
+												onChange={handleChange}
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מועד כיול אחרון</h6>
+											</div>
+											<Input
+												placeholder="מועד כיול אחרון"
+												type="date"
+												name="latest_recalibration_date"
+												value={cardata.latest_recalibration_date}
+												onChange={handleChange}
+												min="1900-01-01"
+												max="2040-01-01"
+											/>
+										</Col>
+									</Row>
+
+									{/* {(user.role == '0' || user.role == '1' || isgdodsadir == false) ? */}
+									<div style={{ textAlign: "center", paddingTop: "20px" }}>
+										<button className="btn" onClick={clickSubmit}>
+											עדכן
+										</button>
+									</div>
+									{/* : null} */}
+								</Container>
+							) : (
+								<Container>
+									<Row>
 										<Col
 											style={{
 												justifyContent: "right",
@@ -968,7 +3959,7 @@ const CarDataFormModal = (props) => {
 												disabled
 											/>
 										</Col>
-									) : (
+
 										<Col
 											style={{
 												justifyContent: "right",
@@ -976,102 +3967,44 @@ const CarDataFormModal = (props) => {
 												textAlign: "right",
 											}}
 										>
-											<Row>
-												<Col xs={12} md={8}>
-													<h6 style={{}}>צ'</h6>
-													<Input
-														placeholder="צ'"
-														type="string"
-														name="carnumber"
-														value={cardata.carnumber}
-														onChange={handleChange}
-													/>
-												</Col>
-												<Col
-													xs={12}
-													md={4}
-													style={{ padding: "0px", textAlign: "center" }}
-												>
-													<button
-														className="btn-new-blue"
-														style={{ margin: "0px", marginTop: "1.3rem" }}
-														onClick={CheckCarnumberAndSetFormdata}
-													>
-														חפש
-													</button>
-												</Col>
-											</Row>
-										</Col>
-									)}
-
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6 style={{}}>משפחה</h6>
-										<Input
-											placeholder="משפחה"
-											type="string"
-											name="family"
-											value={cardata.family}
-											onChange={handleChange}
-										/>
-									</Col>
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6 style={{}}>סטאטוס הכלי</h6>
-										<Input
-											placeholder="סטאטוס הכלי"
-											type="select"
-											name="status"
-											value={cardata.status}
-											onChange={handleChange}
-										>
-											<option value={"בחר"}>{"בחר"}</option>
-											<option value={"פעיל"}>{"פעיל"}</option>
-											<option value={"מושבת"}>{"מושבת"}</option>
-											<option value={"מיועד להשבתה"}>{"מיועד להשבתה"}</option>
-											{user.role == "0" ? (
-												<option value={"עצור"}>{"עצור"}</option>
-											) : null}
-										</Input>
-									</Col>
-								</Row>
-
-								<Row>
-									{!cardata.magad &&
-									(props.cardataid == undefined ||
-										cardata.magadal != "magadal04") ? ( //change to the magadal of technologies in the database in army
-										<Col
-											style={{
-												justifyContent: "right",
-												alignContent: "right",
-												textAlign: "right",
-											}}
-										>
-											<h6>מאגד על</h6>
-											<Select
-												data={
-													props.cardataid != undefined
-														? magadals.filter(
-																(magadal) => magadal.name != "טכנולוגיות"
-														  )
-														: magadals
-												}
-												handleChange2={handleChange2}
-												name={"magadal"}
-												val={cardata.magadal ? cardata.magadal : undefined}
+											<h6 style={{}}>משפחה</h6>
+											<Input
+												placeholder="משפחה"
+												type="string"
+												name="family"
+												value={cardata.family}
+												onChange={handleChange}
+												disabled
 											/>
 										</Col>
-									) : (
+										<Col
+											style={{
+												justifyContent: "right",
+												alignContent: "right",
+												textAlign: "right",
+											}}
+										>
+											<h6 style={{}}>סטאטוס הכלי</h6>
+											<Input
+												placeholder="סטאטוס הכלי"
+												type="select"
+												name="status"
+												value={cardata.status}
+												onChange={handleChange}
+												disabled
+											>
+												<option value={"בחר"}>{"בחר"}</option>
+												<option value={"פעיל"}>{"פעיל"}</option>
+												<option value={"מושבת"}>{"מושבת"}</option>
+												<option value={"מיועד להשבתה"}>{"מיועד להשבתה"}</option>
+												{user.role == "0" ? (
+													<option value={"עצור"}>{"עצור"}</option>
+												) : null}
+											</Input>
+										</Col>
+									</Row>
+
+									<Row>
 										<Col
 											style={{
 												justifyContent: "right",
@@ -1088,25 +4021,7 @@ const CarDataFormModal = (props) => {
 												isDisabled={true}
 											/>
 										</Col>
-									)}
 
-									{cardata.magadal && !cardata.mkabaz ? (
-										<Col
-											style={{
-												justifyContent: "right",
-												alignContent: "right",
-												textAlign: "right",
-											}}
-										>
-											<h6>מאגד</h6>
-											<Select
-												data={magads}
-												handleChange2={handleChange2}
-												name={"magad"}
-												val={cardata.magad ? cardata.magad : undefined}
-											/>
-										</Col>
-									) : (
 										<Col
 											style={{
 												justifyContent: "right",
@@ -1123,25 +4038,7 @@ const CarDataFormModal = (props) => {
 												isDisabled={true}
 											/>
 										</Col>
-									)}
 
-									{cardata.magad && !cardata.makat ? (
-										<Col
-											style={{
-												justifyContent: "right",
-												alignContent: "right",
-												textAlign: "right",
-											}}
-										>
-											<h6>מקבץ</h6>
-											<Select
-												data={mkabazs}
-												handleChange2={handleChange2}
-												name={"mkabaz"}
-												val={cardata.mkabaz ? cardata.mkabaz : undefined}
-											/>
-										</Col>
-									) : (
 										<Col
 											style={{
 												justifyContent: "right",
@@ -1158,25 +4055,7 @@ const CarDataFormModal = (props) => {
 												isDisabled={true}
 											/>
 										</Col>
-									)}
 
-									{cardata.mkabaz ? (
-										<Col
-											style={{
-												justifyContent: "right",
-												alignContent: "right",
-												textAlign: "right",
-											}}
-										>
-											<h6>מק"ט</h6>
-											<Select
-												data={makats}
-												handleChange2={handleChange2}
-												name={"makat"}
-												val={cardata.makat ? cardata.makat : undefined}
-											/>
-										</Col>
-									) : (
 										<Col
 											style={{
 												justifyContent: "right",
@@ -1193,55 +4072,13 @@ const CarDataFormModal = (props) => {
 												isDisabled={true}
 											/>
 										</Col>
-									)}
+									</Row>
 
-									{cardata.makat ? (
-										<Col
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignContent: "center",
-												alignItems: "center",
-											}}
-										>
-											{makats.map((makat, index) =>
-												makat._id == cardata.makat ? makat.description : null
-											)}
-										</Col>
-									) : (
-										<Col
-											style={{
-												display: "flex",
-												justifyContent: "center",
-												alignContent: "center",
-												alignItems: "center",
-											}}
-										></Col>
-									)}
-								</Row>
-
-								<Row style={{ paddingTop: "10px" }}>
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ? (
-										<>
-											{!cardata.ogda ? (
-												<Col
-													style={{
-														justifyContent: "right",
-														alignContent: "right",
-														textAlign: "right",
-													}}
-												>
-													<h6>פיקוד</h6>
-													<Select
-														data={pikods}
-														handleChange2={handleChange2}
-														name={"pikod"}
-														val={cardata.pikod ? cardata.pikod : undefined}
-													/>
-												</Col>
-											) : (
+									<Row style={{ paddingTop: "10px" }}>
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ? (
+											<>
 												<Col
 													style={{
 														justifyContent: "right",
@@ -1258,32 +4095,14 @@ const CarDataFormModal = (props) => {
 														isDisabled={true}
 													/>
 												</Col>
-											)}
-										</>
-									) : null}
+											</>
+										) : null}
 
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ||
-									props.unittype == "pikod" ? (
-										<>
-											{cardata.pikod && !cardata.hativa ? (
-												<Col
-													style={{
-														justifyContent: "right",
-														alignContent: "right",
-														textAlign: "right",
-													}}
-												>
-													<h6>אוגדה</h6>
-													<Select
-														data={ogdas}
-														handleChange2={handleChange2}
-														name={"ogda"}
-														val={cardata.ogda ? cardata.ogda : undefined}
-													/>
-												</Col>
-											) : (
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ||
+										props.unittype == "pikod" ? (
+											<>
 												<Col
 													style={{
 														justifyContent: "right",
@@ -1300,33 +4119,15 @@ const CarDataFormModal = (props) => {
 														isDisabled={true}
 													/>
 												</Col>
-											)}
-										</>
-									) : null}
+											</>
+										) : null}
 
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ||
-									props.unittype == "pikod" ||
-									props.unittype == "ogda" ? (
-										<>
-											{cardata.ogda && !cardata.gdod ? (
-												<Col
-													style={{
-														justifyContent: "right",
-														alignContent: "right",
-														textAlign: "right",
-													}}
-												>
-													<h6>חטיבה</h6>
-													<Select
-														data={hativas}
-														handleChange2={handleChange2}
-														name={"hativa"}
-														val={cardata.hativa ? cardata.hativa : undefined}
-													/>
-												</Col>
-											) : (
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ||
+										props.unittype == "pikod" ||
+										props.unittype == "ogda" ? (
+											<>
 												<Col
 													style={{
 														justifyContent: "right",
@@ -1343,34 +4144,16 @@ const CarDataFormModal = (props) => {
 														isDisabled={true}
 													/>
 												</Col>
-											)}
-										</>
-									) : null}
+											</>
+										) : null}
 
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ||
-									props.unittype == "pikod" ||
-									props.unittype == "ogda" ||
-									props.unittype == "hativa" ? (
-										<>
-											{cardata.hativa ? (
-												<Col
-													style={{
-														justifyContent: "right",
-														alignContent: "right",
-														textAlign: "right",
-													}}
-												>
-													<h6>גדוד</h6>
-													<Select
-														data={gdods}
-														handleChange2={handleChange2}
-														name={"gdod"}
-														val={cardata.gdod ? cardata.gdod : undefined}
-													/>
-												</Col>
-											) : (
+										{props.unittype == "admin" ||
+										props.unittype == "general" ||
+										props.unittype == "notype" ||
+										props.unittype == "pikod" ||
+										props.unittype == "ogda" ||
+										props.unittype == "hativa" ? (
+											<>
 												<Col
 													style={{
 														justifyContent: "right",
@@ -1387,590 +4170,157 @@ const CarDataFormModal = (props) => {
 														isDisabled={true}
 													/>
 												</Col>
-											)}
-										</>
-									) : null}
-								</Row>
+											</>
+										) : null}
+									</Row>
 
-								<Row>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>פלוגה</h6>
-										</div>
-										<Input
-											placeholder="פלוגה"
-											type="string"
-											name="pluga"
-											value={cardata.pluga}
-											onChange={handleChange}
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>שבצ"ק</h6>
-										</div>
-										<Input
-											placeholder={`שבצ"ק`}
-											type="string"
-											name="shabzak"
-											value={cardata.shabzak}
-											onChange={handleChange}
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מיקום בימ"ח</h6>
-										</div>
-										<Input
-											placeholder={`מיקום בימ"ח`}
-											type="string"
-											name="mikum_bimh"
-											value={cardata.mikum_bimh}
-											onChange={handleChange}
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מעמד הכלי</h6>
-										</div>
-										<Input
-											placeholder="מעמד הכלי"
-											type="select"
-											name="stand"
-											value={cardata.stand}
-											onChange={handleChange}
-										>
-											<option value={"בחר"}>בחר</option>
-											<option value={"סדיר"}>סדיר</option>
-											<option value={"הכן"}>הכן</option>
-											<option value={'הח"י'}>הח"י</option>
-										</Input>
-									</Col>
-								</Row>
-
-								<h4
-									style={{
-										direction: "rtl",
-										textAlign: "center",
-										fontWeight: "bold",
-									}}
-								>
-									זמינות/כשירות
-								</h4>
-
-								<div
-									style={{
-										textAlign: "right",
-										paddingTop: "10px",
-										fontWeight: "bold",
-									}}
-								>
-									<h6>טכנולוגיות על גבי אמל"ח</h6>
-								</div>
-								{cardata.makat ? (
-									<button
-										className="btn-new-blue"
-										style={{
-											position: "relative",
-											padding: "11px 17px",
-											borderRadius: "50%",
-											display: "flex",
-										}}
-										onClick={() => {
-											setTechnologies((currentSpec) => [
-												{
-													id: generate(),
-													carnumber: cardata.carnumber,
-													isLocked: "false",
-												},
-												...currentSpec,
-											]);
-										}}
-									>
-										+
-									</button>
-								) : (
-									<button
-										className="btn-new-blue"
-										style={{
-											position: "relative",
-											padding: "11px 17px",
-											borderRadius: "50%",
-											display: "flex",
-										}}
-										onClick={() => {
-											toast.error('מק"ט ריק');
-										}}
-									>
-										+
-									</button>
-								)}
-
-								{technologies.map((t, index) => {
-									return t.isLocked == "false" ? (
-										<Row>
-											<img
-												style={{
-													cursor: "pointer",
-													padding: "1px",
-													height: "25px",
-													marginTop: "28px",
-													marginLeft: "15px",
-												}}
-												src={savepic}
-												height="15px"
-												onClick={() => {
-													if (t.systemType) {
-														setTechnologies((currentSpec) =>
-															produce(currentSpec, (v) => {
-																v[index].isLocked = "true";
-															})
-														);
-													} else {
-														toast.error(
-															"על מנת לשמור מערכת יש לציין את סוג המערכת"
-														);
-													}
-												}}
+									<Row>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>פלוגה</h6>
+											</div>
+											<Input
+												placeholder="פלוגה"
+												type="string"
+												name="pluga"
+												value={cardata.pluga}
+												onChange={handleChange}
+												disabled
 											/>
-											<button
-												className="btn-new-delete"
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>שבצ"ק</h6>
+											</div>
+											<Input
+												placeholder={`שבצ"ק`}
+												type="string"
+												name="shabzak"
+												value={cardata.shabzak}
+												onChange={handleChange}
+												disabled
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מיקום בימ"ח</h6>
+											</div>
+											<Input
+												placeholder={`מיקום בימ"ח`}
+												type="string"
+												name="mikum_bimh"
+												value={cardata.mikum_bimh}
+												onChange={handleChange}
+												disabled
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מעמד הכלי</h6>
+											</div>
+											<Input
+												placeholder="מעמד הכלי"
+												type="select"
+												name="stand"
+												value={cardata.stand}
+												onChange={handleChange}
+												disabled
+											>
+												<option value={"בחר"}>בחר</option>
+												<option value={"סדיר"}>סדיר</option>
+												<option value={"הכן"}>הכן</option>
+												<option value={'הח"י'}>הח"י</option>
+											</Input>
+										</Col>
+									</Row>
+
+									<Row>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>זמינות</h6>
+											</div>
+											<Input
+												style={{ border: "2px solid" }}
+												placeholder="זמינות"
+												type="select"
+												name="zminot"
+												value={cardata.zminot}
+												onChange={handleChange}
+												disabled
+											>
+												<option value={"בחר"}>בחר</option>
+												<option value={"זמין"}>זמין</option>
+												<option value={"לא זמין"}>לא זמין</option>
+											</Input>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>כשירות למלחמה</h6>
+											</div>
+											<Input
+												style={{ border: "2px solid" }}
+												placeholder="כשירות למלחמה"
+												type="select"
+												name="kshirot"
+												value={cardata.kshirot}
+												onChange={handleChange}
+												disabled
+											>
+												<option value={"בחר"}>בחר</option>
+												<option value={"כשיר"}>כשיר</option>
+												<option value={"לא כשיר"}>לא כשיר</option>
+											</Input>
+										</Col>
+									</Row>
+
+									{cardata.kshirot == "לא כשיר" ||
+									cardata.zminot == "לא זמין" ? (
+										<>
+											{/* tipuls */}
+											<div
 												style={{
-													padding: "1px",
-													height: "25px",
-													marginTop: "28px",
-												}}
-												onClick={() => {
-													setTechnologies((currentSpec) =>
-														currentSpec.filter((x) => x.id !== t.id)
-													);
+													textAlign: "right",
+													paddingTop: "10px",
+													fontWeight: "bold",
 												}}
 											>
-												<img src={deletepic} height="15px"></img>
-											</button>
-											<Col xs={12} md={4}>
-												<div>
-													<p style={{ margin: "0px", float: "right" }}>
-														<h6>סוג מערכת</h6>
-													</p>
-													<Input
-														onChange={(e) => {
-															const tech = e.target.value;
-															let flag = false;
-															if (tech != "בחר")
-																if (technologies.length > 1) {
-																	for (
-																		let i = 0;
-																		i < technologies.length;
-																		i++
-																	) {
-																		if (technologies[i].systemType == tech) {
-																			flag = true;
-																		}
-																	}
-																}
-															if (flag == false) {
-																setTechnologies((currentSpec) =>
-																	produce(currentSpec, (v) => {
-																		v[index].systemType = tech;
-																	})
-																);
-																setTechnologies((currentSpec) =>
-																	produce(currentSpec, (v) => {
-																		v[index].isLocked = "true";
-																	})
-																);
-															} else {
-																toast.error("מערכת זו כבר מקושרת ל-צ' זה");
-															}
-														}}
-														value={t.systemType ? t.systemType : "בחר"}
-														type="select"
-														placeholder="סוג מערכת"
-													>
-														<option value={"בחר"}>{"בחר"}</option>
-														{systems.map((system, i) =>
-															system ? (
-																<option value={system.name}>
-																	{system.name}
-																</option>
-															) : null
-														)}
-													</Input>
-												</div>
-											</Col>
-											<Col xs={12} md={4}>
-												<div>
-													<p style={{ margin: "0px", float: "right" }}>
-														<h6>כשירות</h6>
-													</p>
-													<Input
-														onChange={(e) => {
-															const kshirot = e.target.value;
-															if (e.target.value != "בחר")
-																setTechnologies((currentSpec) =>
-																	produce(currentSpec, (v) => {
-																		v[index].kshirot = kshirot;
-																	})
-																);
-															if (e.target.value == "לא כשיר") {
-																let isMashbit;
-																for (let i = 0; i < systems.length; i++) {
-																	if (systems[i].name == t.systemType) {
-																		isMashbit = systems[i].mashbit;
-																	}
-																}
-																if (isMashbit == true) {
-																	setCarData({
-																		...cardata,
-																		zminot: "לא זמין",
-																		kshirot: "לא כשיר",
-																	});
-																	toast.info(
-																		"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
-																	);
-																}
-															}
-														}}
-														value={t.kshirot ? t.kshirot : "בחר"}
-														type="select"
-														placeholder="כשירות"
-													>
-														<option value={"בחר"}>{"בחר"}</option>
-														<option value={"כשיר"}>{"כשיר"}</option>
-														<option value={"לא כשיר"}>{"לא כשיר"}</option>
-													</Input>
-												</div>
-											</Col>
-										</Row>
-									) : (
-										<Row>
-											<img
-												style={{
-													cursor: "pointer",
-													padding: "1px",
-													height: "25px",
-													marginTop: "28px",
-													marginLeft: "15px",
-												}}
-												src={editpic}
-												height="15px"
-												onClick={() => {
-													setTechnologies((currentSpec) =>
-														produce(currentSpec, (v) => {
-															v[index].isLocked = "false";
-														})
-													);
-												}}
-											/>
-											<Col xs={12} md={4}>
-												<div>
-													<p style={{ margin: "0px", float: "right" }}>
-														<h6>סוג מערכת</h6>
-													</p>
-													<Input
-														value={t.systemType ? t.systemType : "בחר"}
-														type="select"
-														placeholder="סוג מערכת"
-														disabled
-													>
-														<option value={"בחר"}>{"בחר"}</option>
-														{systems.map((system, i) =>
-															system ? (
-																<option value={system.name}>
-																	{system.name}
-																</option>
-															) : null
-														)}
-													</Input>
-												</div>
-											</Col>
-											<Col xs={12} md={4}>
-												<div>
-													<p style={{ margin: "0px", float: "right" }}>
-														<h6>כשירות</h6>
-													</p>
-													<Input
-														onChange={(e) => {
-															const kshirot = e.target.value;
-															if (e.target.value != "בחר")
-																setTechnologies((currentSpec) =>
-																	produce(currentSpec, (v) => {
-																		v[index].kshirot = kshirot;
-																	})
-																);
-															if (e.target.value == "לא כשיר") {
-																let isMashbit;
-																for (let i = 0; i < systems.length; i++) {
-																	if (systems[i].name == t.systemType) {
-																		isMashbit = systems[i].mashbit;
-																	}
-																}
-																if (isMashbit == true) {
-																	setCarData({
-																		...cardata,
-																		zminot: "לא זמין",
-																		kshirot: "לא כשיר",
-																	});
-																	toast.info(
-																		"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
-																	);
-																}
-															}
-														}}
-														value={t.kshirot ? t.kshirot : "בחר"}
-														type="select"
-														placeholder="כשירות"
-													>
-														<option value={"בחר"}>{"בחר"}</option>
-														<option value={"כשיר"}>{"כשיר"}</option>
-														<option value={"לא כשיר"}>{"לא כשיר"}</option>
-													</Input>
-												</div>
-											</Col>
-										</Row>
-									);
-								})}
+												<h6>סיבות אי זמינות</h6>
+											</div>
 
-								<Row>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>זמינות</h6>
-										</div>
-										<Input
-											style={{ border: "2px solid" }}
-											placeholder="זמינות"
-											type="select"
-											name="zminot"
-											value={cardata.zminot}
-											onChange={handleChange}
-										>
-											<option value={"בחר"}>בחר</option>
-											<option value={"זמין"}>זמין</option>
-											<option value={"לא זמין"}>לא זמין</option>
-										</Input>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>כשירות למלחמה</h6>
-										</div>
-										<Input
-											style={{ border: "2px solid" }}
-											placeholder="כשירות למלחמה"
-											type="select"
-											name="kshirot"
-											value={cardata.kshirot}
-											onChange={handleChange}
-										>
-											<option value={"בחר"}>בחר</option>
-											<option value={"כשיר"}>כשיר</option>
-											<option value={"לא כשיר"}>לא כשיר</option>
-										</Input>
-									</Col>
-								</Row>
-
-								{cardata.kshirot == "לא כשיר" || cardata.zminot == "לא זמין" ? (
-									<>
-										{/* tipuls */}
-										<div
-											style={{
-												textAlign: "right",
-												paddingTop: "10px",
-												fontWeight: "bold",
-											}}
-										>
-											<h6>סיבות אי זמינות</h6>
-										</div>
-
-										<div>
-											{finalspecialkeytwo.length == 0 ? (
-												<Row>
-													<Col
-														style={{
-															display: "flex",
-															justifyContent: "center",
-														}}
-													>
-														<Button
-															style={{ width: "100px", padding: "5px" }}
-															type="button"
-															onClick={() => {
-																setFinalSpecialKeytwo((currentSpec) => [
-																	...currentSpec,
-																	{ id: generate(), type: "tipul" },
-																]);
-															}}
-														>
-															הוסף טיפול
-														</Button>
-													</Col>
-													<Col
-														style={{
-															display: "flex",
-															justifyContent: "center",
-														}}
-													>
-														<Button
-															style={{ width: "100px", padding: "5px" }}
-															type="button"
-															onClick={() => {
-																setFinalSpecialKeytwo((currentSpec) => [
-																	...currentSpec,
-																	{ id: generate(), type: "harig_tipul" },
-																]);
-															}}
-														>
-															הוסף חריגת טיפול
-														</Button>
-													</Col>
-													<Col
-														style={{
-															display: "flex",
-															justifyContent: "center",
-														}}
-													>
-														<Button
-															style={{ width: "100px", padding: "5px" }}
-															type="button"
-															onClick={() => {
-																setFinalSpecialKeytwo((currentSpec) => [
-																	...currentSpec,
-																	{ id: generate(), type: "takala_mizdamenet" },
-																]);
-															}}
-														>
-															הוסף תקלה מזדמנת
-														</Button>
-													</Col>
-												</Row>
-											) : (
-												finalspecialkeytwo.map((p, index) => {
+											<div>
+												{finalspecialkeytwo.map((p, index) => {
 													return (
 														<div>
-															{index == 0 ? (
-																<Row>
-																	<Col
-																		style={{
-																			display: "flex",
-																			justifyContent: "center",
-																		}}
-																	>
-																		<Button
-																			style={{ width: "100px", padding: "5px" }}
-																			type="button"
-																			onClick={() => {
-																				setFinalSpecialKeytwo((currentSpec) => [
-																					...currentSpec,
-																					{ id: generate(), type: "tipul" },
-																				]);
-																			}}
-																		>
-																			הוסף טיפול
-																		</Button>
-																	</Col>
-																	<Col
-																		style={{
-																			display: "flex",
-																			justifyContent: "center",
-																		}}
-																	>
-																		<Button
-																			style={{ width: "100px", padding: "5px" }}
-																			type="button"
-																			onClick={() => {
-																				setFinalSpecialKeytwo((currentSpec) => [
-																					...currentSpec,
-																					{
-																						id: generate(),
-																						type: "harig_tipul",
-																					},
-																				]);
-																			}}
-																		>
-																			הוסף חריגת טיפול
-																		</Button>
-																	</Col>
-																	<Col
-																		style={{
-																			display: "flex",
-																			justifyContent: "center",
-																		}}
-																	>
-																		<Button
-																			style={{ width: "100px", padding: "5px" }}
-																			type="button"
-																			onClick={() => {
-																				setFinalSpecialKeytwo((currentSpec) => [
-																					...currentSpec,
-																					{
-																						id: generate(),
-																						type: "takala_mizdamenet",
-																					},
-																				]);
-																			}}
-																		>
-																			הוסף תקלה מזדמנת
-																		</Button>
-																	</Col>
-																</Row>
-															) : null}
-
 															{p.type == "tipul" ? (
 																<>
 																	<Row>
-																		<ToggleButtonGroup
-																			value={p.errorType}
-																			color="primary"
-																			exclusive
-																			onChange={(e, value) => {
-																				if (
-																					value == undefined ||
-																					value == "Z" ||
-																					(value == "technology" &&
-																						technologies.length > 0)
-																				) {
-																					setFinalSpecialKeytwo((currentSpec) =>
-																						produce(currentSpec, (v) => {
-																							v[index].errorType = value;
-																						})
-																					);
-																				} else {
-																					toast.error(
-																						"ל-צ' זה לא מקושרות מערכות"
-																					);
-																				}
-																				if (value != "technology") {
-																					setFinalSpecialKeytwo((currentSpec) =>
-																						produce(currentSpec, (v) => {
-																							delete v[index].systemType;
-																						})
-																					);
-																				}
-																			}}
-																			aria-label="error type"
-																			style={{ marginTop: "30px" }}
-																		>
-																			<ToggleButton
-																				value="Z"
-																				aria-label="Z"
-																				style={{
-																					height: "10px",
-																					width: "50px",
-																				}}
-																			>
-																				<h6> צ' </h6>
-																			</ToggleButton>
-																			<ToggleButton
-																				value="technology"
-																				aria-label="technology"
-																				style={{
-																					height: "10px",
-																					width: "50px",
-																				}}
-																			>
-																				<h6> מערכת </h6>
-																			</ToggleButton>
-																		</ToggleButtonGroup>
+																		<Col xs={12} md={2}>
+																			<div>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																					}}
+																				>
+																					<h6>סוג כלי</h6>
+																				</p>
+																				<Input
+																					value={p.errorType}
+																					type="select"
+																					placeholder="בחירה"
+																					disabled
+																				>
+																					<option value={"undefined"}>
+																						{"בחר"}
+																					</option>
+																					<option value={"Z"}> צ' </option>
+																					<option value={"technology"}>
+																						{" "}
+																						מערכת{" "}
+																					</option>
+																				</Input>
+																			</div>
+																		</Col>
 																		{p.errorType == "technology" ? (
 																			<Col xs={12} md={2}>
 																				<div>
@@ -1983,23 +4333,10 @@ const CarDataFormModal = (props) => {
 																						<h6>בחר מערכת</h6>
 																					</p>
 																					<Input
-																						onChange={(e) => {
-																							const systemType = e.target.value;
-																							if (e.target.value != "בחר")
-																								setFinalSpecialKeytwo(
-																									(currentSpec) =>
-																										produce(
-																											currentSpec,
-																											(v) => {
-																												v[index].systemType =
-																													systemType;
-																											}
-																										)
-																								);
-																						}}
 																						value={p.systemType}
 																						type="select"
 																						placeholder="מערכת"
+																						disabled
 																					>
 																						<option value={"בחר"}>
 																							{"בחר"}
@@ -2018,7 +4355,6 @@ const CarDataFormModal = (props) => {
 																				</div>
 																			</Col>
 																		) : null}
-
 																		<Col xs={12} md={3}>
 																			<div>
 																				<p
@@ -2030,19 +4366,10 @@ const CarDataFormModal = (props) => {
 																					<h6>סוג הטיפול</h6>
 																				</p>
 																				<Input
-																					onChange={(e) => {
-																						const tipul = e.target.value;
-																						if (e.target.value != "בחר")
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].tipul = tipul;
-																									})
-																							);
-																					}}
 																					value={p.tipul}
 																					type="select"
 																					placeholder="סוג הטיפול"
+																					disabled
 																				>
 																					<option value={"בחר"}>{"בחר"}</option>
 																					{tipuls.map((tipul, i) =>
@@ -2066,23 +4393,12 @@ const CarDataFormModal = (props) => {
 																					<h6>תאריך כניסה לטיפול</h6>
 																				</p>
 																				<Input
-																					onChange={(e) => {
-																						const tipul_entry_date =
-																							e.target.value;
-																						if (e.target.value != "בחר")
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].tipul_entry_date =
-																											tipul_entry_date;
-																									})
-																							);
-																					}}
 																					value={p.tipul_entry_date}
 																					type="date"
 																					placeholder="תאריך כניסה לטיפול"
 																					min="1900-01-01"
 																					max="2040-01-01"
+																					disabled
 																				/>
 																			</div>
 																		</Col>
@@ -2097,20 +4413,10 @@ const CarDataFormModal = (props) => {
 																					<h6>מיקום הטיפול</h6>
 																				</p>
 																				<Input
-																					onChange={(e) => {
-																						const mikum_tipul = e.target.value;
-																						if (e.target.value != "בחר")
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].mikum_tipul =
-																											mikum_tipul;
-																									})
-																							);
-																					}}
 																					value={p.mikum_tipul}
 																					type="select"
 																					placeholder="מיקום הטיפול"
+																					disabled
 																				>
 																					<option value={"בחר"}>{"בחר"}</option>
 																					<option value={"ביחידה"}>
@@ -2129,117 +4435,8 @@ const CarDataFormModal = (props) => {
 																			</div>
 																		</Col>
 																	</Row>
-																	{/* הוספת ח"ח */}
-																	<Row>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																					marginLeft: "5px",
-																					marginRight: "15px",
-																					fontWeight: "bold",
-																					fontSize: "15px",
-																				}}
-																			>
-																				<h5>האם עומד על ח"ח</h5>
-																			</p>
-																			{p.hh_stands ? (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_hh_stand"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands = [
-																											{
-																												id: generate(),
-																												type: "hh_stand",
-																											},
-																										];
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].hh_stands;
-																									})
-																							);
-																						}
-																					}}
-																					checked
-																				/>
-																			) : (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_hh_stand"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands = [
-																											{
-																												id: generate(),
-																												type: "hh_stand",
-																											},
-																										];
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].hh_stands;
-																									})
-																							);
-																						}
-																					}}
-																				/>
-																			)}
-																		</div>
-																	</Row>
-																	{p.hh_stands ? (
-																		<>
-																			<Row>
-																				<Col>
-																					<Button
-																						style={{
-																							width: "100px",
-																							padding: "5px",
-																							display: "flex",
-																						}}
-																						type="button"
-																						onClick={() => {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands[
-																											p.hh_stands.length
-																										] = {
-																											id: generate(),
-																											type: "hh_stand",
-																										};
-																									})
-																							);
-																						}}
-																					>
-																						הוסף עומד על ח"ח
-																					</Button>
-																				</Col>
-																			</Row>
-																			{p.hh_stands.map((hh_stand, i) => {
+																	{p.hh_stands
+																		? p.hh_stands.map((hh_stand, i) => {
 																				return (
 																					<>
 																						<Row>
@@ -2254,27 +4451,6 @@ const CarDataFormModal = (props) => {
 																										<h6>מק"ט חסר</h6>
 																									</p>
 																									<Input
-																										onChange={(e) => {
-																											const missing_makat_1 =
-																												e.target.value;
-																											if (
-																												e.target.value != "בחר"
-																											)
-																												setFinalSpecialKeytwo(
-																													(currentSpec) =>
-																														produce(
-																															currentSpec,
-																															(v) => {
-																																v[
-																																	index
-																																].hh_stands[
-																																	i
-																																].missing_makat_1 =
-																																	missing_makat_1;
-																															}
-																														)
-																												);
-																										}}
 																										value={
 																											p.hh_stands[i]
 																												.missing_makat_1
@@ -2284,6 +4460,7 @@ const CarDataFormModal = (props) => {
 																										}
 																										type="string"
 																										placeholder={`מק"ט חסר`}
+																										disabled
 																									></Input>
 																								</div>
 																							</Col>
@@ -2298,27 +4475,6 @@ const CarDataFormModal = (props) => {
 																										<h6>כמות</h6>
 																									</p>
 																									<Input
-																										onChange={(e) => {
-																											const missing_makat_2 =
-																												e.target.value;
-																											if (
-																												e.target.value != "בחר"
-																											)
-																												setFinalSpecialKeytwo(
-																													(currentSpec) =>
-																														produce(
-																															currentSpec,
-																															(v) => {
-																																v[
-																																	index
-																																].hh_stands[
-																																	i
-																																].missing_makat_2 =
-																																	missing_makat_2;
-																															}
-																														)
-																												);
-																										}}
 																										value={
 																											p.hh_stands[i]
 																												.missing_makat_2
@@ -2328,94 +4484,46 @@ const CarDataFormModal = (props) => {
 																										}
 																										type="string"
 																										placeholder={`כמות`}
+																										disabled
 																									></Input>
 																								</div>
 																							</Col>
 																						</Row>
-																						<Button
-																							style={{ display: "block" }}
-																							type="button"
-																							onClick={() => {
-																								let newArr = JSON.parse(
-																									JSON.stringify(
-																										finalspecialkeytwo
-																									)
-																								);
-																								newArr[index].hh_stands.splice(
-																									i,
-																									1
-																								);
-																								setFinalSpecialKeytwo(newArr);
-																							}}
-																						>
-																							<img
-																								src={deletepic}
-																								height="20px"
-																							></img>
-																						</Button>
 																					</>
 																				);
-																			})}
-																		</>
-																	) : null}
-																	{/* הוספת ח"ח */}
+																		  })
+																		: null}
 																</>
 															) : p.type == "harig_tipul" ? (
 																<>
 																	<Row>
-																		<ToggleButtonGroup
-																			value={p.errorType}
-																			color="primary"
-																			exclusive
-																			onChange={(e, value) => {
-																				if (
-																					value == undefined ||
-																					value == "Z" ||
-																					(value == "technology" &&
-																						technologies.length > 0)
-																				) {
-																					setFinalSpecialKeytwo((currentSpec) =>
-																						produce(currentSpec, (v) => {
-																							v[index].errorType = value;
-																						})
-																					);
-																				} else {
-																					toast.error(
-																						"ל-צ' זה לא מקושרות מערכות"
-																					);
-																				}
-																				if (value != "technology") {
-																					setFinalSpecialKeytwo((currentSpec) =>
-																						produce(currentSpec, (v) => {
-																							delete v[index].systemType;
-																						})
-																					);
-																				}
-																			}}
-																			aria-label="error type"
-																			style={{ marginTop: "30px" }}
-																		>
-																			<ToggleButton
-																				value="Z"
-																				aria-label="Z"
-																				style={{
-																					height: "10px",
-																					width: "50px",
-																				}}
-																			>
-																				<h6>צ'</h6>
-																			</ToggleButton>
-																			<ToggleButton
-																				value="technology"
-																				aria-label="technology"
-																				style={{
-																					height: "10px",
-																					width: "50px",
-																				}}
-																			>
-																				<h6>מערכת</h6>
-																			</ToggleButton>
-																		</ToggleButtonGroup>
+																		<Col xs={12} md={2}>
+																			<div>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																					}}
+																				>
+																					<h6>סוג כלי</h6>
+																				</p>
+																				<Input
+																					value={p.errorType}
+																					type="select"
+																					placeholder="בחירה"
+																					disabled
+																				>
+																					<option value={"undefined"}>
+																						{"בחר"}
+																					</option>
+																					<option value={"Z"}> צ' </option>
+																					<option value={"technology"}>
+																						{" "}
+																						מערכת{" "}
+																					</option>
+																				</Input>
+																			</div>
+																		</Col>
 																		{p.errorType == "technology" ? (
 																			<Col xs={12} md={2}>
 																				<div>
@@ -2428,23 +4536,10 @@ const CarDataFormModal = (props) => {
 																						<h6>בחר מערכת</h6>
 																					</p>
 																					<Input
-																						onChange={(e) => {
-																							const systemType = e.target.value;
-																							if (e.target.value != "בחר")
-																								setFinalSpecialKeytwo(
-																									(currentSpec) =>
-																										produce(
-																											currentSpec,
-																											(v) => {
-																												v[index].systemType =
-																													systemType;
-																											}
-																										)
-																								);
-																						}}
 																						value={p.systemType}
 																						type="select"
 																						placeholder="מערכת"
+																						disabled
 																					>
 																						<option value={"בחר"}>
 																							{"בחר"}
@@ -2488,6 +4583,7 @@ const CarDataFormModal = (props) => {
 																					value={p.harig_tipul}
 																					type="select"
 																					placeholder="חריג טיפול"
+																					disabled
 																				>
 																					<option value={"בחר"}>{"בחר"}</option>
 																					{tipuls.map((tipul, i) =>
@@ -2528,189 +4624,13 @@ const CarDataFormModal = (props) => {
 																					placeholder="תאריך חריגת טיפול"
 																					min="1900-01-01"
 																					max="2040-01-01"
+																					disabled
 																				/>
 																			</div>
 																		</Col>
 																	</Row>
-																	{/* הוספת ח"ח ומעמל */}
-																	<Row>
-																		<div style={{ paddingLeft: "10px" }}>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																					marginLeft: "5px",
-																					marginRight: "15px",
-																					fontWeight: "bold",
-																					fontSize: "15px",
-																				}}
-																			>
-																				<h5>האם עומד על ח"ח</h5>
-																			</p>
-																			{p.hh_stands ? (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_hh_stand"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands = [
-																											{
-																												id: generate(),
-																												type: "hh_stand",
-																											},
-																										];
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].hh_stands;
-																									})
-																							);
-																						}
-																					}}
-																					checked
-																				/>
-																			) : (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_hh_stand"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands = [
-																											{
-																												id: generate(),
-																												type: "hh_stand",
-																											},
-																										];
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].hh_stands;
-																									})
-																							);
-																						}
-																					}}
-																				/>
-																			)}
-																		</div>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																					marginLeft: "5px",
-																					marginRight: "15px",
-																					fontWeight: "bold",
-																					fontSize: "15px",
-																				}}
-																			>
-																				<h5>האם בוצע טיפול מעמ”ל</h5>
-																			</p>
-																			{p.is_maamal ? (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_maamal"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].is_maamal = true;
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].is_maamal;
-																									})
-																							);
-																						}
-																					}}
-																					checked
-																				/>
-																			) : (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_maamal"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].is_maamal = true;
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].is_maamal;
-																									})
-																							);
-																						}
-																					}}
-																				/>
-																			)}
-																		</div>
-																	</Row>
-																	{p.hh_stands ? (
-																		<>
-																			<Row>
-																				<Col>
-																					<Button
-																						style={{
-																							width: "100px",
-																							padding: "5px",
-																							display: "flex",
-																						}}
-																						type="button"
-																						onClick={() => {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands[
-																											p.hh_stands.length
-																										] = {
-																											id: generate(),
-																											type: "hh_stand",
-																										};
-																									})
-																							);
-																						}}
-																					>
-																						הוסף עומד על ח"ח
-																					</Button>
-																				</Col>
-																			</Row>
-																			{p.hh_stands.map((hh_stand, i) => {
+																	{p.hh_stands
+																		? p.hh_stands.map((hh_stand, i) => {
 																				return (
 																					<>
 																						<Row>
@@ -2725,27 +4645,6 @@ const CarDataFormModal = (props) => {
 																										<h6>מק"ט חסר</h6>
 																									</p>
 																									<Input
-																										onChange={(e) => {
-																											const missing_makat_1 =
-																												e.target.value;
-																											if (
-																												e.target.value != "בחר"
-																											)
-																												setFinalSpecialKeytwo(
-																													(currentSpec) =>
-																														produce(
-																															currentSpec,
-																															(v) => {
-																																v[
-																																	index
-																																].hh_stands[
-																																	i
-																																].missing_makat_1 =
-																																	missing_makat_1;
-																															}
-																														)
-																												);
-																										}}
 																										value={
 																											p.hh_stands[i]
 																												.missing_makat_1
@@ -2755,6 +4654,7 @@ const CarDataFormModal = (props) => {
 																										}
 																										type="string"
 																										placeholder={`מק"ט חסר`}
+																										disabled
 																									></Input>
 																								</div>
 																							</Col>
@@ -2769,27 +4669,6 @@ const CarDataFormModal = (props) => {
 																										<h6>כמות</h6>
 																									</p>
 																									<Input
-																										onChange={(e) => {
-																											const missing_makat_2 =
-																												e.target.value;
-																											if (
-																												e.target.value != "בחר"
-																											)
-																												setFinalSpecialKeytwo(
-																													(currentSpec) =>
-																														produce(
-																															currentSpec,
-																															(v) => {
-																																v[
-																																	index
-																																].hh_stands[
-																																	i
-																																].missing_makat_2 =
-																																	missing_makat_2;
-																															}
-																														)
-																												);
-																										}}
 																										value={
 																											p.hh_stands[i]
 																												.missing_makat_2
@@ -2799,93 +4678,46 @@ const CarDataFormModal = (props) => {
 																										}
 																										type="string"
 																										placeholder={`כמות`}
+																										disabled
 																									></Input>
 																								</div>
 																							</Col>
 																						</Row>
-																						<Button
-																							style={{ display: "block" }}
-																							type="button"
-																							onClick={() => {
-																								let newArr = JSON.parse(
-																									JSON.stringify(
-																										finalspecialkeytwo
-																									)
-																								);
-																								newArr[index].hh_stands.splice(
-																									i,
-																									1
-																								);
-																								setFinalSpecialKeytwo(newArr);
-																							}}
-																						>
-																							<img
-																								src={deletepic}
-																								height="20px"
-																							></img>
-																						</Button>
 																					</>
 																				);
-																			})}
-																		</>
-																	) : null}
-																	{/* הוספת ח"ח */}
+																		  })
+																		: null}
 																</>
 															) : p.type == "takala_mizdamenet" ? (
 																<>
 																	<Row>
-																		<ToggleButtonGroup
-																			value={p.errorType}
-																			color="primary"
-																			exclusive
-																			onChange={(e, value) => {
-																				if (
-																					value == undefined ||
-																					value == "Z" ||
-																					(value == "technology" &&
-																						technologies.length > 0)
-																				) {
-																					setFinalSpecialKeytwo((currentSpec) =>
-																						produce(currentSpec, (v) => {
-																							v[index].errorType = value;
-																						})
-																					);
-																				} else {
-																					toast.error(
-																						"ל-צ' זה לא מקושרות מערכות"
-																					);
-																				}
-																				if (value != "technology") {
-																					setFinalSpecialKeytwo((currentSpec) =>
-																						produce(currentSpec, (v) => {
-																							delete v[index].systemType;
-																						})
-																					);
-																				}
-																			}}
-																			style={{ marginTop: "30px" }}
-																		>
-																			<ToggleButton
-																				value="Z"
-																				aria-label="Z"
-																				style={{
-																					height: "10px",
-																					width: "50px",
-																				}}
-																			>
-																				<h6>צ'</h6>
-																			</ToggleButton>
-																			<ToggleButton
-																				value="technology"
-																				aria-label="technology"
-																				style={{
-																					height: "10px",
-																					width: "50px",
-																				}}
-																			>
-																				<h6>מערכת</h6>
-																			</ToggleButton>
-																		</ToggleButtonGroup>
+																		<Col xs={12} md={2}>
+																			<div>
+																				<p
+																					style={{
+																						margin: "0px",
+																						float: "right",
+																					}}
+																				>
+																					<h6>סוג כלי</h6>
+																				</p>
+																				<Input
+																					value={p.errorType}
+																					type="select"
+																					placeholder="בחירה"
+																					disabled
+																				>
+																					<option value={"undefined"}>
+																						{"בחר"}
+																					</option>
+																					<option value={"Z"}> צ' </option>
+																					<option value={"technology"}>
+																						{" "}
+																						מערכת{" "}
+																					</option>
+																				</Input>
+																			</div>
+																		</Col>
 																		{p.errorType == "technology" ? (
 																			<Col xs={12} md={2}>
 																				<div>
@@ -2898,23 +4730,10 @@ const CarDataFormModal = (props) => {
 																						<h6>בחר מערכת</h6>
 																					</p>
 																					<Input
-																						onChange={(e) => {
-																							const systemType = e.target.value;
-																							if (e.target.value != "בחר")
-																								setFinalSpecialKeytwo(
-																									(currentSpec) =>
-																										produce(
-																											currentSpec,
-																											(v) => {
-																												v[index].systemType =
-																													systemType;
-																											}
-																										)
-																								);
-																						}}
 																						value={p.systemType}
 																						type="select"
 																						placeholder="מערכת"
+																						disabled
 																					>
 																						<option value={"בחר"}>
 																							{"בחר"}
@@ -2959,6 +4778,7 @@ const CarDataFormModal = (props) => {
 																					value={p.takala_mizdamenet}
 																					type="select"
 																					placeholder="תקלה מזדמנת"
+																					disabled
 																				>
 																					<option value={"בחר"}>{"בחר"}</option>
 																					<option value={"קלה"}>{"קלה"}</option>
@@ -2977,7 +4797,7 @@ const CarDataFormModal = (props) => {
 																						float: "right",
 																					}}
 																				>
-																					<h6>תאריך תקלה מזמנת</h6>
+																					<h6>תאריך תקלה מזדמנת</h6>
 																				</p>
 																				<Input
 																					onChange={(e) => {
@@ -2996,124 +4816,16 @@ const CarDataFormModal = (props) => {
 																					}}
 																					value={p.takala_mizdamenet_date}
 																					type="date"
-																					placeholder="תאריך תקלה מזמנת"
+																					placeholder="תאריך תקלה מזדמנת"
 																					min="1900-01-01"
 																					max="2040-01-01"
+																					disabled
 																				/>
 																			</div>
 																		</Col>
 																	</Row>
-																	{/* הוספת ח"ח */}
-																	<Row>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																					marginLeft: "5px",
-																					marginRight: "15px",
-																					fontWeight: "bold",
-																					fontSize: "15px",
-																				}}
-																			>
-																				<h5>האם עומד על ח"ח</h5>
-																			</p>
-																			{p.hh_stands ? (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_hh_stand"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands = [
-																											{
-																												id: generate(),
-																												type: "hh_stand",
-																											},
-																										];
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].hh_stands;
-																									})
-																							);
-																						}
-																					}}
-																					checked
-																				/>
-																			) : (
-																				<Input
-																					style={{
-																						width: "18px",
-																						height: "18px",
-																					}}
-																					id="Is_hh_stand"
-																					type="checkbox"
-																					onChange={(e) => {
-																						if (e.target.checked == true) {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands = [
-																											{
-																												id: generate(),
-																												type: "hh_stand",
-																											},
-																										];
-																									})
-																							);
-																						} else {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										delete v[index].hh_stands;
-																									})
-																							);
-																						}
-																					}}
-																				/>
-																			)}
-																		</div>
-																	</Row>
-																	{p.hh_stands ? (
-																		<>
-																			<Row>
-																				<Col>
-																					<Button
-																						style={{
-																							width: "100px",
-																							padding: "5px",
-																							display: "flex",
-																						}}
-																						type="button"
-																						onClick={() => {
-																							setFinalSpecialKeytwo(
-																								(currentSpec) =>
-																									produce(currentSpec, (v) => {
-																										v[index].hh_stands[
-																											p.hh_stands.length
-																										] = {
-																											id: generate(),
-																											type: "hh_stand",
-																										};
-																									})
-																							);
-																						}}
-																					>
-																						הוסף עומד על ח"ח
-																					</Button>
-																				</Col>
-																			</Row>
-																			{p.hh_stands.map((hh_stand, i) => {
+																	{p.hh_stands
+																		? p.hh_stands.map((hh_stand, i) => {
 																				return (
 																					<>
 																						<Row>
@@ -3128,27 +4840,6 @@ const CarDataFormModal = (props) => {
 																										<h6>מק"ט חסר</h6>
 																									</p>
 																									<Input
-																										onChange={(e) => {
-																											const missing_makat_1 =
-																												e.target.value;
-																											if (
-																												e.target.value != "בחר"
-																											)
-																												setFinalSpecialKeytwo(
-																													(currentSpec) =>
-																														produce(
-																															currentSpec,
-																															(v) => {
-																																v[
-																																	index
-																																].hh_stands[
-																																	i
-																																].missing_makat_1 =
-																																	missing_makat_1;
-																															}
-																														)
-																												);
-																										}}
 																										value={
 																											p.hh_stands[i]
 																												.missing_makat_1
@@ -3158,6 +4849,7 @@ const CarDataFormModal = (props) => {
 																										}
 																										type="string"
 																										placeholder={`מק"ט חסר`}
+																										disabled
 																									></Input>
 																								</div>
 																							</Col>
@@ -3172,27 +4864,6 @@ const CarDataFormModal = (props) => {
 																										<h6>כמות</h6>
 																									</p>
 																									<Input
-																										onChange={(e) => {
-																											const missing_makat_2 =
-																												e.target.value;
-																											if (
-																												e.target.value != "בחר"
-																											)
-																												setFinalSpecialKeytwo(
-																													(currentSpec) =>
-																														produce(
-																															currentSpec,
-																															(v) => {
-																																v[
-																																	index
-																																].hh_stands[
-																																	i
-																																].missing_makat_2 =
-																																	missing_makat_2;
-																															}
-																														)
-																												);
-																										}}
 																										value={
 																											p.hh_stands[i]
 																												.missing_makat_2
@@ -3202,1144 +4873,107 @@ const CarDataFormModal = (props) => {
 																										}
 																										type="string"
 																										placeholder={`כמות`}
+																										disabled
 																									></Input>
 																								</div>
 																							</Col>
 																						</Row>
-																						<Button
-																							style={{ display: "block" }}
-																							type="button"
-																							onClick={() => {
-																								let newArr = JSON.parse(
-																									JSON.stringify(
-																										finalspecialkeytwo
-																									)
-																								);
-																								newArr[index].hh_stands.splice(
-																									i,
-																									1
-																								);
-																								setFinalSpecialKeytwo(newArr);
-																							}}
-																						>
-																							<img
-																								src={deletepic}
-																								height="20px"
-																							></img>
-																						</Button>
 																					</>
 																				);
-																			})}
-																		</>
-																	) : null}
-																	{/* הוספת ח"ח */}
+																		  })
+																		: null}
 																</>
 															) : null}
-
-															<Button
-																type="button"
-																onClick={() => {
-																	setFinalSpecialKeytwo((currentSpec) =>
-																		currentSpec.filter((x) => x.id !== p.id)
-																	);
-																}}
-															>
-																<img src={deletepic} height="20px"></img>
-															</Button>
 														</div>
 													);
-												})
-											)}
-										</div>
-										{/* tipuls */}
+												})}
+											</div>
+											{/* tipuls */}
 
-										<Row>
-											<Col>
-												<div style={{ textAlign: "right", paddingTop: "10px" }}>
-													<h6>מהות התקלה</h6>
-												</div>
-												<Input
-													placeholder="מהות התקלה"
-													type="textarea"
-													name="takala_info"
-													value={cardata.takala_info}
-													onChange={handleChange}
-												/>
-											</Col>
-										</Row>
-
-										<Row>
-											<Col>
-												<div style={{ textAlign: "right", paddingTop: "10px" }}>
-													<h6>צפי תיקון</h6>
-												</div>
-												<Input
-													placeholder="צפי תיקון"
-													type="select"
-													name="expected_repair"
-													value={cardata.expected_repair}
-													onChange={handleChange}
-												>
-													<option value={"בחר"}>{"בחר"}</option>
-													<option value={"עד 6 שעות"}>{"עד 6 שעות"}</option>
-													<option value={"עד 12 שעות"}>{"עד 12 שעות"}</option>
-													<option value={"עד 24 שעות"}>{"עד 24 שעות"}</option>
-													<option value={"עד 72 שעות"}>{"עד 72 שעות"}</option>
-													<option value={"מעל 72 שעות"}>{"מעל 72 שעות"}</option>
-												</Input>
-											</Col>
-										</Row>
-
-										{/* <Row>
-                    <Col xs={12} md={8}>
-                    </Col>
-                    <Col xs={12} md={4}>
-                      <div>
-                        <p style={{ margin: '0px', float: 'left' }}>כמות ימי אי זמינות: 5 ימים</p>
-                      </div>
-                    </Col>
-                  </Row> */}
-									</>
-								) : null}
-
-								<Row>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מיקום</h6>
-										</div>
-										<Input
-											placeholder="מיקום"
-											type="string"
-											name="mikum"
-											value={cardata.mikum}
-											onChange={handleChange}
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מועד כיול אחרון</h6>
-										</div>
-										<Input
-											placeholder="מועד כיול אחרון"
-											type="date"
-											name="latest_recalibration_date"
-											value={cardata.latest_recalibration_date}
-											onChange={handleChange}
-											min="1900-01-01"
-											max="2040-01-01"
-										/>
-									</Col>
-								</Row>
-
-								{/* {(user.role == '0' || user.role == '1' || isgdodsadir == false) ? */}
-								<div style={{ textAlign: "center", paddingTop: "20px" }}>
-									<button className="btn" onClick={clickSubmit}>
-										עדכן
-									</button>
-								</div>
-								{/* : null} */}
-							</Container>
-						) : (
-							<Container>
-								<Row>
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6 style={{}}>צ'</h6>
-										<Input
-											placeholder="צ'"
-											type="string"
-											name="carnumber"
-											value={cardata.carnumber}
-											onChange={handleChange}
-											disabled
-										/>
-									</Col>
-
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6 style={{}}>משפחה</h6>
-										<Input
-											placeholder="משפחה"
-											type="string"
-											name="family"
-											value={cardata.family}
-											onChange={handleChange}
-											disabled
-										/>
-									</Col>
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6 style={{}}>סטאטוס הכלי</h6>
-										<Input
-											placeholder="סטאטוס הכלי"
-											type="select"
-											name="status"
-											value={cardata.status}
-											onChange={handleChange}
-											disabled
-										>
-											<option value={"בחר"}>{"בחר"}</option>
-											<option value={"פעיל"}>{"פעיל"}</option>
-											<option value={"מושבת"}>{"מושבת"}</option>
-											<option value={"מיועד להשבתה"}>{"מיועד להשבתה"}</option>
-											{user.role == "0" ? (
-												<option value={"עצור"}>{"עצור"}</option>
-											) : null}
-										</Input>
-									</Col>
-								</Row>
-
-								<Row>
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6>מאגד על</h6>
-										<Select
-											data={magadals}
-											handleChange2={handleChange2}
-											name={"magadal"}
-											val={cardata.magadal ? cardata.magadal : undefined}
-											isDisabled={true}
-										/>
-									</Col>
-
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6>מאגד</h6>
-										<Select
-											data={magads}
-											handleChange2={handleChange2}
-											name={"magad"}
-											val={cardata.magad ? cardata.magad : undefined}
-											isDisabled={true}
-										/>
-									</Col>
-
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6>מקבץ</h6>
-										<Select
-											data={mkabazs}
-											handleChange2={handleChange2}
-											name={"mkabaz"}
-											val={cardata.mkabaz ? cardata.mkabaz : undefined}
-											isDisabled={true}
-										/>
-									</Col>
-
-									<Col
-										style={{
-											justifyContent: "right",
-											alignContent: "right",
-											textAlign: "right",
-										}}
-									>
-										<h6>מק"ט</h6>
-										<Select
-											data={makats}
-											handleChange2={handleChange2}
-											name={"makat"}
-											val={cardata.makat ? cardata.makat : undefined}
-											isDisabled={true}
-										/>
-									</Col>
-								</Row>
-
-								<Row style={{ paddingTop: "10px" }}>
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ? (
-										<>
-											<Col
-												style={{
-													justifyContent: "right",
-													alignContent: "right",
-													textAlign: "right",
-												}}
-											>
-												<h6>פיקוד</h6>
-												<Select
-													data={pikods}
-													handleChange2={handleChange2}
-													name={"pikod"}
-													val={cardata.pikod ? cardata.pikod : undefined}
-													isDisabled={true}
-												/>
-											</Col>
-										</>
-									) : null}
-
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ||
-									props.unittype == "pikod" ? (
-										<>
-											<Col
-												style={{
-													justifyContent: "right",
-													alignContent: "right",
-													textAlign: "right",
-												}}
-											>
-												<h6>אוגדה</h6>
-												<Select
-													data={ogdas}
-													handleChange2={handleChange2}
-													name={"ogda"}
-													val={cardata.ogda ? cardata.ogda : undefined}
-													isDisabled={true}
-												/>
-											</Col>
-										</>
-									) : null}
-
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ||
-									props.unittype == "pikod" ||
-									props.unittype == "ogda" ? (
-										<>
-											<Col
-												style={{
-													justifyContent: "right",
-													alignContent: "right",
-													textAlign: "right",
-												}}
-											>
-												<h6>חטיבה</h6>
-												<Select
-													data={hativas}
-													handleChange2={handleChange2}
-													name={"hativa"}
-													val={cardata.hativa ? cardata.hativa : undefined}
-													isDisabled={true}
-												/>
-											</Col>
-										</>
-									) : null}
-
-									{props.unittype == "admin" ||
-									props.unittype == "general" ||
-									props.unittype == "notype" ||
-									props.unittype == "pikod" ||
-									props.unittype == "ogda" ||
-									props.unittype == "hativa" ? (
-										<>
-											<Col
-												style={{
-													justifyContent: "right",
-													alignContent: "right",
-													textAlign: "right",
-												}}
-											>
-												<h6>גדוד</h6>
-												<Select
-													data={gdods}
-													handleChange2={handleChange2}
-													name={"gdod"}
-													val={cardata.gdod ? cardata.gdod : undefined}
-													isDisabled={true}
-												/>
-											</Col>
-										</>
-									) : null}
-								</Row>
-
-								<Row>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>פלוגה</h6>
-										</div>
-										<Input
-											placeholder="פלוגה"
-											type="string"
-											name="pluga"
-											value={cardata.pluga}
-											onChange={handleChange}
-											disabled
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>שבצ"ק</h6>
-										</div>
-										<Input
-											placeholder={`שבצ"ק`}
-											type="string"
-											name="shabzak"
-											value={cardata.shabzak}
-											onChange={handleChange}
-											disabled
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מיקום בימ"ח</h6>
-										</div>
-										<Input
-											placeholder={`מיקום בימ"ח`}
-											type="string"
-											name="mikum_bimh"
-											value={cardata.mikum_bimh}
-											onChange={handleChange}
-											disabled
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מעמד הכלי</h6>
-										</div>
-										<Input
-											placeholder="מעמד הכלי"
-											type="select"
-											name="stand"
-											value={cardata.stand}
-											onChange={handleChange}
-											disabled
-										>
-											<option value={"בחר"}>בחר</option>
-											<option value={"סדיר"}>סדיר</option>
-											<option value={"הכן"}>הכן</option>
-											<option value={'הח"י'}>הח"י</option>
-										</Input>
-									</Col>
-								</Row>
-
-								<Row>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>זמינות</h6>
-										</div>
-										<Input
-											style={{ border: "2px solid" }}
-											placeholder="זמינות"
-											type="select"
-											name="zminot"
-											value={cardata.zminot}
-											onChange={handleChange}
-											disabled
-										>
-											<option value={"בחר"}>בחר</option>
-											<option value={"זמין"}>זמין</option>
-											<option value={"לא זמין"}>לא זמין</option>
-										</Input>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>כשירות למלחמה</h6>
-										</div>
-										<Input
-											style={{ border: "2px solid" }}
-											placeholder="כשירות למלחמה"
-											type="select"
-											name="kshirot"
-											value={cardata.kshirot}
-											onChange={handleChange}
-											disabled
-										>
-											<option value={"בחר"}>בחר</option>
-											<option value={"כשיר"}>כשיר</option>
-											<option value={"לא כשיר"}>לא כשיר</option>
-										</Input>
-									</Col>
-								</Row>
-
-								{cardata.kshirot == "לא כשיר" || cardata.zminot == "לא זמין" ? (
-									<>
-										{/* tipuls */}
-										<div
-											style={{
-												textAlign: "right",
-												paddingTop: "10px",
-												fontWeight: "bold",
-											}}
-										>
-											<h6>סיבות אי זמינות</h6>
-										</div>
-
-										<div>
-											{finalspecialkeytwo.map((p, index) => {
-												return (
-													<div>
-														{p.type == "tipul" ? (
-															<>
-																<Row>
-																	<ToggleButtonGroup
-																		value={p.errorType}
-																		color="primary"
-																		exclusive
-																		style={{ marginTop: "30px" }}
-																		disabled
-																	>
-																		<ToggleButton
-																			value="Z"
-																			aria-label="Z"
-																			style={{ height: "10px", width: "50px" }}
-																		>
-																			<h6>צ'</h6>
-																		</ToggleButton>
-																		<ToggleButton
-																			value="technology"
-																			aria-label="technology"
-																			style={{ height: "10px", width: "50px" }}
-																		>
-																			<h6>מערכת</h6>
-																		</ToggleButton>
-																	</ToggleButtonGroup>
-																	{p.errorType == "technology" ? (
-																		<Col xs={12} md={2}>
-																			<div>
-																				<p
-																					style={{
-																						margin: "0px",
-																						float: "right",
-																					}}
-																				>
-																					<h6>בחר מערכת</h6>
-																				</p>
-																				<Input
-																					value={p.systemType}
-																					type="select"
-																					placeholder="מערכת"
-																					disabled
-																				>
-																					<option value={"בחר"}>{"בחר"}</option>
-																					{technologies.map((technology, i) =>
-																						technology.kshirot == "לא כשיר" ? (
-																							<option
-																								value={technology.systemType}
-																							>
-																								{technology.systemType}
-																							</option>
-																						) : null
-																					)}
-																				</Input>
-																			</div>
-																		</Col>
-																	) : null}
-																	<Col xs={12} md={3}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>סוג הטיפול</h6>
-																			</p>
-																			<Input
-																				value={p.tipul}
-																				type="select"
-																				placeholder="סוג הטיפול"
-																				disabled
-																			>
-																				<option value={"בחר"}>{"בחר"}</option>
-																				{tipuls.map((tipul, i) =>
-																					tipul ? (
-																						<option value={tipul.name}>
-																							{tipul.name}
-																						</option>
-																					) : null
-																				)}
-																			</Input>
-																		</div>
-																	</Col>
-																	<Col xs={12} md={3}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>תאריך כניסה לטיפול</h6>
-																			</p>
-																			<Input
-																				value={p.tipul_entry_date}
-																				type="date"
-																				placeholder="תאריך כניסה לטיפול"
-																				min="1900-01-01"
-																				max="2040-01-01"
-																				disabled
-																			/>
-																		</div>
-																	</Col>
-																	<Col xs={12} md={2}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>מיקום הטיפול</h6>
-																			</p>
-																			<Input
-																				value={p.mikum_tipul}
-																				type="select"
-																				placeholder="מיקום הטיפול"
-																				disabled
-																			>
-																				<option value={"בחר"}>{"בחר"}</option>
-																				<option value={"ביחידה"}>
-																					{"ביחידה"}
-																				</option>
-																				<option value={"אגד ארצי"}>
-																					{"אגד ארצי"}
-																				</option>
-																				<option value={`מש"א`}>{`מש"א`}</option>
-																				<option value={"אחזקות חוץ"}>
-																					{"אחזקות חוץ"}
-																				</option>
-																			</Input>
-																		</div>
-																	</Col>
-																</Row>
-																{p.hh_stands
-																	? p.hh_stands.map((hh_stand, i) => {
-																			return (
-																				<>
-																					<Row>
-																						<Col xs={12} md={6}>
-																							<div>
-																								<p
-																									style={{
-																										margin: "0px",
-																										float: "right",
-																									}}
-																								>
-																									<h6>מק"ט חסר</h6>
-																								</p>
-																								<Input
-																									value={
-																										p.hh_stands[i]
-																											.missing_makat_1
-																											? p.hh_stands[i]
-																													.missing_makat_1
-																											: ""
-																									}
-																									type="string"
-																									placeholder={`מק"ט חסר`}
-																									disabled
-																								></Input>
-																							</div>
-																						</Col>
-																						<Col xs={12} md={6}>
-																							<div>
-																								<p
-																									style={{
-																										margin: "0px",
-																										float: "right",
-																									}}
-																								>
-																									<h6>כמות</h6>
-																								</p>
-																								<Input
-																									value={
-																										p.hh_stands[i]
-																											.missing_makat_2
-																											? p.hh_stands[i]
-																													.missing_makat_2
-																											: ""
-																									}
-																									type="string"
-																									placeholder={`כמות`}
-																									disabled
-																								></Input>
-																							</div>
-																						</Col>
-																					</Row>
-																				</>
-																			);
-																	  })
-																	: null}
-															</>
-														) : p.type == "harig_tipul" ? (
-															<>
-																<Row>
-																	<ToggleButtonGroup
-																		value={p.errorType}
-																		color="primary"
-																		exclusive
-																		style={{ marginTop: "30px" }}
-																		disabled
-																	>
-																		<ToggleButton
-																			value="Z"
-																			aria-label="Z"
-																			style={{ height: "10px", width: "50px" }}
-																		>
-																			<h6>צ'</h6>
-																		</ToggleButton>
-																		<ToggleButton
-																			value="technology"
-																			aria-label="technology"
-																			style={{ height: "10px", width: "50px" }}
-																		>
-																			<h6>מערכת</h6>
-																		</ToggleButton>
-																	</ToggleButtonGroup>
-																	{p.errorType == "technology" ? (
-																		<Col xs={12} md={2}>
-																			<div>
-																				<p
-																					style={{
-																						margin: "0px",
-																						float: "right",
-																					}}
-																				>
-																					<h6>בחר מערכת</h6>
-																				</p>
-																				<Input
-																					value={p.systemType}
-																					type="select"
-																					placeholder="מערכת"
-																					disabled
-																				>
-																					<option value={"בחר"}>{"בחר"}</option>
-																					{technologies.map((technology, i) =>
-																						technology.kshirot == "לא כשיר" ? (
-																							<option
-																								value={technology.systemType}
-																							>
-																								{technology.systemType}
-																							</option>
-																						) : null
-																					)}
-																				</Input>
-																			</div>
-																		</Col>
-																	) : null}
-																	<Col xs={12} md={4}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>חריג טיפול</h6>
-																			</p>
-																			<Input
-																				onChange={(e) => {
-																					const harig_tipul = e.target.value;
-																					if (e.target.value != "בחר")
-																						setFinalSpecialKeytwo(
-																							(currentSpec) =>
-																								produce(currentSpec, (v) => {
-																									v[index].harig_tipul =
-																										harig_tipul;
-																								})
-																						);
-																				}}
-																				value={p.harig_tipul}
-																				type="select"
-																				placeholder="חריג טיפול"
-																				disabled
-																			>
-																				<option value={"בחר"}>{"בחר"}</option>
-																				{tipuls.map((tipul, i) =>
-																					tipul ? (
-																						<option value={tipul.name}>
-																							{tipul.name}
-																						</option>
-																					) : null
-																				)}
-																			</Input>
-																		</div>
-																	</Col>
-																	<Col xs={12} md={4}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>תאריך חריגת טיפול</h6>
-																			</p>
-																			<Input
-																				onChange={(e) => {
-																					const harig_tipul_date =
-																						e.target.value;
-																					if (e.target.value != "בחר")
-																						setFinalSpecialKeytwo(
-																							(currentSpec) =>
-																								produce(currentSpec, (v) => {
-																									v[index].harig_tipul_date =
-																										harig_tipul_date;
-																								})
-																						);
-																				}}
-																				value={p.harig_tipul_date}
-																				type="date"
-																				placeholder="תאריך חריגת טיפול"
-																				min="1900-01-01"
-																				max="2040-01-01"
-																				disabled
-																			/>
-																		</div>
-																	</Col>
-																</Row>
-																{p.hh_stands
-																	? p.hh_stands.map((hh_stand, i) => {
-																			return (
-																				<>
-																					<Row>
-																						<Col xs={12} md={6}>
-																							<div>
-																								<p
-																									style={{
-																										margin: "0px",
-																										float: "right",
-																									}}
-																								>
-																									<h6>מק"ט חסר</h6>
-																								</p>
-																								<Input
-																									value={
-																										p.hh_stands[i]
-																											.missing_makat_1
-																											? p.hh_stands[i]
-																													.missing_makat_1
-																											: ""
-																									}
-																									type="string"
-																									placeholder={`מק"ט חסר`}
-																									disabled
-																								></Input>
-																							</div>
-																						</Col>
-																						<Col xs={12} md={6}>
-																							<div>
-																								<p
-																									style={{
-																										margin: "0px",
-																										float: "right",
-																									}}
-																								>
-																									<h6>כמות</h6>
-																								</p>
-																								<Input
-																									value={
-																										p.hh_stands[i]
-																											.missing_makat_2
-																											? p.hh_stands[i]
-																													.missing_makat_2
-																											: ""
-																									}
-																									type="string"
-																									placeholder={`כמות`}
-																									disabled
-																								></Input>
-																							</div>
-																						</Col>
-																					</Row>
-																				</>
-																			);
-																	  })
-																	: null}
-															</>
-														) : p.type == "takala_mizdamenet" ? (
-															<>
-																<Row>
-																	<ToggleButtonGroup
-																		value={p.errorType}
-																		color="primary"
-																		exclusive
-																		style={{ marginTop: "30px" }}
-																		disabled
-																	>
-																		<ToggleButton
-																			value="Z"
-																			aria-label="Z"
-																			style={{ height: "10px", width: "50px" }}
-																		>
-																			<h6>צ'</h6>
-																		</ToggleButton>
-																		<ToggleButton
-																			value="technology"
-																			aria-label="technology"
-																			style={{ height: "10px", width: "50px" }}
-																		>
-																			<h6>מערכת</h6>
-																		</ToggleButton>
-																	</ToggleButtonGroup>
-																	{p.errorType == "technology" ? (
-																		<Col xs={12} md={2}>
-																			<div>
-																				<p
-																					style={{
-																						margin: "0px",
-																						float: "right",
-																					}}
-																				>
-																					<h6>בחר מערכת</h6>
-																				</p>
-																				<Input
-																					value={p.systemType}
-																					type="select"
-																					placeholder="מערכת"
-																					disabled
-																				>
-																					<option value={"בחר"}>{"בחר"}</option>
-																					{technologies.map((technology, i) =>
-																						technology.kshirot == "לא כשיר" ? (
-																							<option
-																								value={technology.systemType}
-																							>
-																								{technology.systemType}
-																							</option>
-																						) : null
-																					)}
-																				</Input>
-																			</div>
-																		</Col>
-																	) : null}
-																	<Col xs={12} md={4}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>תקלה מזדמנת</h6>
-																			</p>
-																			<Input
-																				onChange={(e) => {
-																					const takala_mizdamenet =
-																						e.target.value;
-																					if (e.target.value != "בחר")
-																						setFinalSpecialKeytwo(
-																							(currentSpec) =>
-																								produce(currentSpec, (v) => {
-																									v[index].takala_mizdamenet =
-																										takala_mizdamenet;
-																								})
-																						);
-																				}}
-																				value={p.takala_mizdamenet}
-																				type="select"
-																				placeholder="תקלה מזדמנת"
-																				disabled
-																			>
-																				<option value={"בחר"}>{"בחר"}</option>
-																				<option value={"קלה"}>{"קלה"}</option>
-																				<option value={"בינונית"}>
-																					{"בינונית"}
-																				</option>
-																				<option value={"קשה"}>{"קשה"}</option>
-																			</Input>
-																		</div>
-																	</Col>
-																	<Col xs={12} md={4}>
-																		<div>
-																			<p
-																				style={{
-																					margin: "0px",
-																					float: "right",
-																				}}
-																			>
-																				<h6>תאריך תקלה מזדמנת</h6>
-																			</p>
-																			<Input
-																				onChange={(e) => {
-																					const takala_mizdamenet_date =
-																						e.target.value;
-																					if (e.target.value != "בחר")
-																						setFinalSpecialKeytwo(
-																							(currentSpec) =>
-																								produce(currentSpec, (v) => {
-																									v[
-																										index
-																									].takala_mizdamenet_date =
-																										takala_mizdamenet_date;
-																								})
-																						);
-																				}}
-																				value={p.takala_mizdamenet_date}
-																				type="date"
-																				placeholder="תאריך תקלה מזדמנת"
-																				min="1900-01-01"
-																				max="2040-01-01"
-																				disabled
-																			/>
-																		</div>
-																	</Col>
-																</Row>
-																{p.hh_stands
-																	? p.hh_stands.map((hh_stand, i) => {
-																			return (
-																				<>
-																					<Row>
-																						<Col xs={12} md={6}>
-																							<div>
-																								<p
-																									style={{
-																										margin: "0px",
-																										float: "right",
-																									}}
-																								>
-																									<h6>מק"ט חסר</h6>
-																								</p>
-																								<Input
-																									value={
-																										p.hh_stands[i]
-																											.missing_makat_1
-																											? p.hh_stands[i]
-																													.missing_makat_1
-																											: ""
-																									}
-																									type="string"
-																									placeholder={`מק"ט חסר`}
-																									disabled
-																								></Input>
-																							</div>
-																						</Col>
-																						<Col xs={12} md={6}>
-																							<div>
-																								<p
-																									style={{
-																										margin: "0px",
-																										float: "right",
-																									}}
-																								>
-																									<h6>כמות</h6>
-																								</p>
-																								<Input
-																									value={
-																										p.hh_stands[i]
-																											.missing_makat_2
-																											? p.hh_stands[i]
-																													.missing_makat_2
-																											: ""
-																									}
-																									type="string"
-																									placeholder={`כמות`}
-																									disabled
-																								></Input>
-																							</div>
-																						</Col>
-																					</Row>
-																				</>
-																			);
-																	  })
-																	: null}
-															</>
-														) : null}
+											<Row>
+												<Col>
+													<div
+														style={{ textAlign: "right", paddingTop: "10px" }}
+													>
+														<h6>מהות התקלה</h6>
 													</div>
-												);
-											})}
-										</div>
-										{/* tipuls */}
+													<Input
+														placeholder="מהות התקלה"
+														type="textarea"
+														name="takala_info"
+														value={cardata.takala_info}
+														onChange={handleChange}
+														disabled
+													/>
+												</Col>
+											</Row>
 
-										<Row>
-											<Col>
-												<div style={{ textAlign: "right", paddingTop: "10px" }}>
-													<h6>מהות התקלה</h6>
-												</div>
-												<Input
-													placeholder="מהות התקלה"
-													type="textarea"
-													name="takala_info"
-													value={cardata.takala_info}
-													onChange={handleChange}
-													disabled
-												/>
-											</Col>
-										</Row>
+											<Row>
+												<Col>
+													<div
+														style={{ textAlign: "right", paddingTop: "10px" }}
+													>
+														<h6>צפי תיקון</h6>
+													</div>
+													<Input
+														placeholder="צפי תיקון"
+														type="select"
+														name="expected_repair"
+														value={cardata.expected_repair}
+														onChange={handleChange}
+														disabled
+													>
+														<option value={"בחר"}>{"בחר"}</option>
+														<option value={"עד 6 שעות"}>{"עד 6 שעות"}</option>
+														<option value={"עד 12 שעות"}>{"עד 12 שעות"}</option>
+														<option value={"עד 24 שעות"}>{"עד 24 שעות"}</option>
+														<option value={"עד 72 שעות"}>{"עד 72 שעות"}</option>
+														<option value={"מעל 72 שעות"}>
+															{"מעל 72 שעות"}
+														</option>
+													</Input>
+												</Col>
+											</Row>
+										</>
+									) : null}
 
-										<Row>
-											<Col>
-												<div style={{ textAlign: "right", paddingTop: "10px" }}>
-													<h6>צפי תיקון</h6>
-												</div>
-												<Input
-													placeholder="צפי תיקון"
-													type="select"
-													name="expected_repair"
-													value={cardata.expected_repair}
-													onChange={handleChange}
-													disabled
-												>
-													<option value={"בחר"}>{"בחר"}</option>
-													<option value={"עד 6 שעות"}>{"עד 6 שעות"}</option>
-													<option value={"עד 12 שעות"}>{"עד 12 שעות"}</option>
-													<option value={"עד 24 שעות"}>{"עד 24 שעות"}</option>
-													<option value={"עד 72 שעות"}>{"עד 72 שעות"}</option>
-													<option value={"מעל 72 שעות"}>{"מעל 72 שעות"}</option>
-												</Input>
-											</Col>
-										</Row>
-									</>
-								) : null}
-
-								<Row>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מיקום</h6>
-										</div>
-										<Input
-											placeholder="מיקום"
-											type="string"
-											name="mikum"
-											value={cardata.mikum}
-											onChange={handleChange}
-											disabled
-										/>
-									</Col>
-									<Col>
-										<div style={{ textAlign: "right", paddingTop: "10px" }}>
-											<h6>מועד כיול אחרון</h6>
-										</div>
-										<Input
-											placeholder="מועד כיול אחרון"
-											type="date"
-											name="latest_recalibration_date"
-											value={cardata.latest_recalibration_date}
-											onChange={handleChange}
-											min="1900-01-01"
-											max="2040-01-01"
-											disabled
-										/>
-									</Col>
-								</Row>
-							</Container>
-						)}
-					</CardBody>
-				</Card>
-			</ModalBody>
-		</Modal>
+									<Row>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מיקום</h6>
+											</div>
+											<Input
+												placeholder="מיקום"
+												type="string"
+												name="mikum"
+												value={cardata.mikum}
+												onChange={handleChange}
+												disabled
+											/>
+										</Col>
+										<Col>
+											<div style={{ textAlign: "right", paddingTop: "10px" }}>
+												<h6>מועד כיול אחרון</h6>
+											</div>
+											<Input
+												placeholder="מועד כיול אחרון"
+												type="date"
+												name="latest_recalibration_date"
+												value={cardata.latest_recalibration_date}
+												onChange={handleChange}
+												min="1900-01-01"
+												max="2040-01-01"
+												disabled
+											/>
+										</Col>
+									</Row>
+								</Container>
+							)}
+						</CardBody>
+					</Card>
+				</ModalBody>
+			</Modal>
+		</>
 	);
 };
 export default withRouter(CarDataFormModal);

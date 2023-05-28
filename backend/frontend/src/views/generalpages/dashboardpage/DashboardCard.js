@@ -29,7 +29,6 @@ import {
 	Collapse,
 	Progress,
 } from "reactstrap";
-import axios from "axios";
 
 function DashboardCard(props) {
 	//instate - zamin/kashir
@@ -59,17 +58,15 @@ function DashboardCard(props) {
 		cardata_by_cartype_hhstand_takalotmizdamnot,
 		setCardata_by_cartype_hhstand_takalotmizdamnot,
 	] = useState(0);
-	//
 	const [
 		cardata_by_cartype_system_mooshbat,
 		setCardata_by_cartype_system_mooshbat,
 	] = useState(0);
 	const [cardata_by_cartype_systemonz, setCardata_by_cartype_systemonz] =
 		useState(0);
-	const [
-		cardata_by_cartype_systemonz__hh,
-		setCardata_by_cartype_systemonz__hh,
-	] = useState(0);
+	const [cardata_by_cartype_systemonz_hh, setCardata_by_cartype_systemonz_hh] =
+		useState(0);
+	//
 	const [collapseOpen, setcollapseOpen] = useState(false);
 
 	const toggleCollapse = (event) => {
@@ -149,14 +146,15 @@ function DashboardCard(props) {
 		let temp_cardata_by_cartype_intipul = [];
 		let temp_cardata_by_cartype_harigtipul = [];
 		let temp_cardata_by_cartype_takalotmizdamnot = [];
-		let temp_cardata_by_cartype_systemoz = [];
-		let temp_cardata_by_cartype_systemoz_mooshbat = 0;
+		let temp_cardata_by_cartype_systemonz = [];
+		let temp_cardata_by_cartype_systemonz_mooshbat = 0;
 		let temp_cardata_by_cartype_hhstand_intipul = [];
 		let temp_cardata_by_cartype_hhstand_harigtipul = [];
 		let temp_cardata_by_cartype_hhstand_takalotmizdamnot = [];
 		let temp_system_hh = [];
 		let unique = [];
 		let unique1 = [];
+
 		for (let i = 0; i < temp_cardata_by_cartype_not_instate.length; i++) {
 			let is_intipul = false;
 			let is_harigtipul = false;
@@ -164,7 +162,6 @@ function DashboardCard(props) {
 			let is_hhstand_intipul = false;
 			let is_hhstand_harigtipul = false;
 			let is_hhstand_takalotmizdamnot = false;
-			let is_mooshbat_cus_system = false;
 			let is_system_hh_multival = false;
 
 			for (
@@ -196,6 +193,7 @@ function DashboardCard(props) {
 					}
 				}
 			}
+
 			if (is_intipul)
 				temp_cardata_by_cartype_intipul.push(
 					temp_cardata_by_cartype_not_instate[i]
@@ -220,19 +218,14 @@ function DashboardCard(props) {
 				temp_cardata_by_cartype_hhstand_takalotmizdamnot.push(
 					temp_cardata_by_cartype_not_instate[i]
 				);
-			// console.log(temp_cardata_by_cartype_not_instate[i].kshirot);
 
 			const sys = props.systemsonz;
-			// console.log(props.systemsonz);
-			// console.log(temp_cardata_by_cartype_not_instate[i]);
 			sys.map((item) => {
 				if (
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
-					item.mashbit[0].mashbit == true
+					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
 				) {
-					// console.log(item);
 					if (item.kshirot != "כשיר") {
-						temp_cardata_by_cartype_systemoz.push(
+						temp_cardata_by_cartype_systemonz.push(
 							temp_cardata_by_cartype_not_instate[i]
 						);
 					}
@@ -240,48 +233,36 @@ function DashboardCard(props) {
 			});
 			unique = [
 				...new Map(
-					temp_cardata_by_cartype_systemoz.map((m) => [m.carnumber, m])
+					temp_cardata_by_cartype_systemonz.map((m) => [m.carnumber, m])
 				).values(),
 			];
-			// console.log(unique);
 			const fl = sys.filter(
 				(item) =>
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber &&
-					item.mashbit[0].mashbit == true
+					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
 			);
 			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
-			// console.log(unique1);
-			temp_cardata_by_cartype_systemoz_mooshbat = unique1.length;
+			temp_cardata_by_cartype_systemonz_mooshbat = unique1.length;
 			sys.map((item) => {
 				try {
 					if (
 						item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
 					) {
-						temp_system_hh.push(
+						let temp = [];
+						temp.push(
 							item.tipuls
 								.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
 								.flat()
 						);
+						temp[0] = temp[0].reduce((acc, cv) => Number(acc) + Number(cv), 0);
+						temp_system_hh.push(temp);
 					}
-
-					// console.log(
-					// 	item.tipuls
-					// 		.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-					// 		.flat()
-					// );
-				} catch (error) {
-					// console.log(error);
-				}
+				} catch (error) {}
 			});
 			if (temp_system_hh != false) {
-				// console.log(temp_system_hh.flat());
 				if (temp_system_hh.length > 1) {
 					is_system_hh_multival = true;
 				}
-			} else {
-				// temp_system_hh.push(0);
 			}
-			console.log(temp_system_hh.flat());
 		}
 
 		setCardata_by_cartype(temp_cardata_by_cartype.length);
@@ -304,24 +285,20 @@ function DashboardCard(props) {
 		setCardata_by_cartype_hhstand_takalotmizdamnot(
 			temp_cardata_by_cartype_hhstand_takalotmizdamnot.length
 		);
-		// console.log(temp_cardata_by_cartype_systemoz);
 		setCardata_by_cartype_systemonz(unique.length);
 		setCardata_by_cartype_system_mooshbat(
-			temp_cardata_by_cartype_systemoz_mooshbat
+			temp_cardata_by_cartype_systemonz_mooshbat
 		);
-		setCardata_by_cartype_systemonz__hh(
-			!temp_system_hh 
+		setCardata_by_cartype_systemonz_hh(
+			!temp_system_hh
 				? 0
 				: temp_system_hh.length > 1
 				? temp_system_hh.reduce((acc, cv) => Number(acc) + Number(cv), 0)
+				: temp_system_hh.length == 0
+				? 0
 				: temp_system_hh[0]
 		);
 	}
-
-	// const getsystemashbit = async () => {
-	// 	await axios
-	// 	.get(`http://localhost:8000/api/systems
-	// }s
 
 	useEffect(() => {
 		init();
@@ -634,7 +611,6 @@ function DashboardCard(props) {
 								paddingTop: "25px",
 							}}
 						>
-							{console.log()}
 							<h6>
 								{props.cartype.name} בטיפול: {cardata_by_cartype_intipul}{" "}
 								<span style={{ color: "DarkTurquoise" }}>
@@ -716,10 +692,9 @@ function DashboardCard(props) {
 								{props.cartype.name} אי כשירות מערכת:{" "}
 								{cardata_by_cartype_system_mooshbat}{" "}
 								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_systemonz__hh})
+									(חלפים: {cardata_by_cartype_systemonz_hh})
 								</span>
 							</h6>
-							{/* {console.log(cardata_by_cartype_systemonz)} */}
 							<Progress
 								color="guyblue"
 								value={

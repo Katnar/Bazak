@@ -282,15 +282,17 @@ const ChartCard = (props) => {
 					temp_cardata_by_cartype_systemonz.map((m) => [m.carnumber, m])
 				).values(),
 			];
-			console.log(unique);
+			// console.log(unique);
 			const fl = sys.filter(
 				(item) =>
 					item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber
 			);
-			console.log(fl);
+			// console.log(fl);
 			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
 			// console.log(unique1);
-			temp_cardata_by_cartype_systemonz_mooshbat.push(unique1.length);
+			if(unique1 != 0){
+				temp_cardata_by_cartype_systemonz_mooshbat.push(unique1.length);
+			}
 			sys.map((item) => {
 				try {
 					if (

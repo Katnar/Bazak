@@ -162,7 +162,6 @@ function DashboardCard(props) {
 			let is_hhstand_intipul = false;
 			let is_hhstand_harigtipul = false;
 			let is_hhstand_takalotmizdamnot = false;
-			let is_system_hh_multival = false;
 
 			for (
 				let j = 0;
@@ -218,17 +217,18 @@ function DashboardCard(props) {
 				temp_cardata_by_cartype_hhstand_takalotmizdamnot.push(
 					temp_cardata_by_cartype_not_instate[i]
 				);
+		}
 
-			const sys = props.systemsonz;
+		for (let i = 0; i < temp_cardata_by_cartype.length; i++) {
+			let is_system_hh_multival = false;
+		    const sys = props.systemsonz;
 			sys.map((item) => {
 				if (
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+					item.carnumber == temp_cardata_by_cartype[i].carnumber
 				) {
-					if (item.kshirot != "כשיר") {
 						temp_cardata_by_cartype_systemonz.push(
-							temp_cardata_by_cartype_not_instate[i]
+							temp_cardata_by_cartype[i]
 						);
-					}
 				}
 			});
 			unique = [
@@ -236,16 +236,19 @@ function DashboardCard(props) {
 					temp_cardata_by_cartype_systemonz.map((m) => [m.carnumber, m])
 				).values(),
 			];
+			// unique = temp_cardata_by_cartype.filter(
+			// 	(cardata) => cardata.kshirot != "כשיר"
+			// );
 			const fl = sys.filter(
 				(item) =>
-					item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+					item.carnumber == temp_cardata_by_cartype[i].carnumber && item.kshirot == "לא כשיר"
 			);
 			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
-			temp_cardata_by_cartype_systemonz_mooshbat = unique1.length;
+			temp_cardata_by_cartype_systemonz_mooshbat = temp_cardata_by_cartype_systemonz_mooshbat + unique1.length;
 			sys.map((item) => {
 				try {
 					if (
-						item.carnumber == temp_cardata_by_cartype_not_instate[i].carnumber
+						item.carnumber == temp_cardata_by_cartype[i].carnumber
 					) {
 						let temp = [];
 						temp.push(

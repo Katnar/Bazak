@@ -949,6 +949,20 @@ const SortingTable = (props) => {
 						.reverse()
 						.join("-")
 				: null;
+				let value = [];
+				try {
+					value = systemsonZ.filter(
+						(sys, index) =>
+							sys.carnumber == tempdata_to_excel[i].carnumber
+					);
+				} catch (error) {
+					{/* console.log(error); */}
+				}
+				let value_to_str = "";
+				for(let j=0;j<value.length;j++){
+				 value_to_str+= value[j].systemType + "(" + value[j].kshirot + "), ";
+				}
+			tempdata_to_excel[i].systemsonz = value_to_str;
 		}
 
 		//export to excel -fix
@@ -1068,6 +1082,9 @@ const SortingTable = (props) => {
 			if (!tempdata_to_excel[i].updatedAt_data) {
 				tempdata_to_excel[i].updatedAt_data = " ";
 			}
+			if (!tempdata_to_excel[i].systemsonz) {
+				tempdata_to_excel[i].systemsonz = " ";
+			}
 		}
 		console.log(tempdata_to_excel);
 
@@ -1108,6 +1125,7 @@ const SortingTable = (props) => {
 			missing_makat_1: 'מק"ט חסר',
 			missing_makat_2: "כמות",
 			updatedAt_data: "תאריך עדכון אחרון",
+			systemsonz: "מערכות על גבי פלטפורמה",
 		};
 		tempdata_to_excel.unshift(headers); // if custom header, then make sure first row of data is custom header
 

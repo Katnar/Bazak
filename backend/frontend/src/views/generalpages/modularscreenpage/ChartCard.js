@@ -73,12 +73,12 @@ const ChartCard = (props) => {
 	] = useState(0);
 	//sysonz
 	const [
-		cardata_by_cartype_system_mooshbat,
-		setCardata_by_cartype_system_mooshbat,
+		cardata_by_chart_system_mooshbat,
+		setCardata_by_chart_system_mooshbat,
 	] = useState(0);
-	const [cardata_by_cartype_systemonz, setCardata_by_cartype_systemonz] =
+	const [cardata_by_chart_systemonz, setCardata_by_chart_systemonz] =
 		useState(0);
-	const [cardata_by_cartype_systemonz_hh, setCardata_by_cartype_systemonz_hh] =
+	const [cardata_by_chart_systemonz_hh, setCardata_by_chart_systemonz_hh] =
 		useState(0);
 	//
 	const [collapseOpen, setcollapseOpen] = useState(false);
@@ -197,8 +197,8 @@ const ChartCard = (props) => {
 		let temp_cardata_by_chart_intipul = [];
 		let temp_cardata_by_chart_harigtipul = [];
 		let temp_cardata_by_chart_takalotmizdamnot = [];
-		let temp_cardata_by_cartype_systemonz = [];
-		let temp_cardata_by_cartype_systemonz_mooshbat = [];
+		let temp_cardata_by_chart_systemonz = [];
+		let temp_cardata_by_chart_systemonz_mooshbat = 0;
 		let temp_cardata_by_chart_hhstand_intipul = [];
 		let temp_cardata_by_chart_hhstand_harigtipul = [];
 		let temp_cardata_by_chart_hhstand_takalotmizdamnot = [];
@@ -266,37 +266,36 @@ const ChartCard = (props) => {
 				temp_cardata_by_chart_hhstand_takalotmizdamnot.push(
 					temp_cardata_by_chart_not_instate[i]
 				);
-			const sys = props.systemsonz;
-			console.log(sys);
+			
+		}
+
+		for (let i = 0; i < temp_cardata_by_chart.length; i++) {
+			let is_system_hh_multival = false;
+		    const sys = props.systemsonz;
 			sys.map((item) => {
-				if (item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber) {
-					if (item.kshirot != "כשיר") {
-						temp_cardata_by_cartype_systemonz.push(
-							temp_cardata_by_chart_not_instate[i]
+				if (
+					item.carnumber == temp_cardata_by_chart[i].carnumber
+				) {
+						temp_cardata_by_chart_systemonz.push(
+							temp_cardata_by_chart[i]
 						);
-					}
 				}
 			});
 			unique = [
 				...new Map(
-					temp_cardata_by_cartype_systemonz.map((m) => [m.carnumber, m])
+					temp_cardata_by_chart_systemonz.map((m) => [m.carnumber, m])
 				).values(),
 			];
-			// console.log(unique);
 			const fl = sys.filter(
 				(item) =>
-					item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber
+					item.carnumber == temp_cardata_by_chart[i].carnumber && item.kshirot == "לא כשיר"
 			);
-			// console.log(fl);
 			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
-			// console.log(unique1);
-			if(unique1 != 0){
-				temp_cardata_by_cartype_systemonz_mooshbat.push(unique1.length);
-			}
+			temp_cardata_by_chart_systemonz_mooshbat = temp_cardata_by_chart_systemonz_mooshbat + unique1.length;
 			sys.map((item) => {
 				try {
 					if (
-						item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber
+						item.carnumber == temp_cardata_by_chart[i].carnumber
 					) {
 						let temp = [];
 						temp.push(
@@ -311,7 +310,7 @@ const ChartCard = (props) => {
 			});
 			if (temp_system_hh != false) {
 				if (temp_system_hh.length > 1) {
-					// is_system_hh_multival = true;
+					is_system_hh_multival = true;
 				}
 			}
 		}
@@ -334,11 +333,11 @@ const ChartCard = (props) => {
 		setCardata_by_chart_hhstand_takalotmizdamnot(
 			temp_cardata_by_chart_hhstand_takalotmizdamnot.length
 		);
-		setCardata_by_cartype_systemonz(unique.length);
-		setCardata_by_cartype_system_mooshbat(
-			temp_cardata_by_cartype_systemonz_mooshbat.length
+		setCardata_by_chart_systemonz(unique.length);
+		setCardata_by_chart_system_mooshbat(
+			temp_cardata_by_chart_systemonz_mooshbat
 		);
-		setCardata_by_cartype_systemonz_hh(
+		setCardata_by_chart_systemonz_hh(
 			!temp_system_hh
 				? 0
 				: temp_system_hh.length > 1
@@ -716,28 +715,29 @@ const ChartCard = (props) => {
 									).toFixed(0)}
 									%
 								</Progress>
+								{console.log(cardata_by_chart_system_mooshbat,cardata_by_chart_systemonz )}
 								<h6>
 									{props.chart.name} אי כשירות מערכת:{" "}
-									{cardata_by_cartype_system_mooshbat}{" "}
+									{cardata_by_chart_system_mooshbat}{" "}
 									<span style={{ color: "DarkTurquoise" }}>
-										(חלפים: {cardata_by_cartype_systemonz_hh})
+										(חלפים: {cardata_by_chart_systemonz_hh})
 									</span>
 								</h6>
 								<Progress
 									color="guyblue"
 									value={
-										cardata_by_cartype_systemonz != 0
-											? (cardata_by_cartype_system_mooshbat /
-													cardata_by_cartype_systemonz) *
+										cardata_by_chart_systemonz != 0
+											? (cardata_by_chart_system_mooshbat /
+													cardata_by_chart_systemonz) *
 											  100
 											: 0
 									}
 									style={{ height: "10px", marginBottom: "8px" }}
 								>
 									{" "}
-									{(cardata_by_cartype_systemonz != 0
-										? (cardata_by_cartype_system_mooshbat /
-												cardata_by_cartype_systemonz) *
+									{(cardata_by_chart_systemonz != 0
+										? (cardata_by_chart_system_mooshbat /
+												cardata_by_chart_systemonz) *
 										  100
 										: 0
 									).toFixed(0)}
@@ -999,26 +999,26 @@ const ChartCard = (props) => {
 								</Progress>
 								<h6>
 									{props.chart.name} אי כשירות מערכת:{" "}
-									{cardata_by_cartype_system_mooshbat}{" "}
+									{cardata_by_chart_system_mooshbat}{" "}
 									<span style={{ color: "DarkTurquoise" }}>
-										(חלפים: {cardata_by_cartype_systemonz_hh})
+										(חלפים: {cardata_by_chart_systemonz_hh})
 									</span>
 								</h6>
 								<Progress
 									color="guyblue"
 									value={
-										cardata_by_cartype_systemonz != 0
-											? (cardata_by_cartype_system_mooshbat /
-													cardata_by_cartype_systemonz) *
+										cardata_by_chart_systemonz != 0
+											? (cardata_by_chart_system_mooshbat /
+													cardata_by_chart_systemonz) *
 											  100
 											: 0
 									}
 									style={{ height: "10px", marginBottom: "8px" }}
 								>
 									{" "}
-									{(cardata_by_cartype_systemonz != 0
-										? (cardata_by_cartype_system_mooshbat /
-												cardata_by_cartype_systemonz) *
+									{(cardata_by_chart_systemonz != 0
+										? (cardata_by_chart_system_mooshbat /
+												cardata_by_chart_systemonz) *
 										  100
 										: 0
 									).toFixed(0)}

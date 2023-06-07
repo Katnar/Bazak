@@ -385,9 +385,6 @@ const CarDataFormModal = (props) => {
 			if (evt.target.name == "status" && value == "מושבת") {
 				toast.error("העברת סטטוס הכלי למושבת משמעותה השבתת הכלי לגמרי");
 			}
-			if (evt.target.name == "status" && value == "עצור") {
-				toast.error("העברת סטטוס הכלי לעצור משמעותה עצירת הכלי לגמרי");
-			}
 			setCarData({ ...cardata, [evt.target.name]: value });
 			if (evt.target.name == "expected_repair") {
 				if (value == "מעל 72 שעות") {
@@ -1242,9 +1239,6 @@ const CarDataFormModal = (props) => {
 												<option value={"פעיל"}>{"פעיל"}</option>
 												<option value={"מושבת"}>{"מושבת"}</option>
 												<option value={"מיועד להשבתה"}>{"מיועד להשבתה"}</option>
-												{user.role == "0" ? (
-													<option value={"עצור"}>{"עצור"}</option>
-												) : null}
 											</Input>
 										</Col>
 									</Row>

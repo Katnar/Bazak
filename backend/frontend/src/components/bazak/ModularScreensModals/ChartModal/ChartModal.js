@@ -45,7 +45,7 @@ const ChartModal = (props) => {
   //form
   const [chartidimport, setChartidimport] = useState('')
   const [possiblestands, setPossiblestands] = useState([{ label: 'סדיר', value: 'סדיר' }, { label: 'הכן', value: 'הכן' }, { label: 'הח"י', value: 'הח"י' }])
-  const [possiblestatusses, setPossiblestatusses] = useState([{ label: 'פעיל', value: 'פעיל' }, { label: 'מושבת', value: 'מושבת' }, { label: 'מיועד להשבתה', value: 'מיועד להשבתה' }, { label: 'עצור', value: 'עצור' }])
+  const [possiblestatusses, setPossiblestatusses] = useState([{ label: 'פעיל', value: 'פעיל' }, { label: 'מושבת', value: 'מושבת' }, { label: 'מיועד להשבתה', value: 'מיועד להשבתה' }])
   //
   const [redchange, setRedchange] = useState(false)
   const [yellowchange, SetYellowchange] = useState(false)

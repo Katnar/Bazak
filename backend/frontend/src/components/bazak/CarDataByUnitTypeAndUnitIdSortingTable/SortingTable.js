@@ -316,18 +316,8 @@ const SortingTable = (props) => {
 				});
 			}
 
-			let myArrayFiltered4 = []; //filter isstopped
-
-			if (props.isstopped == "false") {
-				myArrayFiltered4 = myArrayFiltered3;
-			} else {
-				myArrayFiltered4 = myArrayFiltered3.filter((el) => {
-					return "עצור" === el.status;
-				});
-			}
-
-			setOriginaldata(myArrayFiltered4);
-			setData(myArrayFiltered4);
+			setOriginaldata(myArrayFiltered3);
+			setData(myArrayFiltered3);
 			setIsdataloaded(true);
 		} else {
 			//read from db only for nounit cardatas..

@@ -8,7 +8,7 @@ function BazakNavbarTitle(props) {
     const [text, setText] = useState("");
 
     async function CalculateText() {
-        if (props.match.params.unittype != 'admin' && props.match.params.unittype != 'notype') {
+        if (props.match.params.unittype != 'admin' && props.match.params.unittype != 'notype' && props.match.params.unittype != 'general') {
             let response = await axios.get(`http://localhost:8000/api/${props.match.params.unittype}/${props.match.params.unitid}`)
             let responsedata = response.data;
             setText(responsedata.name);

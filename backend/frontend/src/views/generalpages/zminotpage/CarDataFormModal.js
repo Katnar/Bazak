@@ -1746,7 +1746,7 @@ const CarDataFormModal = (props) => {
 												>
 													<img src={deletepic} height="15px"></img>
 												</button>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>סוג מערכת</h6>
@@ -1797,7 +1797,7 @@ const CarDataFormModal = (props) => {
 														</Input>
 													</div>
 												</Col>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>כשירות</h6>
@@ -1902,7 +1902,7 @@ const CarDataFormModal = (props) => {
 														);
 													}}
 												/>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>סוג מערכת</h6>
@@ -1924,7 +1924,7 @@ const CarDataFormModal = (props) => {
 														</Input>
 													</div>
 												</Col>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>כשירות</h6>

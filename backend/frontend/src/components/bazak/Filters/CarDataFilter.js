@@ -337,9 +337,9 @@ const CarDataFilter = (props) => {
                             }) : null}
                             <Row>
                             {props.filter.hhfilter && props.filter.hhfilter.indexOf('hh') != -1 ?
-                              <button className="btn-empty" name={'hh'} value={'hh'} onClick={props.setfilterfunction}><h6 style={{ color: 'blue', }}>{'חח'}</h6></button>
+                              <button className="btn-empty" name={'hh'} value={'hh'} onClick={props.setfilterfunction}><h6 style={{ color: 'blue', }}>{'עומד על חח'}</h6></button>
                                 : 
-                              <button className="btn-empty" name={'hh'} value={'hh'} onClick={props.setfilterfunction}><h6 style={{ fontWeight: 'unset' }}>{'חח'}</h6></button>}
+                              <button className="btn-empty" name={'hh'} value={'hh'} onClick={props.setfilterfunction}><h6 style={{ fontWeight: 'unset' }}>{'עומד על חח'}</h6></button>}
                             </Row>
                         </Col>
                         <Col xs={12} md={8} style={{ textAlign: 'right' }}>

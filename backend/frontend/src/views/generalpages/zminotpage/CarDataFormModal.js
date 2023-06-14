@@ -32,6 +32,7 @@ import { toast } from "react-toastify";
 import Select from "components/general/Select/AnimatedSelect";
 import deletepic from "assets/img/delete.png";
 import savepic from "assets/img/save.png";
+import saveDark from "assets/img/saveDark.png"
 import editpic from "assets/img/write.png";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import TechFormModalDelete from "./TechFormModalDelete";
@@ -229,32 +230,33 @@ const CarDataFormModal = (props) => {
 		let tempsystems = [];
 		await axios
 			.get(`http://localhost:8000/api/systemstomakatByMakatId/${makatId}`)
-			.then((response) => {
-				for (let i = 0; i < response.data.length; i++) {
+			.then( async (response) => {
+				  for (let i = 0; i < response.data.length; i++) {
 					axios
 						.get(
 							`http://localhost:8000/api/system/${response.data[i].systemId}`
 						)
-						.then((response2) => {
+						.then( async (response2) => {
 							tempsystems.push(response2.data);
 						});
 				}
-
-				for (let i = 0; i < technologies.length; i++) {
-					// technologeies is the tempsystems that are attached to this makat
-					let flag = true;
-					for (let j = 0; j < tempsystems.length; j++) {
-						if (technologies[i].systemType == tempsystems[j].name) {
-							//current system on makat vs all the tempsystems from the new dropdown list
-							console.log(technologies[i].systemType, tempsystems[j].name);
-							flag = false;
+				setTimeout(() => {
+						for (let i = 0; i < technologies.length; i++) {
+								// technologeies is the tempsystems that are attached to this makat
+								let flag = true;
+								for (let j = 0; j < systems.length; j++) {
+									if (technologies[i].systemType == systems[j].name) {
+										//current system on makat vs all the tempsystems from the new dropdown list
+										flag = false;
+									}
+								}
+								console.log(flag)
+								if (flag == true) {
+									setTechnologies([]);
+								}
 						}
-					}
-					if (flag == true) {
-						setTechnologies([]);
-					}
-				}
-				setSystems(tempsystems);
+						setSystems(tempsystems);
+				}, "100");
 			})
 			.catch((error) => {
 				console.log(error);
@@ -383,9 +385,6 @@ const CarDataFormModal = (props) => {
 			if (evt.target.name == "status" && value == "מושבת") {
 				toast.error("העברת סטטוס הכלי למושבת משמעותה השבתת הכלי לגמרי");
 			}
-			if (evt.target.name == "status" && value == "עצור") {
-				toast.error("העברת סטטוס הכלי לעצור משמעותה עצירת הכלי לגמרי");
-			}
 			setCarData({ ...cardata, [evt.target.name]: value });
 			if (evt.target.name == "expected_repair") {
 				if (value == "מעל 72 שעות") {
@@ -442,9 +441,11 @@ const CarDataFormModal = (props) => {
 			delete tempcardata[name];
 			setCarData(tempcardata);
 		}
-		toast.error(
-			'במקרה של שינוי מק"ט, יש לבדוק אם המערכות שעל הצ יכולות להיות על המק"ט החדש'
-		);
+		if(name == "makat" && selectedOption.value != "בחר"){
+			toast.error(
+				'במקרה של שינוי מק"ט, יש לבדוק אם המערכות שעל הצ יכולות להיות על המק"ט החדש'
+			);
+		}
 	}
 
 	const clickSubmit = (event) => {
@@ -1238,9 +1239,6 @@ const CarDataFormModal = (props) => {
 												<option value={"פעיל"}>{"פעיל"}</option>
 												<option value={"מושבת"}>{"מושבת"}</option>
 												<option value={"מיועד להשבתה"}>{"מיועד להשבתה"}</option>
-												{user.role == "0" ? (
-													<option value={"עצור"}>{"עצור"}</option>
-												) : null}
 											</Input>
 										</Col>
 									</Row>
@@ -1713,30 +1711,30 @@ const CarDataFormModal = (props) => {
 									{technologies.map((t, index) => {
 										return t.isLocked == "false" ? (
 											<Row>
-												<img
-													style={{
-														cursor: "pointer",
-														padding: "1px",
-														height: "25px",
-														marginTop: "28px",
-														marginLeft: "15px",
-													}}
-													src={savepic}
-													height="15px"
-													onClick={() => {
-														if (t.systemType) {
-															setTechnologies((currentSpec) =>
-																produce(currentSpec, (v) => {
-																	v[index].isLocked = "true";
-																})
-															);
-														} else {
-															toast.error(
-																"על מנת לשמור מערכת יש לציין את סוג המערכת"
-															);
-														}
-													}}
-												/>
+												<button
+												className="btn-new-blue"
+												style={{
+													padding: "1px",
+													height: "25px",
+													marginTop: "28px",
+													marginLeft: "15px",
+												}}
+												onClick={() => {
+													if (t.systemType) {
+														setTechnologies((currentSpec) =>
+															produce(currentSpec, (v) => {
+																v[index].isLocked = "true";
+															})
+														);
+													} else {
+														toast.error(
+															"על מנת לשמור מערכת יש לציין את סוג המערכת"
+														);
+													}
+												}}
+											>
+												<img src={savepic} height="15px"></img>
+											</button>
 												<button
 													className="btn-new-delete"
 													style={{
@@ -1748,7 +1746,7 @@ const CarDataFormModal = (props) => {
 												>
 													<img src={deletepic} height="15px"></img>
 												</button>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>סוג מערכת</h6>
@@ -1799,7 +1797,7 @@ const CarDataFormModal = (props) => {
 														</Input>
 													</div>
 												</Col>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>כשירות</h6>
@@ -1904,7 +1902,7 @@ const CarDataFormModal = (props) => {
 														);
 													}}
 												/>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>סוג מערכת</h6>
@@ -1926,7 +1924,7 @@ const CarDataFormModal = (props) => {
 														</Input>
 													</div>
 												</Col>
-												<Col xs={12} md={4}>
+												<Col>
 													<div>
 														<p style={{ margin: "0px", float: "right" }}>
 															<h6>כשירות</h6>

@@ -35,10 +35,11 @@ function DashboardPage({ match, theme }) {
 
 	async function init() {
 		setIsdataloaded(false);
-		getSystemsonZs();
 		if (match.params.systemtype == "mkabaz") {
 			await getMkabazs();
 			await systemsByMkabaz();
+		}else{
+			getSystemsonZs();
 		}
 		getSystemTypes();
 	}
@@ -48,6 +49,7 @@ function DashboardPage({ match, theme }) {
 			.get(`http://localhost:8000/api/systemsonzbymakats`)
 			.then((response) => {
 				setSystemsonZs(response.data);
+				setIsdataloaded(true);
 			})
 			.catch((error) => {
 				console.log(error);

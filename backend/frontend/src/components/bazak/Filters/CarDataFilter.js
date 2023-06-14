@@ -274,7 +274,7 @@ const CarDataFilter = (props) => {
                                 }
                             }) : null}
                         </Col>
-                        <Col xs={12} md={1} style={{ textAlign: 'right' }}>
+                        <Col xs={12} md={1} style={{ textAlign: 'right', marginRight:'-3%' }}>
                             <h4 style={{ fontWeight: 'bold' }}>כשירות</h4>
                             {kshirots ? kshirots.map((kshirot, index) => {
                                 {
@@ -288,7 +288,7 @@ const CarDataFilter = (props) => {
                                 }
                             }) : null}
                         </Col>
-                        <Col xs={12} md={1} style={{ textAlign: 'right' }}>
+                        <Col xs={12} md={1} style={{ textAlign: 'right', marginRight:'-3%' }}>
                             <h4 style={{ fontWeight: 'bold' }}>מעמד</h4>
                             {stands ? stands.map((stand, index) => {
                                 {
@@ -302,7 +302,15 @@ const CarDataFilter = (props) => {
                                 }
                             }) : null}
                         </Col>
-                        <Col xs={12} md={1} style={{ textAlign: 'right' }}>
+                        <Col xs={12} md={1} style={{ textAlign: 'right', marginRight:'-3%' }}>
+                            <h4 style={{ fontWeight: 'bold' }}>מערכות</h4>
+                                <Row>
+                                    {props.filter.techfilter && props.filter.techfilter.indexOf('is_tech') != -1 ?
+                                        <button className="btn-empty" name={'is_tech'} value={'is_tech'} onClick={props.setfilterfunction}><h6 style={{ color: 'blue', }}>האם יש מערכת</h6></button>
+                                          : <button className="btn-empty" name={'is_tech'} value={'is_tech'} onClick={props.setfilterfunction}><h6 style={{ fontWeight: 'unset' }}>האם יש מערכת</h6></button>}
+                                </Row>
+                        </Col>
+                        <Col xs={12} md={1} style={{ textAlign: 'right', marginRight:'-3%' }}>
                             <h4 style={{ fontWeight: 'bold' }}>סיבת אי זמינות</h4>
                             {tipuls ? tipuls.map((tipul, index) => {
                                 {
@@ -327,6 +335,12 @@ const CarDataFilter = (props) => {
                                     )
                                 }
                             }) : null}
+                            <Row>
+                            {props.filter.hhfilter && props.filter.hhfilter.indexOf('hh') != -1 ?
+                              <button className="btn-empty" name={'hh'} value={'hh'} onClick={props.setfilterfunction}><h6 style={{ color: 'blue', }}>{'עומד על חח'}</h6></button>
+                                : 
+                              <button className="btn-empty" name={'hh'} value={'hh'} onClick={props.setfilterfunction}><h6 style={{ fontWeight: 'unset' }}>{'עומד על חח'}</h6></button>}
+                            </Row>
                         </Col>
                         <Col xs={12} md={8} style={{ textAlign: 'right' }}>
                             <Row style={{ paddingTop: '10px', marginBottom: '15px' }}>

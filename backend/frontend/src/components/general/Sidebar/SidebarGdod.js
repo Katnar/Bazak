@@ -116,7 +116,7 @@ function SidebarGdod(props) {
           </div>
         </li>
         <li>
-          <NavLink to={`/zminotpage/gdod/${user.gdodid}/magadal/0/false/false`} style={{ margin: '0px' }} activeClassName="sidebar_active_link">
+          <NavLink to={`/zminotpage/gdod/${user.gdodid}/magadal/0/false`} style={{ margin: '0px' }} activeClassName="sidebar_active_link">
             <Row style={{ direction: "rtl" }}>
               <Col xs={12} md={3} style={{ paddingLeft: "0px", textAlign: 'center', alignSelf: 'center' }}>
                 {props.theme == 'white' ? <img src={table} style={{ height: "20px" }}></img>
@@ -160,8 +160,9 @@ function SidebarGdod(props) {
             </Row>
           </NavLink>
         </li>
-        <li>
-          <NavLink to={`/zminotpage/notype/0/magadal/0/false/false`} style={{ margin: '0px' }} activeClassName="sidebar_active_link">
+        {/* מסך כלים ללא יחידה ומסך כלים מושבתים */}
+        {/* <li>
+          <NavLink to={`/zminotpage/notype/0/magadal/0/false`} style={{ margin: '0px' }} activeClassName="sidebar_active_link">
             <Row style={{ direction: "rtl" }}>
               <Col xs={12} md={3} style={{ paddingLeft: "0px", textAlign: 'center', alignSelf: 'center' }}>
                 {props.theme == 'white' ? <img src={table} style={{ height: "20px" }}></img>
@@ -176,7 +177,7 @@ function SidebarGdod(props) {
           </NavLink>
         </li>
         <li>
-          <NavLink to={`/zminotpage/gdod/${user.gdodid}/magadal/0/true/false`} style={{ margin: '0px' }} activeClassName="sidebar_active_link">
+          <NavLink to={`/zminotpage/gdod/${user.gdodid}/magadal/0/true`} style={{ margin: '0px' }} activeClassName="sidebar_active_link">
             <Row style={{ direction: "rtl" }}>
               <Col xs={12} md={3} style={{ paddingLeft: "0px", textAlign: 'center', alignSelf: 'center' }}>
                 {props.theme == 'white' ? <img src={table} style={{ height: "20px" }}></img>
@@ -189,7 +190,8 @@ function SidebarGdod(props) {
               </Col>
             </Row>
           </NavLink>
-        </li>
+        </li> */}
+        {/* מסך כלים ללא יחידה ומסך כלים מושבתים */}
         <li>
           <NavLink to="/about" style={{ margin: '0px' }} activeClassName="sidebar_active_link">
             <Row style={{ direction: "rtl" }}>

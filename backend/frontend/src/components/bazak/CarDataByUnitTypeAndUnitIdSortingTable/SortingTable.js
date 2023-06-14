@@ -316,18 +316,8 @@ const SortingTable = (props) => {
 				});
 			}
 
-			let myArrayFiltered4 = []; //filter isstopped
-
-			if (props.isstopped == "false") {
-				myArrayFiltered4 = myArrayFiltered3;
-			} else {
-				myArrayFiltered4 = myArrayFiltered3.filter((el) => {
-					return "עצור" === el.status;
-				});
-			}
-
-			setOriginaldata(myArrayFiltered4);
-			setData(myArrayFiltered4);
+			setOriginaldata(myArrayFiltered3);
+			setData(myArrayFiltered3);
 			setIsdataloaded(true);
 		} else {
 			//read from db only for nounit cardatas..
@@ -544,6 +534,20 @@ const SortingTable = (props) => {
 				setFilter({ ...filter, standfilter: [evt.currentTarget.value] });
 			}
 		}
+		if (evt.currentTarget.name == "is_tech") {
+			if (filter.techfilter) {
+				let temptechfilter = [...filter.techfilter];
+				const index = temptechfilter.indexOf(evt.currentTarget.value);
+				if (index > -1) {
+					temptechfilter.splice(index, 1);
+				} else {
+					temptechfilter.push(evt.currentTarget.value);
+				}
+				setFilter({ ...filter, techfilter: temptechfilter });
+			} else {
+				setFilter({ ...filter, techfilter: [evt.currentTarget.value] });
+			}
+		}
 		if (evt.currentTarget.name == "tipul") {
 			if (filter.tipulfilter) {
 				let temptipulfilter = [...filter.tipulfilter];
@@ -581,6 +585,20 @@ const SortingTable = (props) => {
 				setFilter({ ...filter, maamalfilter: tempmaamalfilter });
 			} else {
 				setFilter({ ...filter, maamalfilter: [evt.currentTarget.value] });
+			}
+		}
+		if (evt.currentTarget.name == "hh") {
+			if (filter.hhfilter) {
+				let temphhfilter = [...filter.hhfilter];
+				const index = temphhfilter.indexOf(evt.currentTarget.value);
+				if (index > -1) {
+					temphhfilter.splice(index, 1);
+				} else {
+					temphhfilter.push(evt.currentTarget.value);
+				}
+				setFilter({ ...filter, hhfilter: temphhfilter });
+			} else {
+				setFilter({ ...filter, hhfilter: [evt.currentTarget.value] });
 			}
 		}
 	};
@@ -689,14 +707,46 @@ const SortingTable = (props) => {
 			myArrayFiltered24 = myArrayFiltered23;
 		}
 
-		let myArrayFiltered25 = []; //filter taarichtipul
+		let myArrayFiltered25 = []; //filter hhfilter
+		if (filter.hhfilter && filter.hhfilter.length > 0) {
+			myArrayFiltered25 = myArrayFiltered24.filter((el) => {
+				return filter.hhfilter.some(() => {
+					if (el.tipuls.length > 0) {
+						let flag = false;
+						for (let i = 0; i < el.tipuls.length; i++) {
+							if (el.tipuls[i].hh_stands) {
+								flag = true;
+							}
+						}
+						return flag;
+					} else {
+						return false;
+					}
+				});
+			});
+		} else {
+			myArrayFiltered25 = myArrayFiltered24;
+		}
+     
+		let myArrayFiltered26 = []; //filter techfilter
+		if (filter.techfilter && filter.techfilter.length > 0) {
+			myArrayFiltered26 = myArrayFiltered25.filter((el) => {
+				return systemsonZ.some((f) => {
+					return f.carnumber === el.carnumber;
+				});
+			});
+		} else {
+			myArrayFiltered26 = myArrayFiltered25;
+		}
+
+		let myArrayFiltered27 = []; //filter taarichtipul
 		if (
 			filter.taarichtipulStart &&
 			filter.taarichtipulStart.length > 0 &&
 			filter.taarichtipulEnd &&
 			filter.taarichtipulEnd.length > 0
 		) {
-			myArrayFiltered25 = myArrayFiltered24.filter((el) => {
+			myArrayFiltered27 = myArrayFiltered26.filter((el) => {
 				if (el.tipuls.length > 0) {
 					let flag = false;
 					let startDate = new Date(filter.taarichtipulStart);
@@ -716,16 +766,16 @@ const SortingTable = (props) => {
 				}
 			});
 		} else {
-			myArrayFiltered25 = myArrayFiltered24;
+			myArrayFiltered27 = myArrayFiltered26;
 		}
 
 		let myArrayFiltered3 = []; //filter pikod
 		if (filter.pikod && filter.pikod.length > 0) {
-			myArrayFiltered3 = myArrayFiltered25.filter((item) =>
+			myArrayFiltered3 = myArrayFiltered27.filter((item) =>
 				filter.pikod.includes(item.pikod)
 			);
 		} else {
-			myArrayFiltered3 = myArrayFiltered25;
+			myArrayFiltered3 = myArrayFiltered27;
 		}
 
 		let myArrayFiltered4 = []; //filter ogda
@@ -949,6 +999,20 @@ const SortingTable = (props) => {
 						.reverse()
 						.join("-")
 				: null;
+				let value = [];
+				try {
+					value = systemsonZ.filter(
+						(sys, index) =>
+							sys.carnumber == tempdata_to_excel[i].carnumber
+					);
+				} catch (error) {
+					{/* console.log(error); */}
+				}
+				let value_to_str = "";
+				for(let j=0;j<value.length;j++){
+				 value_to_str+= value[j].systemType + "(" + value[j].kshirot + "), ";
+				}
+			tempdata_to_excel[i].systemsonz = value_to_str;
 		}
 
 		//export to excel -fix
@@ -1068,6 +1132,9 @@ const SortingTable = (props) => {
 			if (!tempdata_to_excel[i].updatedAt_data) {
 				tempdata_to_excel[i].updatedAt_data = " ";
 			}
+			if (!tempdata_to_excel[i].systemsonz) {
+				tempdata_to_excel[i].systemsonz = " ";
+			}
 		}
 		console.log(tempdata_to_excel);
 
@@ -1108,6 +1175,7 @@ const SortingTable = (props) => {
 			missing_makat_1: 'מק"ט חסר',
 			missing_makat_2: "כמות",
 			updatedAt_data: "תאריך עדכון אחרון",
+			systemsonz: "מערכות על גבי פלטפורמה",
 		};
 		tempdata_to_excel.unshift(headers); // if custom header, then make sure first row of data is custom header
 

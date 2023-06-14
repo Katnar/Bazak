@@ -534,7 +534,7 @@ const SortingTable = (props) => {
 				setFilter({ ...filter, standfilter: [evt.currentTarget.value] });
 			}
 		}
-		if (evt.currentTarget.name == "tech") {
+		if (evt.currentTarget.name == "is_tech") {
 			if (filter.techfilter) {
 				let temptechfilter = [...filter.techfilter];
 				const index = temptechfilter.indexOf(evt.currentTarget.value);
@@ -727,13 +727,12 @@ const SortingTable = (props) => {
 		} else {
 			myArrayFiltered25 = myArrayFiltered24;
 		}
-
+     
 		let myArrayFiltered26 = []; //filter techfilter
-		console.log(myArrayFiltered25)
 		if (filter.techfilter && filter.techfilter.length > 0) {
 			myArrayFiltered26 = myArrayFiltered25.filter((el) => {
-				return filter.techfilter.some((f) => {
-					return f === el.stand;
+				return systemsonZ.some((f) => {
+					return f.carnumber === el.carnumber;
 				});
 			});
 		} else {

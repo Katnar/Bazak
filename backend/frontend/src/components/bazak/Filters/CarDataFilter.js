@@ -305,9 +305,9 @@ const CarDataFilter = (props) => {
                         <Col xs={12} md={1} style={{ textAlign: 'right', marginRight:'-3%' }}>
                             <h4 style={{ fontWeight: 'bold' }}>מערכות</h4>
                                 <Row>
-                                    {props.filter.techfilter && props.filter.techfilter.indexOf('tech') != -1 ?
-                                        <button className="btn-empty" name={'tech'} value={'is_tech'} onClick={props.setfilterfunction}><h6 style={{ color: 'blue', }}>האם יש מערכת</h6></button>
-                                          : <button className="btn-empty" name={'tech'} value={'is_tech'} onClick={props.setfilterfunction}><h6 style={{ fontWeight: 'unset' }}>האם יש מערכת</h6></button>}
+                                    {props.filter.techfilter && props.filter.techfilter.indexOf('is_tech') != -1 ?
+                                        <button className="btn-empty" name={'is_tech'} value={'is_tech'} onClick={props.setfilterfunction}><h6 style={{ color: 'blue', }}>האם יש מערכת</h6></button>
+                                          : <button className="btn-empty" name={'is_tech'} value={'is_tech'} onClick={props.setfilterfunction}><h6 style={{ fontWeight: 'unset' }}>האם יש מערכת</h6></button>}
                                 </Row>
                         </Col>
                         <Col xs={12} md={1} style={{ textAlign: 'right', marginRight:'-3%' }}>

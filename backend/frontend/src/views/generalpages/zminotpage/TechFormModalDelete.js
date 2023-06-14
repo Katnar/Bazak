@@ -29,7 +29,7 @@ import { produce } from "immer";
 import { generate } from "shortid";
 import { toast } from "react-toastify";
 import deletepic from "assets/img/delete.png";
-import warning_sign from "assets/img/warning_sign.png"
+import warning_sign from "assets/img/warning_sign.svg"
 
 const TechFormModalDelete = (props) => {
 	const { user } = isAuthenticated();
@@ -142,7 +142,7 @@ const TechFormModalDelete = (props) => {
 									>
 										בטל
 									</button>
-									<button className="btn-new-delete" onClick={clickSubmit}>
+									<button style={{backgroundColor:'red'}} className="btn-new-delete" onClick={clickSubmit}>
 										כן, מחק
 									</button>
 								</div>

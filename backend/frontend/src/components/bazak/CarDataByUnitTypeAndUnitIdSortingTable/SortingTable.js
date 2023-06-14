@@ -534,6 +534,20 @@ const SortingTable = (props) => {
 				setFilter({ ...filter, standfilter: [evt.currentTarget.value] });
 			}
 		}
+		if (evt.currentTarget.name == "tech") {
+			if (filter.techfilter) {
+				let temptechfilter = [...filter.techfilter];
+				const index = temptechfilter.indexOf(evt.currentTarget.value);
+				if (index > -1) {
+					temptechfilter.splice(index, 1);
+				} else {
+					temptechfilter.push(evt.currentTarget.value);
+				}
+				setFilter({ ...filter, techfilter: temptechfilter });
+			} else {
+				setFilter({ ...filter, techfilter: [evt.currentTarget.value] });
+			}
+		}
 		if (evt.currentTarget.name == "tipul") {
 			if (filter.tipulfilter) {
 				let temptipulfilter = [...filter.tipulfilter];
@@ -571,6 +585,20 @@ const SortingTable = (props) => {
 				setFilter({ ...filter, maamalfilter: tempmaamalfilter });
 			} else {
 				setFilter({ ...filter, maamalfilter: [evt.currentTarget.value] });
+			}
+		}
+		if (evt.currentTarget.name == "hh") {
+			if (filter.hhfilter) {
+				let temphhfilter = [...filter.hhfilter];
+				const index = temphhfilter.indexOf(evt.currentTarget.value);
+				if (index > -1) {
+					temphhfilter.splice(index, 1);
+				} else {
+					temphhfilter.push(evt.currentTarget.value);
+				}
+				setFilter({ ...filter, hhfilter: temphhfilter });
+			} else {
+				setFilter({ ...filter, hhfilter: [evt.currentTarget.value] });
 			}
 		}
 	};
@@ -679,14 +707,47 @@ const SortingTable = (props) => {
 			myArrayFiltered24 = myArrayFiltered23;
 		}
 
-		let myArrayFiltered25 = []; //filter taarichtipul
+		let myArrayFiltered25 = []; //filter hhfilter
+		if (filter.hhfilter && filter.hhfilter.length > 0) {
+			myArrayFiltered25 = myArrayFiltered24.filter((el) => {
+				return filter.hhfilter.some(() => {
+					if (el.tipuls.length > 0) {
+						let flag = false;
+						for (let i = 0; i < el.tipuls.length; i++) {
+							if (el.tipuls[i].hh_stands) {
+								flag = true;
+							}
+						}
+						return flag;
+					} else {
+						return false;
+					}
+				});
+			});
+		} else {
+			myArrayFiltered25 = myArrayFiltered24;
+		}
+
+		let myArrayFiltered26 = []; //filter techfilter
+		console.log(myArrayFiltered25)
+		if (filter.techfilter && filter.techfilter.length > 0) {
+			myArrayFiltered26 = myArrayFiltered25.filter((el) => {
+				return filter.techfilter.some((f) => {
+					return f === el.stand;
+				});
+			});
+		} else {
+			myArrayFiltered26 = myArrayFiltered25;
+		}
+
+		let myArrayFiltered27 = []; //filter taarichtipul
 		if (
 			filter.taarichtipulStart &&
 			filter.taarichtipulStart.length > 0 &&
 			filter.taarichtipulEnd &&
 			filter.taarichtipulEnd.length > 0
 		) {
-			myArrayFiltered25 = myArrayFiltered24.filter((el) => {
+			myArrayFiltered27 = myArrayFiltered26.filter((el) => {
 				if (el.tipuls.length > 0) {
 					let flag = false;
 					let startDate = new Date(filter.taarichtipulStart);
@@ -706,16 +767,16 @@ const SortingTable = (props) => {
 				}
 			});
 		} else {
-			myArrayFiltered25 = myArrayFiltered24;
+			myArrayFiltered27 = myArrayFiltered26;
 		}
 
 		let myArrayFiltered3 = []; //filter pikod
 		if (filter.pikod && filter.pikod.length > 0) {
-			myArrayFiltered3 = myArrayFiltered25.filter((item) =>
+			myArrayFiltered3 = myArrayFiltered27.filter((item) =>
 				filter.pikod.includes(item.pikod)
 			);
 		} else {
-			myArrayFiltered3 = myArrayFiltered25;
+			myArrayFiltered3 = myArrayFiltered27;
 		}
 
 		let myArrayFiltered4 = []; //filter ogda

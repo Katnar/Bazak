@@ -1061,22 +1061,34 @@ const CarDataFormModal = (props) => {
 					// console.log(tec.kshirot == "לא כשיר");
 					if (
 						sys.name == tec.systemType &&
-						sys.mashbit &&
+						
+						(sys.mashbit == '1' || sys.mashbit == '2') &&
 						tec.kshirot == "לא כשיר"
 					) {
-						return true;
+						if(sys.mashbit == '1'){
+							return '1';
+						}
+						if(sys.mashbit == '2'){
+							return '2';
+						}
 					}
 				});
 			});
 			// console.log(ismshbit.flat().includes(true));
-			if (ismshbit.flat().includes(true)) {
-				if (cardata.kshirot == "כשיר" || cardata.zminot == "זמין") {
+			// if (ismshbit.flat().includes('1')||ismshbit.flat().includes('2')) {
+				if ((cardata.kshirot == "כשיר" || cardata.zminot == "זמין") && (ismshbit.flat().includes('2'))) {
 					toast.error(
 						"במקרה ומערכת משביתה היא לא כשירה הכלי לא יכול להיות זמין או כשיר  "
 					);
+					setCarData({ ...cardata, kshirot: "לא כשיר", zminot: "לא זמין" });
 				}
-				setCarData({ ...cardata, kshirot: "לא כשיר", zminot: "לא זמין" });
-			}
+				if (cardata.zminot == "זמין" && ismshbit.flat().includes('1')) {
+					toast.error(
+						"במקרה ומערכת משביתה שיגרה היא לא כשירה הכלי לא יכול להיות זמין  "
+					);
+					setCarData({ ...cardata, zminot: "לא זמין" });
+				}
+			// }
 		}
 	}, [cardata.kshirot, cardata.zminot]);
 
@@ -1818,7 +1830,7 @@ const CarDataFormModal = (props) => {
 																				isMashbit = systems[i].mashbit;
 																			}
 																		}
-																		if (isMashbit == true) {
+																		if (isMashbit == '2') {
 																			setCarData({
 																				...cardata,
 																				zminot: "לא זמין",
@@ -1828,7 +1840,16 @@ const CarDataFormModal = (props) => {
 																				"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
 																			);
 																		}
-																		if (!isMashbit) {
+																		if (isMashbit == '1') {
+																			setCarData({
+																				...cardata,
+																				zminot: "לא זמין"
+																			});
+																			toast.info(
+																				"בעקבות עדכון כשירות מערכת זמינות , הצ' עודכן ל-לא זמין"
+																			);
+																		}
+																		if (isMashbit == '0') {
 																			setTakalaopen(true);
 																		}
 																	} else {
@@ -1839,7 +1860,7 @@ const CarDataFormModal = (props) => {
 																					isMashbit = systems[i].mashbit;
 																				}
 																			}
-																			if (!isMashbit) {
+																			if (isMashbit == '0') {
 																				setTakalaopen(false);
 																			}
 																		}
@@ -1945,7 +1966,7 @@ const CarDataFormModal = (props) => {
 																			isMashbit = systems[i].mashbit;
 																		}
 																	}
-																	if (isMashbit == true) {
+																	if (isMashbit == '2') {
 																		setCarData({
 																			...cardata,
 																			zminot: "לא זמין",
@@ -1955,7 +1976,16 @@ const CarDataFormModal = (props) => {
 																			"בעקבות עדכון כשירות מערכת זמינות וכשירות, הצ' עודכן ל-לא זמין ולא כשיר"
 																		);
 																	}
-																	if (!isMashbit) {
+																	if (isMashbit == '1') {
+																		setCarData({
+																			...cardata,
+																			zminot: "לא זמין"
+																		});
+																		toast.info(
+																			"בעקבות עדכון כשירות מערכת זמינות , הצ' עודכן ל-לא זמין"
+																		);
+																	}
+																	if (isMashbit == '0') {
 																		setTakalaopen(true);
 																	}
 																} else {
@@ -1966,7 +1996,7 @@ const CarDataFormModal = (props) => {
 																				isMashbit = systems[i].mashbit;
 																			}
 																		}
-																		if (!isMashbit) {
+																		if (isMashbit == '0') {
 																			setTakalaopen(false);
 																		}
 																	}

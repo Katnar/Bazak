@@ -21,10 +21,15 @@ import PropagateLoader from "react-spinners/PropagateLoader";
 
 import DashboardTechCard from "./DashboardTechCard";
 import LatestUpdateDateComponent from "components/bazak/LatestUpdateDateComponent/LatestUpdateDateComponent";
+//redux
+import { useSelector, useDispatch } from "react-redux";
+import { getCarDataFunc } from "redux/features/cardata/cardataSlice";
 
 function DashboardPage({ match, theme }) {
 	//user
 	const { user } = isAuthenticated();
+	//cardatas
+	const [cardatas, setCardatas] = useState([]);
 	//systems
 	const [systemsonZs, setSystemsonZs] = useState([]);
 	const [systemtypes, setSystemtypes] = useState([]);
@@ -32,17 +37,28 @@ function DashboardPage({ match, theme }) {
 	const [isdataloaded, setIsdataloaded] = useState(false);
 	//
 	const [mkabazs, setMkabazs] = useState([]);
+	//redux
+	const dispatch = useDispatch();
+	const reduxcardata = useSelector((state) => state.cardata.value);
 
 	async function init() {
+		getReduxCardDataByUnitTypeAndUnitId();
 		setIsdataloaded(false);
+		setCardatas(reduxcardata);
 		if (match.params.systemtype == "mkabaz") {
 			await getMkabazs();
 			await systemsByMkabaz();
 		}else{
-			getSystemsonZs();
+			await getSystemsonZs();
 		}
 		getSystemTypes();
 	}
+
+	const getReduxCardDataByUnitTypeAndUnitId = async () => {
+		if (reduxcardata.length == 0) {
+			await dispatch(getCarDataFunc(user));
+		}
+	};
 
 	const systemsByMkabaz = async () => {
 		await axios
@@ -95,7 +111,13 @@ function DashboardPage({ match, theme }) {
 	}, [match]);
 
 	useEffect(() => {
-		init();
+		if (reduxcardata.length > 0 && isdataloaded == false) {
+			init();
+		}
+	}, [reduxcardata]);
+
+	useEffect(() => {
+		getReduxCardDataByUnitTypeAndUnitId();
 	}, []);
 
 	return !isdataloaded ? (
@@ -115,11 +137,22 @@ function DashboardPage({ match, theme }) {
 									systemsonZs={systemsonZs.filter(
 										(system) => system.systemType == systemtype.name
 									)}
+									cardatas={cardatas.filter(
+										(cardata) => {
+											let systems = systemsonZs.filter((system) => system.systemType == systemtype.name && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
+											for(let i=0;i<systems.length;i++){
+											   if(cardata.carnumber == systems[i]){
+												return true;
+											   }
+											}
+											return false;
+										}
+									)}
 								/>
 							) : null
 					  )
 					: match.params.systemtype == "mkabaz"
-					? mkabazs.map((mkabaz, i) =>
+					?  mkabazs.map((mkabaz, i) =>
 							mkabaz ? (
 								<DashboardTechCard
 									theme={theme}
@@ -128,6 +161,17 @@ function DashboardPage({ match, theme }) {
 									systemname={mkabaz.name}
 									systemsonZs={systemsonZs.filter(
 										(system) => system.systemType == match.params.systemname
+									)}
+									cardatas={cardatas.filter(
+										(cardata) => {
+											let systems = systemsonZs.filter((system) => system.systemType == match.params.systemname && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber.carnumber});
+											for(let i=0;i<systems.length;i++){
+											   if(cardata.carnumber == systems[i]){
+												return true;
+											   }
+											}
+											return false;
+										}
 									)}
 								/>
 							) : null

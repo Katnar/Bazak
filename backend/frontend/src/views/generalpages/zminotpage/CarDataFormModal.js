@@ -76,7 +76,12 @@ const CarDataFormModal = (props) => {
 						tempcardata.latest_recalibration_date.slice(0, 10);
 				setCarData(tempcardata);
 				for (let x = 0; x < tempcardata.tipuls.length; x++) {
-					tempcardata.tipuls[x] = { ...tempcardata.tipuls[x], errorType: "Z" };
+					if(tempcardata.tipuls[x].type == "takala_mizdamenet"){
+					  tempcardata.tipuls[x] = { ...tempcardata.tipuls[x], errorType: "Z" };
+					}
+					if(tempcardata.tipuls[x].type == "technology_mizdamenet"){
+						tempcardata.tipuls[x] = { ...tempcardata.tipuls[x], errorType: "technology",  type: "takala_mizdamenet"};
+					}
 				}
 				setFinalSpecialKeytwo(tempcardata.tipuls);
 				await axios
@@ -86,28 +91,16 @@ const CarDataFormModal = (props) => {
 					.then((response1) => {
 						let tempsystemonZ = response1.data;
 						if (tempsystemonZ.length > 0) {
-							let tempfinalspecialkeytwo = [];
 							let tempTechnologies = [];
 							getTipultypes();
 							for (let i = 0; i < tempsystemonZ.length; i++) {
 								let temp = { ...tempsystemonZ[i] };
 								delete temp._id;
-								delete temp.tipuls;
 								delete temp.createdAt;
 								delete temp.updatedAt;
 								delete temp.expected_repair;
 								delete temp.takala_info;
 								tempTechnologies.push(temp);
-								for (let j = 0; j < tempsystemonZ[i].tipuls.length; j++) {
-									if (tempsystemonZ[i].kshirot == "לא כשיר") {
-										tempsystemonZ[i].tipuls[j] = {
-											...tempsystemonZ[i].tipuls[j],
-											errorType: "technology",
-											systemType: tempsystemonZ[i].systemType,
-										};
-										tempfinalspecialkeytwo.push(tempsystemonZ[i].tipuls[j]);
-									}
-								}
 								if (tempcardata.expected_repair == "") {
 									tempcardata.expected_repair =
 										tempsystemonZ[i].expected_repair;
@@ -116,8 +109,7 @@ const CarDataFormModal = (props) => {
 									tempcardata.takala_info = tempsystemonZ[i].takala_info;
 								}
 							}
-							let arr = tempcardata.tipuls.concat(tempfinalspecialkeytwo);
-							setFinalSpecialKeytwo(arr);
+							setFinalSpecialKeytwo(tempcardata.tipuls);
 							setTechnologies(tempTechnologies);
 							setCarData(tempcardata);
 						}
@@ -206,7 +198,7 @@ const CarDataFormModal = (props) => {
 			currentSpec.filter((x) => x.id !== deleteId)
 		);
 		setIstechformdeleteopen(!istechformdeleteopen);
-		console.log(technologies);
+		// console.log(technologies);
 		if (technologies.length > 0) {
 			setTakalaopen(false);
 		}
@@ -543,23 +535,6 @@ const CarDataFormModal = (props) => {
 			}
 
 			for (let i = 0; i < finalspecialkeytwo.length; i++) {
-				if (
-					finalspecialkeytwo[i].errorType == undefined ||
-					finalspecialkeytwo[i].errorType == ""
-				) {
-					ErrorReason +=
-						"בסיבות אי זמינות - חובה להזין האם התקלה בצ' או במערכת, ";
-					flag = false;
-				}
-				if (
-					finalspecialkeytwo[i].errorType == "technology" &&
-					(finalspecialkeytwo[i].systemType == undefined ||
-						finalspecialkeytwo[i].systemType == "")
-				) {
-					ErrorReason +=
-						"בסיבות אי זמינות - אם התקלה במערכת יש להזין באיזו מערכת, ";
-					flag = false;
-				}
 				if (finalspecialkeytwo[i].type == "tipul") {
 					if (!finalspecialkeytwo[i].tipul) {
 						ErrorReason += ",בטיפול - חובה להזין סוג טיפול";
@@ -585,6 +560,16 @@ const CarDataFormModal = (props) => {
 					}
 				}
 				if (finalspecialkeytwo[i].type == "takala_mizdamenet") {
+					if (finalspecialkeytwo[i].errorType == undefined || finalspecialkeytwo[i].errorType == "") {
+						ErrorReason +=
+							"בסיבות אי זמינות - חובה להזין האם התקלה בצ' או במערכת, ";
+						flag = false;
+					}
+					if (finalspecialkeytwo[i].errorType == "technology" && (finalspecialkeytwo[i].systemType == undefined || finalspecialkeytwo[i].systemType == "")) {
+						ErrorReason +=
+							"בסיבות אי זמינות - אם התקלה במערכת יש להזין באיזו מערכת, ";
+						flag = false;
+					}
 					if (!finalspecialkeytwo[i].takala_mizdamenet) {
 						ErrorReason += ",בתקלה מזדמנת - חובה להזין תקלה מזדמנת";
 						flag = false;
@@ -623,7 +608,6 @@ const CarDataFormModal = (props) => {
 		}
 
 		for (let j = 0; j < technologies.length; j++) {
-			console.log(technologies[j]);
 			if (
 				technologies[j].systemType == undefined ||
 				technologies[j].systemType == ""
@@ -639,13 +623,15 @@ const CarDataFormModal = (props) => {
 				flag = false;
 			}
 			let noerror = false;
-			// console.log(finalspecialkeytwo);
-			// console.log(finalspecialkeytwo.length);
 			if (finalspecialkeytwo.length > 0) {
 				for (let y = 0; y < finalspecialkeytwo.length; y++) {
 					if (technologies[j].kshirot == "לא כשיר") {
-						if (
-							finalspecialkeytwo[y].systemType == technologies[j].systemType
+						if (//need to check if ok
+							(finalspecialkeytwo[y].systemType == technologies[j].systemType && finalspecialkeytwo[y].type == "takala_mizdamenet") 
+							||
+							(finalspecialkeytwo[y].type == "tipul") 
+							||
+							(finalspecialkeytwo[y].type == "harig_tipul")
 						) {
 							noerror = true;
 						}
@@ -656,7 +642,6 @@ const CarDataFormModal = (props) => {
 			} else {
 				noerror = true;
 			}
-			console.log(noerror);
 			if (noerror == false) {
 				ErrorReason +=
 					" ,במקרה שמערכת על כלי לא כשירה חובה להזין סיבת אי זמינות";
@@ -665,8 +650,6 @@ const CarDataFormModal = (props) => {
 		}
 
 		if (flag == true) {
-			console.log(cardata.expected_repair);
-
 			if (props.cardataid != undefined) {
 				UpdateCarData();
 			} else {
@@ -677,7 +660,7 @@ const CarDataFormModal = (props) => {
 		}
 	};
 
-	async function CreateCarData() {
+	async function CreateCarData() {  
 		let response = await axios.get(
 			`http://localhost:8000/api/cardata/cardatabycarnumber/${cardata.carnumber}`
 		);
@@ -761,39 +744,21 @@ const CarDataFormModal = (props) => {
 			delete tempcardata._id;
 			if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
 				tempcardata.tipuls = [];
-				delete tempcardata.takala_info;
-				delete tempcardata.expected_repair;
-			} else {
-				//for sorting tipuls between cardata and systemsonZ
+				// delete tempcardata.takala_info;
+				// delete tempcardata.expected_repair;
+			} 
+			// else {
 				for (let j = 0; j < technologies.length; j++) {
 					if (tempsystemonZ[j].kshirot == "לא כשיר") {
 						for (let i = 0; i < finalspecialkeytwo.length; i++) {
 							if (
-								tempfinalspecialkeytwo[i].systemType ==
-								tempsystemonZ[j].systemType
+								tempfinalspecialkeytwo[i].systemType == tempsystemonZ[j].systemType
 							) {
-								let temperror = { ...tempfinalspecialkeytwo[i] };
-								let tempsystem = [{ ...tempsystemonZ[j].tipuls }];
-								delete temperror.errorType;
-								delete temperror.systemType;
-								tempfinalspecialkeytwo[i] = temperror;
-								if (tempsystemonZ[j].tipuls == undefined) {
-									tempsystemonZ[j] = {
-										...tempsystemonZ[j],
-										tipuls: tempfinalspecialkeytwo[i],
-									};
-								} else {
-									tempsystem.push(tempfinalspecialkeytwo[i]);
-									tempsystemonZ[j].tipuls = tempsystem;
-								}
-								tempsystemonZ[j].expected_repair = cardata.expected_repair;
-								tempsystemonZ[j].takala_info = cardata.takala_info;
+								tempsystemonZ[j] = {...tempsystemonZ[j], expected_repair: cardata.expected_repair};
+								tempsystemonZ[j] = {...tempsystemonZ[j], takala_info: cardata.takala_info};
 							}
 						}
 					} else {
-						if (tempsystemonZ[j].tipuls) {
-							tempsystemonZ[j].tipuls = [];
-						}
 						if (tempsystemonZ[j].expected_repair) {
 							tempsystemonZ[j].expected_repair = "";
 						}
@@ -809,13 +774,22 @@ const CarDataFormModal = (props) => {
 						delete temp.errorType;
 						temptipuls.push(temp);
 					}
+					if(tempfinalspecialkeytwo[l].errorType == "technology"){
+						let temperror = { ...tempfinalspecialkeytwo[l] };
+						delete temperror.errorType;
+						temperror.type = "technology_mizdamenet";
+						temptipuls.push(temperror);
+					}
+					if(tempfinalspecialkeytwo[l].errorType == undefined){
+						temptipuls.push(tempfinalspecialkeytwo[l]);
+					}
 				}
 				tempcardata.tipuls = temptipuls;
 				if (tempcardata.tipuls.length == 0) {
 					tempcardata.expected_repair = "";
 					tempcardata.takala_info = "";
 				}
-			}
+			// }
 
 			var isTechnology = false;
 			var newMakat;
@@ -871,39 +845,18 @@ const CarDataFormModal = (props) => {
 				if (tempsystemonZ[j].kshirot == "לא כשיר") {
 					for (let i = 0; i < finalspecialkeytwo.length; i++) {
 						if (
-							tempfinalspecialkeytwo[i].systemType ==
-							tempsystemonZ[j].systemType
+							tempfinalspecialkeytwo[i].systemType == tempsystemonZ[j].systemType
 						) {
-							let temperror = { ...tempfinalspecialkeytwo[i] };
-							let tempsystem = [{ ...tempsystemonZ[j].tipuls }];
-							delete temperror.errorType;
-							delete temperror.systemType;
-							tempfinalspecialkeytwo[i] = temperror;
-							if (tempsystemonZ[j].tipuls == undefined) {
-								tempsystemonZ[j] = {
-									...tempsystemonZ[j],
-									tipuls: tempfinalspecialkeytwo[i],
-								};
-							} else {
-								tempsystem.push(tempfinalspecialkeytwo[i]);
-								tempsystemonZ[j].tipuls = tempsystem;
-							}
-							tempsystemonZ[j].expected_repair = cardata.expected_repair;
-							tempsystemonZ[j].takala_info = cardata.takala_info;
+							tempsystemonZ[j] = {...tempsystemonZ[j], expected_repair: cardata.expected_repair};
+							tempsystemonZ[j] = {...tempsystemonZ[j], takala_info: cardata.takala_info};
 						}
 					}
 				} else {
-					if (tempsystemonZ[j].tipuls == undefined) {
-						tempsystemonZ[j] = { ...tempsystemonZ[j], tipuls: [] };
-					}
 					if (tempsystemonZ[j].expected_repair == undefined) {
 						tempsystemonZ[j] = { ...tempsystemonZ[j], expected_repair: "" };
 					}
 					if (tempsystemonZ[j].takala_info == undefined) {
 						tempsystemonZ[j] = { ...tempsystemonZ[j], takala_info: "" };
-					}
-					if (tempsystemonZ[j].tipuls) {
-						tempsystemonZ[j].tipuls = [];
 					}
 					if (tempsystemonZ[j].expected_repair) {
 						tempsystemonZ[j].expected_repair = "";
@@ -919,10 +872,19 @@ const CarDataFormModal = (props) => {
 					let temp = { ...finalspecialkeytwo[l] };
 					delete temp.errorType;
 					if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
-						toast.error("הכלי זמין וכשיר סיבת אי זמניות על צ נמחקה");
+						toast.error("הכלי זמין וכשיר סיבת אי זמינות על צ נמחקה");
 					} else {
 						temptipuls.push(temp);
 					}
+				}
+				if(tempfinalspecialkeytwo[l].errorType == "technology"){
+					let temperror = { ...tempfinalspecialkeytwo[l] };
+					delete temperror.errorType;
+					temperror.type = "technology_mizdamenet";
+					temptipuls.push(temperror);
+				}
+				if(tempfinalspecialkeytwo[l].errorType == undefined){
+					temptipuls.push(tempfinalspecialkeytwo[l]);
 				}
 			}
 			tempcardata.tipuls = temptipuls;
@@ -2248,172 +2210,6 @@ const CarDataFormModal = (props) => {
 																{p.type == "tipul" ? (
 																	<>
 																		<Row>
-																			<Col xs={12} md={2}>
-																				<div>
-																					<p
-																						style={{
-																							margin: "0px",
-																							float: "right",
-																						}}
-																					>
-																						<h6>סוג כלי</h6>
-																					</p>
-																					<Input
-																						onChange={(e) => {
-																							const value = e.target.value;
-																							if (value != "undefined") {
-																								if (
-																									value == "Z" &&
-																									cardata.kshirot == "כשיר" &&
-																									cardata.zminot == "זמין"
-																								) {
-																									toast.error(
-																										"במקרה והכלי זמין וכשיר לא ניתן להזין עליו סיבות אי זמינות"
-																									);
-																								} else {
-																									console.log(
-																										technologies.map(
-																											(tec) =>
-																												tec.kshirot == "לא כשיר"
-																										)
-																									);
-																									console.log(
-																										technologies
-																											.map(
-																												(tec) =>
-																													tec.kshirot ==
-																													"לא כשיר"
-																											)
-																											.includes(true)
-																									);
-																									if (
-																										value == "Z" ||
-																										(value == "technology" &&
-																											(technologies.length > 0
-																												? technologies
-																														.map(
-																															(tec) =>
-																																tec.kshirot ==
-																																"לא כשיר"
-																														)
-																														.includes(true)
-																												: technologies.length >
-																												  0))
-																									) {
-																										setFinalSpecialKeytwo(
-																											(currentSpec) =>
-																												produce(
-																													currentSpec,
-																													(v) => {
-																														v[index].errorType =
-																															value;
-																													}
-																												)
-																										);
-																									} else {
-																										{
-																											/* text tec is kashir / not system on z */
-																										}
-																										if (
-																											technologies
-																												.map(
-																													(tec) =>
-																														tec.kshirot ==
-																														"כשיר"
-																												)
-																												.includes(true)
-																										) {
-																											toast.error(
-																												"במקרה שכל המערכות כשירות לא ניתן להזין עליהן סיבות אי זמניות"
-																											);
-																										} else {
-																											toast.error(
-																												"ל-צ' זה לא מקושרות מערכות"
-																											);
-																										}
-																									}
-																									if (value != "technology") {
-																										setFinalSpecialKeytwo(
-																											(currentSpec) =>
-																												produce(
-																													currentSpec,
-																													(v) => {
-																														delete v[index]
-																															.systemType;
-																													}
-																												)
-																										);
-																									}
-																								}
-																							}
-																						}}
-																						value={p.errorType}
-																						type="select"
-																						placeholder="בחירה"
-																					>
-																						<option value={"undefined"}>
-																							{"בחר"}
-																						</option>
-																						<option value={"Z"}> צ' </option>
-																						<option value={"technology"}>
-																							{" "}
-																							מערכת{" "}
-																						</option>
-																					</Input>
-																				</div>
-																			</Col>
-																			{p.errorType == "technology" ? (
-																				<Col xs={12} md={2}>
-																					<div>
-																						<p
-																							style={{
-																								margin: "0px",
-																								float: "right",
-																							}}
-																						>
-																							<h6>בחר מערכת</h6>
-																						</p>
-																						<Input
-																							onChange={(e) => {
-																								const systemType =
-																									e.target.value;
-																								if (e.target.value != "בחר")
-																									setFinalSpecialKeytwo(
-																										(currentSpec) =>
-																											produce(
-																												currentSpec,
-																												(v) => {
-																													v[index].systemType =
-																														systemType;
-																												}
-																											)
-																									);
-																							}}
-																							value={p.systemType}
-																							type="select"
-																							placeholder="מערכת"
-																						>
-																							<option value={"בחר"}>
-																								{"בחר"}
-																							</option>
-																							{technologies.map(
-																								(technology, i) =>
-																									technology.kshirot ==
-																									"לא כשיר" ? (
-																										<option
-																											value={
-																												technology.systemType
-																											}
-																										>
-																											{technology.systemType}
-																										</option>
-																									) : null
-																							)}
-																						</Input>
-																					</div>
-																				</Col>
-																			) : null}
-
 																			<Col xs={12} md={3}>
 																				<div>
 																					<p
@@ -2795,158 +2591,6 @@ const CarDataFormModal = (props) => {
 																) : p.type == "harig_tipul" ? (
 																	<>
 																		<Row>
-																			<Col xs={12} md={2}>
-																				<div>
-																					<p
-																						style={{
-																							margin: "0px",
-																							float: "right",
-																						}}
-																					>
-																						<h6>סוג כלי</h6>
-																					</p>
-																					<Input
-																						onChange={(e) => {
-																							const value = e.target.value;
-																							if (value != "undefined") {
-																								if (
-																									value == "Z" &&
-																									cardata.kshirot == "כשיר" &&
-																									cardata.zminot == "זמין"
-																								) {
-																									toast.error(
-																										"במקרה והכלי זמין ושכיר לא ניתן להזין עליו סיבות אי זמניות"
-																									);
-																								} else {
-																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
-																									// console.log(technologies.map(tec => tec.kshirot == "כשיר").includes(true))
-																									if (
-																										value == "Z" ||
-																										(value == "technology" &&
-																											(technologies.length > 0
-																												? !technologies
-																														.map(
-																															(tec) =>
-																																tec.kshirot ==
-																																"כשיר"
-																														)
-																														.includes(true)
-																												: technologies.length >
-																												  0))
-																									) {
-																										setFinalSpecialKeytwo(
-																											(currentSpec) =>
-																												produce(
-																													currentSpec,
-																													(v) => {
-																														v[index].errorType =
-																															value;
-																													}
-																												)
-																										);
-																									} else {
-																										{
-																											/* text tec is kashir / not system on z */
-																										}
-																										if (
-																											technologies
-																												.map(
-																													(tec) =>
-																														tec.kshirot ==
-																														"כשיר"
-																												)
-																												.includes(true)
-																										) {
-																											toast.error(
-																												"במקרה שכל המערכות כשירות לא ניתן להזין עליהן סיבות אי זמניות"
-																											);
-																										} else {
-																											toast.error(
-																												"ל-צ' זה לא מקושרות מערכות"
-																											);
-																										}
-																									}
-																									if (value != "technology") {
-																										setFinalSpecialKeytwo(
-																											(currentSpec) =>
-																												produce(
-																													currentSpec,
-																													(v) => {
-																														delete v[index]
-																															.systemType;
-																													}
-																												)
-																										);
-																									}
-																								}
-																							}
-																						}}
-																						value={p.errorType}
-																						type="select"
-																						placeholder="בחירה"
-																					>
-																						<option value={"undefined"}>
-																							{"בחר"}
-																						</option>
-																						<option value={"Z"}> צ' </option>
-																						<option value={"technology"}>
-																							{" "}
-																							מערכת{" "}
-																						</option>
-																					</Input>
-																				</div>
-																			</Col>
-																			{p.errorType == "technology" ? (
-																				<Col xs={12} md={2}>
-																					<div>
-																						<p
-																							style={{
-																								margin: "0px",
-																								float: "right",
-																							}}
-																						>
-																							<h6>בחר מערכת</h6>
-																						</p>
-																						<Input
-																							onChange={(e) => {
-																								const systemType =
-																									e.target.value;
-																								if (e.target.value != "בחר")
-																									setFinalSpecialKeytwo(
-																										(currentSpec) =>
-																											produce(
-																												currentSpec,
-																												(v) => {
-																													v[index].systemType =
-																														systemType;
-																												}
-																											)
-																									);
-																							}}
-																							value={p.systemType}
-																							type="select"
-																							placeholder="מערכת"
-																						>
-																							<option value={"בחר"}>
-																								{"בחר"}
-																							</option>
-																							{technologies.map(
-																								(technology, i) =>
-																									technology.kshirot ==
-																									"לא כשיר" ? (
-																										<option
-																											value={
-																												technology.systemType
-																											}
-																										>
-																											{technology.systemType}
-																										</option>
-																									) : null
-																							)}
-																						</Input>
-																					</div>
-																				</Col>
-																			) : null}
 																			<Col xs={12} md={4}>
 																				<div>
 																					<p
@@ -4322,67 +3966,6 @@ const CarDataFormModal = (props) => {
 															{p.type == "tipul" ? (
 																<>
 																	<Row>
-																		<Col xs={12} md={2}>
-																			<div>
-																				<p
-																					style={{
-																						margin: "0px",
-																						float: "right",
-																					}}
-																				>
-																					<h6>סוג כלי</h6>
-																				</p>
-																				<Input
-																					value={p.errorType}
-																					type="select"
-																					placeholder="בחירה"
-																					disabled
-																				>
-																					<option value={"undefined"}>
-																						{"בחר"}
-																					</option>
-																					<option value={"Z"}> צ' </option>
-																					<option value={"technology"}>
-																						{" "}
-																						מערכת{" "}
-																					</option>
-																				</Input>
-																			</div>
-																		</Col>
-																		{p.errorType == "technology" ? (
-																			<Col xs={12} md={2}>
-																				<div>
-																					<p
-																						style={{
-																							margin: "0px",
-																							float: "right",
-																						}}
-																					>
-																						<h6>בחר מערכת</h6>
-																					</p>
-																					<Input
-																						value={p.systemType}
-																						type="select"
-																						placeholder="מערכת"
-																						disabled
-																					>
-																						<option value={"בחר"}>
-																							{"בחר"}
-																						</option>
-																						{technologies.map((technology, i) =>
-																							technology.kshirot ==
-																							"לא כשיר" ? (
-																								<option
-																									value={technology.systemType}
-																								>
-																									{technology.systemType}
-																								</option>
-																							) : null
-																						)}
-																					</Input>
-																				</div>
-																			</Col>
-																		) : null}
 																		<Col xs={12} md={3}>
 																			<div>
 																				<p
@@ -4525,67 +4108,6 @@ const CarDataFormModal = (props) => {
 															) : p.type == "harig_tipul" ? (
 																<>
 																	<Row>
-																		<Col xs={12} md={2}>
-																			<div>
-																				<p
-																					style={{
-																						margin: "0px",
-																						float: "right",
-																					}}
-																				>
-																					<h6>סוג כלי</h6>
-																				</p>
-																				<Input
-																					value={p.errorType}
-																					type="select"
-																					placeholder="בחירה"
-																					disabled
-																				>
-																					<option value={"undefined"}>
-																						{"בחר"}
-																					</option>
-																					<option value={"Z"}> צ' </option>
-																					<option value={"technology"}>
-																						{" "}
-																						מערכת{" "}
-																					</option>
-																				</Input>
-																			</div>
-																		</Col>
-																		{p.errorType == "technology" ? (
-																			<Col xs={12} md={2}>
-																				<div>
-																					<p
-																						style={{
-																							margin: "0px",
-																							float: "right",
-																						}}
-																					>
-																						<h6>בחר מערכת</h6>
-																					</p>
-																					<Input
-																						value={p.systemType}
-																						type="select"
-																						placeholder="מערכת"
-																						disabled
-																					>
-																						<option value={"בחר"}>
-																							{"בחר"}
-																						</option>
-																						{technologies.map((technology, i) =>
-																							technology.kshirot ==
-																							"לא כשיר" ? (
-																								<option
-																									value={technology.systemType}
-																								>
-																									{technology.systemType}
-																								</option>
-																							) : null
-																						)}
-																					</Input>
-																				</div>
-																			</Col>
-																		) : null}
 																		<Col xs={12} md={4}>
 																			<div>
 																				<p

@@ -31,6 +31,7 @@ import {
 } from "reactstrap";
 
 function DashboardCard(props) {
+	const [takalot, setTakalot] = useState([]);
 	const [systems, setSystems] = useState([]);
 	const [systems_by_kashir, setSystems_by_kashir] = useState([]);
 	const [systems_by_lo_kashir, setSystems_by_lo_kashir] = useState([]);
@@ -64,12 +65,17 @@ function DashboardCard(props) {
 
 	function init() {
 		let temp_systems = props.systemsonZs;
+		let tempcardata = [...props.cardatas];
+		let takalot = [];
 		let temp_systems_by_kashir;
 		let temp_systems_by_lo_kashir;
 
 		if (props.systemtype == "mkabaz" && temp_systems[0].mkabazs) {
 			temp_systems = temp_systems.filter(
 				(system) => system.mkabazs.name == props.systemname
+			);
+			tempcardata = props.cardatas.filter(
+				(cardata) => cardata.mkabaz_data[0].name == props.systemname
 			);
 		}
 
@@ -79,98 +85,72 @@ function DashboardCard(props) {
 		temp_systems_by_lo_kashir = temp_systems.filter(
 			(system) => system.kshirot == "לא כשיר"
 		);
+        
+		for(let i=0;i<tempcardata.length;i++){
+			for(let j=0;j<tempcardata[i].tipuls.length;j++){
+				takalot.push(tempcardata[i].tipuls[j]);
+			}
+		}
+
+		takalot = takalot.filter((takala) => takala.type != "takala_mizdamenet");
+		if (props.systemtype == "dividesystems") {
+			takalot = takalot.filter(
+				(takala) => takala.type != "technology_mizdamenet" || props.systemname == takala.systemType
+			);
+		}
 
 		//calculate intipul/harigtipul/takalotmizdamnot
-		let temp_systems_by_lo_kashir_intipul = [];
-		let temp_systems_by_lo_kashir_harigtipul = [];
-		let temp_systems_by_lo_kashir_takalotmizdamnot = [];
-		let temp_systems_by_lo_kashir_hhstand_intipul = [];
-		let temp_systems_by_lo_kashir_hhstand_harigtipul = [];
-		let temp_systems_by_lo_kashir_hhstand_takalotmizdamnot = [];
-		for (let i = 0; i < temp_systems_by_lo_kashir.length; i++) {
-			let is_intipul = false;
-			let is_harigtipul = false;
-			let is_takalotmizdamnot = false;
-			let is_hhstand_intipul = false;
-			let is_hhstand_harigtipul = false;
-			let is_hhstand_takalotmizdamnot = false;
+		let temp_takalot_by_lo_kashir_intipul = [];
+		let temp_takalot_by_lo_kashir_harigtipul = [];
+		let temp_takalot_by_lo_kashir_takalotmizdamnot = [];
+		let temp_takalot_by_lo_kashir_hhstand_intipul = [];
+		let temp_takalot_by_lo_kashir_hhstand_harigtipul = [];
+		let temp_takalot_by_lo_kashir_hhstand_takalotmizdamnot = [];
 
-			for (let j = 0; j < temp_systems_by_lo_kashir[i].tipuls.length; j++) {
-				if (temp_systems_by_lo_kashir[i].tipuls[j].type == "tipul") {
-					is_intipul = true;
-					if (temp_systems_by_lo_kashir[i].tipuls[j].hh_stands) {
-						is_hhstand_intipul = true;
+			for (let j = 0; j < takalot.length; j++) {
+				if (takalot[j].type == "tipul") {
+					temp_takalot_by_lo_kashir_intipul.push(takalot[j]);
+					if (takalot[j].hh_stands) {
+					temp_takalot_by_lo_kashir_hhstand_intipul.push(takalot[j]);
 					}
 				}
-				if (temp_systems_by_lo_kashir[i].tipuls[j].type == "harig_tipul") {
-					is_harigtipul = true;
-					if (temp_systems_by_lo_kashir[i].tipuls[j].hh_stands) {
-						is_hhstand_harigtipul = true;
+				if (takalot[j].type == "harig_tipul") {
+					temp_takalot_by_lo_kashir_harigtipul.push(takalot[j]);
+					if (takalot[j].hh_stands) {
+					temp_takalot_by_lo_kashir_hhstand_harigtipul.push(takalot[j]);
 					}
 				}
-				if (
-					temp_systems_by_lo_kashir[i].tipuls[j].type == "takala_mizdamenet"
-				) {
-					is_takalotmizdamnot = true;
-					if (temp_systems_by_lo_kashir[i].tipuls[j].hh_stands) {
-						is_hhstand_takalotmizdamnot = true;
+				if (takalot[j].type == "technology_mizdamenet") {
+					temp_takalot_by_lo_kashir_takalotmizdamnot.push(takalot[j]);
+					if (takalot[j].hh_stands) {
+					temp_takalot_by_lo_kashir_hhstand_takalotmizdamnot.push(takalot[j]);
 					}
 				}
 			}
-			if (is_intipul)
-				temp_systems_by_lo_kashir_intipul.push(temp_systems_by_lo_kashir[i]);
-			if (is_harigtipul)
-				temp_systems_by_lo_kashir_harigtipul.push(temp_systems_by_lo_kashir[i]);
-			if (is_takalotmizdamnot)
-				temp_systems_by_lo_kashir_takalotmizdamnot.push(
-					temp_systems_by_lo_kashir[i]
-				);
-			if (is_hhstand_intipul)
-				temp_systems_by_lo_kashir_hhstand_intipul.push(
-					temp_systems_by_lo_kashir[i]
-				);
-			if (is_hhstand_harigtipul)
-				temp_systems_by_lo_kashir_hhstand_harigtipul.push(
-					temp_systems_by_lo_kashir[i]
-				);
-			if (is_hhstand_takalotmizdamnot)
-				temp_systems_by_lo_kashir_hhstand_takalotmizdamnot.push(
-					temp_systems_by_lo_kashir[i]
-				);
-		}
+
 		let temp = [];
-		temp = temp_systems_by_lo_kashir_hhstand_intipul.map((item) => {
-			return item.tipuls
-				.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-				.flat();
+		temp = temp_takalot_by_lo_kashir_hhstand_intipul.map((item) => {
+			return item.hh_stands.map((a) => a.missing_makat_2).flat();
 		});
 		let temp1 = [];
-		temp1 = temp_systems_by_lo_kashir_hhstand_harigtipul.map((item) => {
-			return item.tipuls
-				.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-				.flat();
+		temp1 = temp_takalot_by_lo_kashir_hhstand_harigtipul.map((item) => {
+			return item.hh_stands.map((a) => a.missing_makat_2).flat();
 		});
 		let temp2 = [];
-		temp2 = temp_systems_by_lo_kashir_hhstand_takalotmizdamnot.map((item) => {
-			return item.tipuls
-				.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-				.flat();
+		temp2 = temp_takalot_by_lo_kashir_hhstand_takalotmizdamnot.map((item) => {
+			return item.hh_stands.map((a) => a.missing_makat_2).flat();
 		});
-		// console.log(temp_systems_by_lo_kashir_hhstand_harigtipul);
-		// console.log(temp_systems_by_lo_kashir_hhstand_takalotmizdamnot);
-		// console.log(temp.flat(2));
-		// console.log(temp.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0));
-		// console.log(hh_intipul_missing_makat_2);
 
+		setTakalot(takalot.length);
 		setSystems(temp_systems.length);
 		setSystems_by_kashir(temp_systems_by_kashir.length);
 		setSystems_by_lo_kashir(temp_systems_by_lo_kashir.length);
-		setSystems_by_lo_kashir_intipul(temp_systems_by_lo_kashir_intipul.length);
+		setSystems_by_lo_kashir_intipul(temp_takalot_by_lo_kashir_intipul.length);
 		setSystems_by_lo_kashir_harigtipul(
-			temp_systems_by_lo_kashir_harigtipul.length
+			temp_takalot_by_lo_kashir_harigtipul.length
 		);
 		setSystems_by_lo_kashir_takalotmizdamnot(
-			temp_systems_by_lo_kashir_takalotmizdamnot.length
+			temp_takalot_by_lo_kashir_takalotmizdamnot.length
 		);
 		setSystems_by_lo_kashir_hhstand_intipul(
 			temp.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
@@ -493,15 +473,15 @@ function DashboardCard(props) {
 							<Progress
 								color="guyblue"
 								value={
-									systems_by_lo_kashir != 0
-										? (systems_by_lo_kashir_intipul / systems_by_lo_kashir) *
+									takalot != 0
+										? (systems_by_lo_kashir_intipul / takalot) *
 										  100
 										: 0
 								}
 								style={{ height: "10px", marginBottom: "8px" }}
 							>
-								{(systems_by_lo_kashir != 0
-									? (systems_by_lo_kashir_intipul / systems_by_lo_kashir) * 100
+								{(takalot != 0
+									? (systems_by_lo_kashir_intipul / takalot) * 100
 									: 0
 								).toFixed(0)}
 								%
@@ -515,15 +495,15 @@ function DashboardCard(props) {
 							<Progress
 								color="guyblue"
 								value={
-									systems_by_lo_kashir != 0
-										? (systems_by_lo_kashir_harigtipul / systems_by_lo_kashir) *
+									takalot != 0
+										? (systems_by_lo_kashir_harigtipul / takalot) *
 										  100
 										: 0
 								}
 								style={{ height: "10px", marginBottom: "8px" }}
 							>
-								{(systems_by_lo_kashir != 0
-									? (systems_by_lo_kashir_harigtipul / systems_by_lo_kashir) *
+								{(takalot != 0
+									? (systems_by_lo_kashir_harigtipul / takalot) *
 									  100
 									: 0
 								).toFixed(0)}
@@ -539,17 +519,17 @@ function DashboardCard(props) {
 							<Progress
 								color="guyblue"
 								value={
-									systems_by_lo_kashir != 0
+									takalot != 0
 										? (systems_by_lo_kashir_takalotmizdamnot /
-												systems_by_lo_kashir) *
+										takalot) *
 										  100
 										: 0
 								}
 								style={{ height: "10px", marginBottom: "8px" }}
 							>
-								{(systems_by_lo_kashir != 0
+								{(takalot != 0
 									? (systems_by_lo_kashir_takalotmizdamnot /
-											systems_by_lo_kashir) *
+									takalot) *
 									  100
 									: 0
 								).toFixed(0)}

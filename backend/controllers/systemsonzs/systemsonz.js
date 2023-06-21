@@ -15,59 +15,61 @@ const agg = [
 let mkabazBySystemonZ = 
 [
   {
-    '$lookup': {
-      'from': 'cardatas', 
-      'localField': 'carnumber', 
-      'foreignField': 'carnumber', 
-      'as': 'carnumber'
-    }
+      '$lookup': {
+          'from': 'cardatas', 
+          'localField': 'carnumber', 
+          'foreignField': 'carnumber', 
+          'as': 'carnumber'
+      }
   }, {
-    '$unwind': {
-      'path': '$carnumber'
-    }
+      '$unwind': {
+          'path': '$carnumber'
+      }
   }, {
-    '$project': {
-      '_id': 0, 
-      'tipuls': 1, 
-      'carnumber.makat': 1, 
-      'systemType': 1, 
-      'id': 1, 
-      'kshirot': 1
-    }
+      '$project': {
+          '_id': 0, 
+          'tipuls': 1, 
+          'carnumber.makat': 1, 
+          'carnumber.carnumber': 1, 
+          'systemType': 1, 
+          'id': 1, 
+          'kshirot': 1
+      }
   }, {
-    '$lookup': {
-      'from': 'makats', 
-      'localField': 'carnumber.makat', 
-      'foreignField': '_id', 
-      'as': 'makats'
-    }
+      '$lookup': {
+          'from': 'makats', 
+          'localField': 'carnumber.makat', 
+          'foreignField': '_id', 
+          'as': 'makats'
+      }
   }, {
-    '$project': {
-      'tipuls': 1, 
-      'makats.mkabaz': 1, 
-      'systemType': 1, 
-      'id': 1, 
-      'kshirot': 1
-    }
+      '$project': {
+          'tipuls': 1, 
+          'makats.mkabaz': 1, 
+          'carnumber.carnumber': 1, 
+          'systemType': 1, 
+          'id': 1, 
+          'kshirot': 1
+      }
   }, {
-    '$unwind': {
-      'path': '$makats'
-    }
+      '$unwind': {
+          'path': '$makats'
+      }
   }, {
-    '$lookup': {
-      'from': 'mkabazs', 
-      'localField': 'makats.mkabaz', 
-      'foreignField': '_id', 
-      'as': 'mkabazs'
-    }
+      '$lookup': {
+          'from': 'mkabazs', 
+          'localField': 'makats.mkabaz', 
+          'foreignField': '_id', 
+          'as': 'mkabazs'
+      }
   }, {
-    '$unwind': {
-      'path': '$mkabazs'
-    }
+      '$unwind': {
+          'path': '$mkabazs'
+      }
   }, {
-    '$project': {
-      'makats': 0
-    }
+      '$project': {
+          'makats': 0
+      }
   }
 ];
 

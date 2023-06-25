@@ -2042,7 +2042,7 @@ const CarDataFormModal = (props) => {
 									</Row>
 
 									{cardata.kshirot == "לא כשיר" ||
-									cardata.zminot == "לא זמין" ||
+									cardata.zminot == "לא זמין"  ||
 									takalaopen ? (
 										<>
 											{/* tipuls */}
@@ -3032,7 +3032,7 @@ const CarDataFormModal = (props) => {
 																									cardata.zminot == "זמין"
 																								) {
 																									toast.error(
-																										"במקרה והכלי זמין ושכיר לא ניתן להזין עליו סיבות אי זמניות"
+																										"במקרה והכלי זמין וכשיר לא ניתן להזין עליו סיבות אי זמניות"
 																									);
 																								} else {
 																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
@@ -3041,11 +3041,11 @@ const CarDataFormModal = (props) => {
 																										value == "Z" ||
 																										(value == "technology" &&
 																											(technologies.length > 0
-																												? !technologies
+																												? technologies
 																														.map(
 																															(tec) =>
 																																tec.kshirot ==
-																																"כשיר"
+																																"לא כשיר"
 																														)
 																														.includes(true)
 																												: technologies.length >
@@ -3561,16 +3561,6 @@ const CarDataFormModal = (props) => {
 													</Input>
 												</Col>
 											</Row>
-
-											{/* <Row>
-                    <Col xs={12} md={8}>
-                    </Col>
-                    <Col xs={12} md={4}>
-                      <div>
-                        <p style={{ margin: '0px', float: 'left' }}>כמות ימי אי זמינות: 5 ימים</p>
-                      </div>
-                    </Col>
-                  </Row> */}
 										</>
 									) : null}
 

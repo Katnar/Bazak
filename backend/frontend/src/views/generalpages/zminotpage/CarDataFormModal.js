@@ -2055,10 +2055,8 @@ const CarDataFormModal = (props) => {
 											>
 												<h6>סיבות אי זמינות</h6>
 											</div>
-
-											<div>
-												{finalspecialkeytwo.length == 0 ? (
-													<Row>
+											{cardata.kshirot == "לא כשיר" || cardata.zminot == "לא זמין" ? (
+												<Row>
 														<Col
 															style={{
 																display: "flex",
@@ -2120,93 +2118,37 @@ const CarDataFormModal = (props) => {
 															</Button>
 														</Col>
 													</Row>
-												) : (
-													finalspecialkeytwo.map((p, index) => {
+											):takalaopen?(
+                                              <Row>
+												<Col
+														style={{
+														display: "flex",
+														justifyContent: "center",
+													}}
+												>
+													<Button
+														style={{ width: "100px", padding: "5px" }}
+														type="button"
+														onClick={() => {
+															setFinalSpecialKeytwo((currentSpec) => [
+																...currentSpec,
+																{
+																	id: generate(),
+																	type: "takala_mizdamenet",
+																},
+															]);
+														}}
+													>
+														הוסף תקלה מזדמנת
+													</Button>
+												</Col>
+											  </Row>
+											):null}
+
+											<div>
+												{finalspecialkeytwo.map((p, index) => {
 														return (
 															<div>
-																{index == 0 ? (
-																	<Row>
-																		<Col
-																			style={{
-																				display: "flex",
-																				justifyContent: "center",
-																			}}
-																		>
-																			<Button
-																				style={{
-																					width: "100px",
-																					padding: "5px",
-																				}}
-																				type="button"
-																				onClick={() => {
-																					setFinalSpecialKeytwo(
-																						(currentSpec) => [
-																							...currentSpec,
-																							{ id: generate(), type: "tipul" },
-																						]
-																					);
-																				}}
-																			>
-																				הוסף טיפול
-																			</Button>
-																		</Col>
-																		<Col
-																			style={{
-																				display: "flex",
-																				justifyContent: "center",
-																			}}
-																		>
-																			<Button
-																				style={{
-																					width: "100px",
-																					padding: "5px",
-																				}}
-																				type="button"
-																				onClick={() => {
-																					setFinalSpecialKeytwo(
-																						(currentSpec) => [
-																							...currentSpec,
-																							{
-																								id: generate(),
-																								type: "harig_tipul",
-																							},
-																						]
-																					);
-																				}}
-																			>
-																				הוסף חריגת טיפול
-																			</Button>
-																		</Col>
-																		<Col
-																			style={{
-																				display: "flex",
-																				justifyContent: "center",
-																			}}
-																		>
-																			<Button
-																				style={{
-																					width: "100px",
-																					padding: "5px",
-																				}}
-																				type="button"
-																				onClick={() => {
-																					setFinalSpecialKeytwo(
-																						(currentSpec) => [
-																							...currentSpec,
-																							{
-																								id: generate(),
-																								type: "takala_mizdamenet",
-																							},
-																						]
-																					);
-																				}}
-																			>
-																				הוסף תקלה מזדמנת
-																			</Button>
-																		</Col>
-																	</Row>
-																) : null}
-
 																{p.type == "tipul" ? (
 																	<>
 																		<Row>
@@ -3034,6 +2976,28 @@ const CarDataFormModal = (props) => {
 																									toast.error(
 																										"במקרה והכלי זמין וכשיר לא ניתן להזין עליו סיבות אי זמניות"
 																									);
+																									setFinalSpecialKeytwo(
+																										(currentSpec) =>
+																											produce(
+																												currentSpec,
+																												(v) => {
+																													v[index].errorType =
+																														"undefined";
+																												}
+																											)
+																									);
+																									if (value != "technology") {
+																										setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																												produce(
+																													currentSpec,
+																													(v) => {
+																														delete v[index]
+																															.systemType;
+																													}
+																												)
+																										);
+																									}
 																								} else {
 																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
 																									// console.log(technologies.map(tec => tec.kshirot == "כשיר").includes(true))
@@ -3077,9 +3041,29 @@ const CarDataFormModal = (props) => {
 																											toast.error(
 																												"במקרה שכל המערכות כשירות לא ניתן להזין עליהן סיבות אי זמניות"
 																											);
+																											setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																													produce(
+																														currentSpec,
+																														(v) => {
+																															v[index].errorType =
+																																"undefined";
+																														}
+																													)
+																											);
 																										} else {
 																											toast.error(
 																												"ל-צ' זה לא מקושרות מערכות"
+																											);
+																											setFinalSpecialKeytwo(
+																											(currentSpec) =>
+																													produce(
+																														currentSpec,
+																														(v) => {
+																															v[index].errorType =
+																																"undefined";
+																														}
+																													)
 																											);
 																										}
 																									}
@@ -3515,7 +3499,7 @@ const CarDataFormModal = (props) => {
 															</div>
 														);
 													})
-												)}
+                                                }
 											</div>
 											{/* tipuls */}
 

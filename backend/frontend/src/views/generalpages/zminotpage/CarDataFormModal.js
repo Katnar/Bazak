@@ -1008,7 +1008,6 @@ const CarDataFormModal = (props) => {
 				? technologies.map((tec) => tec.kshirot == "לא כשיר").includes(true)
 				: technologies.length > 0
 		) {
-			// console.log("check");
 			setTakalaopen(true);
 		} else {
 			setTakalaopen(false);
@@ -2119,6 +2118,12 @@ const CarDataFormModal = (props) => {
 														</Col>
 													</Row>
 											):takalaopen?(
+											  <>
+											  {finalspecialkeytwo.map((t) => {
+												if (t.type == "tipul" || t.type == "harig_tipul") {
+													setFinalSpecialKeytwo((currentSpec) =>currentSpec.filter((x) => x.id !== t.id));
+												}
+											  })}
                                               <Row>
 												<Col
 														style={{
@@ -2143,6 +2148,7 @@ const CarDataFormModal = (props) => {
 													</Button>
 												</Col>
 											  </Row>
+											  </>
 											):null}
 
 											<div>

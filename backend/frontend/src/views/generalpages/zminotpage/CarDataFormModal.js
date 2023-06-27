@@ -444,6 +444,21 @@ const CarDataFormModal = (props) => {
 		CheckFormData();
 	};
 
+	function removeZerosForMakatId(makatId){
+		let flag = false;
+
+		while (makatId.length > 0 && !flag){
+			if (makatId[0] == 0){
+				makatId = makatId.substring(1);
+			}else {
+				flag = true;
+				break;
+			}
+		}
+		
+		return makatId;
+	}
+
 	const CheckFormData = () => {
 		//check for stuff isnt empty -> specially cartypes/units
 		var flag = true;
@@ -468,7 +483,7 @@ const CarDataFormModal = (props) => {
 			} else {
 				if (
 					makats.some((makat) =>
-						cardata.carnumber.includes(makat._id.replace(/0/g, ""))
+						cardata.carnumber.includes(removeZerosForMakatId(makat._id))
 					) == false
 				) {
 					for (var i = 0; i < cardata.carnumber.length; i++) {
@@ -660,10 +675,24 @@ const CarDataFormModal = (props) => {
 		}
 	};
 
-	async function CreateCarData() {  
-		let response = await axios.get(
-			`http://localhost:8000/api/cardata/cardatabycarnumber/${cardata.carnumber}`
-		);
+	async function CreateCarData() {
+
+		let tempcardata = { ...cardata };
+
+		var isTechnology = false;
+		var newMakat;
+		if (tempcardata.magadal == "magadal04") {
+			//change to the magadal of technologies in the database in army
+			isTechnology = true;
+			newMakat = removeZerosForMakatId(tempcardata.makat);
+			tempcardata.carnumber = newMakat + "-" + tempcardata.carnumber;
+		}
+
+		let response = isTechnology? await axios.get(
+			`http://localhost:8000/api/cardata/cardatabycarnumber/${tempcardata.carnumber}`)
+			 : await axios.get(
+			`http://localhost:8000/api/cardata/cardatabycarnumber/${cardata.carnumber}`);
+  
 		if (response.data.length > 0) {
 			if (
 				!response.data[0].gdod ||
@@ -674,24 +703,12 @@ const CarDataFormModal = (props) => {
 			) {
 				//update cardata
 				var tempcardataid = response.data[0]._id;
-				let tempcardata = { ...cardata };
 				if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
 					tempcardata.tipuls = [];
 					tempcardata.takala_info = "";
 					tempcardata.expected_repair = "";
 				} else {
 					tempcardata.tipuls = finalspecialkeytwo;
-				}
-
-				var isTechnology = false;
-				var newMakat;
-				if (tempcardata.magadal == "magadal04") {
-					//change to the magadal of technologies in the database in army
-					isTechnology = true;
-				}
-				if (isTechnology == true) {
-					newMakat = tempcardata.makat.replace(/0/g, "");
-					tempcardata.carnumber = newMakat + "-" + tempcardata.carnumber;
 				}
 
 				tempcardata.updatedBy = user.personalnumber;
@@ -736,7 +753,6 @@ const CarDataFormModal = (props) => {
 			}
 		} else {
 			//create cardata
-			let tempcardata = { ...cardata };
 			let tempsystemonZ = { ...technologies };
 			let tempfinalspecialkeytwo = { ...finalspecialkeytwo };
 			let temptipuls = [];
@@ -790,17 +806,6 @@ const CarDataFormModal = (props) => {
 					tempcardata.takala_info = "";
 				}
 			// }
-
-			var isTechnology = false;
-			var newMakat;
-			if (tempcardata.magadal == "magadal04") {
-				//change to the magadal of technologies in the database in army
-				isTechnology = true;
-			}
-			if (isTechnology == true) {
-				newMakat = tempcardata.makat.replace(/0/g, "");
-				tempcardata.carnumber = newMakat + "-" + tempcardata.carnumber;
-			}
 
 			let result = await axios.post(
 				`http://localhost:8000/api/cardata`,
@@ -901,7 +906,7 @@ const CarDataFormModal = (props) => {
 				isTechnology = true;
 			}
 			if (isTechnology == true) {
-				newMakat = tempcardata.makat.replace(/0/g, "");
+				newMakat = removeZerosForMakatId(tempcardata.makat);
 				tempcardata.carnumber = tempcardata.carnumber.split("-");
 				tempcardata.carnumber = newMakat + "-" + tempcardata.carnumber[1];
 			}

@@ -25,6 +25,7 @@ import LatestUpdateDateComponent from "components/bazak/LatestUpdateDateComponen
 //redux
 import { useSelector, useDispatch } from "react-redux";
 import { getCarDataFunc } from "redux/features/cardata/cardataSlice";
+//
 import ModularScreenPage from "../modularscreenpage/ModularScreenPage";
 
 function DashboardPage({ match, theme }) {
@@ -72,7 +73,6 @@ function DashboardPage({ match, theme }) {
 
 	const filterreduxcardata = async () => {
 		let myArrayFiltered1 = []; //filter cartype
-
 		switch (match.params.cartype) {
 			case "magadal":
 				myArrayFiltered1 = reduxcardata;
@@ -145,7 +145,6 @@ function DashboardPage({ match, theme }) {
 		await axios
 			.get(`http://localhost:8000/api/systemonz_mashbit`)
 			.then((response) => {
-				console.log(response.data);
 				setsysonz(response.data);
 			})
 			.catch((error) => {
@@ -231,6 +230,17 @@ function DashboardPage({ match, theme }) {
 						theme={theme}
 						systemtype="allsystems"
 						systemsonZs={systemsonZs}
+						cardatas={cardatas.filter(
+							(cardata) => {
+								let systems = systemsonZs.filter((system) => system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
+								for(let i=0;i<systems.length;i++){
+								   if(cardata.carnumber == systems[i]){
+									return true;
+								   }
+								}
+								return false;
+							}
+						)}
 					/>
 				) : null}
 				{cartypes.map((cartype, i) =>

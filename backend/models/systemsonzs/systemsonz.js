@@ -6,7 +6,6 @@ const systemonzSchema = new mongoose.Schema({
     id:{type:String},
     carnumber:{type:String},
     kshirot:{type:String},
-    tipuls: { type: Array },
     takala_info: { type: String },
     expected_repair: { type: String },
     systemType:{type:String},

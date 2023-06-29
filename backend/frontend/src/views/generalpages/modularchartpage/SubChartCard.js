@@ -47,6 +47,7 @@ import green from "assets/img/green.png";
 
 const SubChartCard = (props) => {
 	//instate - zamin/kashir
+	const [takalot, setTakalot] = useState([]);
 	const [cardata_by_chart, setCardata_by_chart] = useState(0);
 	const [cardata_by_chart_instate, setCardata_by_chart_instate] = useState(0);
 	const [cardata_by_chart_not_instate, setCardata_by_chart_not_instate] =
@@ -88,6 +89,7 @@ const SubChartCard = (props) => {
 	};
 
 	function init() {
+		let takalot = [];
 		let temp_cardata_by_chart;
 		let temp_cardata_by_chart_instate;
 		let temp_cardata_by_chart_not_instate;
@@ -161,125 +163,62 @@ const SubChartCard = (props) => {
 			);
 		}
 
+		for(let i=0;i<temp_cardata_by_chart_not_instate.length;i++){
+			for(let j=0;j<temp_cardata_by_chart_not_instate[i].tipuls.length;j++){
+				takalot.push(temp_cardata_by_chart_not_instate[i].tipuls[j]);
+			}
+		}
+		takalot = takalot.filter((takala) => takala.type != "technology_mizdamenet");
+
+
 		//calculate intipul/harigtipul/takalotmizdamnot/hhstand
 		let temp_cardata_by_chart_intipul = [];
 		let temp_cardata_by_chart_harigtipul = [];
 		let temp_cardata_by_chart_takalotmizdamnot = [];
-		let temp_cardata_by_cartype_systemonz = [];
-		let temp_cardata_by_cartype_systemonz_mooshbat = 0;
 		let temp_cardata_by_chart_hhstand_intipul = [];
 		let temp_cardata_by_chart_hhstand_harigtipul = [];
 		let temp_cardata_by_chart_hhstand_takalotmizdamnot = [];
-		let temp_system_hh = [];
-		let unique = [];
-		let unique1 = [];
-		for (let i = 0; i < temp_cardata_by_chart_not_instate.length; i++) {
-			let is_intipul = false;
-			let is_harigtipul = false;
-			let is_takalotmizdamnot = false;
-			let is_hhstand_intipul = false;
-			let is_hhstand_harigtipul = false;
-			let is_hhstand_takalotmizdamnot = false;
 
-			for (
-				let j = 0;
-				j < temp_cardata_by_chart_not_instate[i].tipuls.length;
-				j++
-			) {
-				if (temp_cardata_by_chart_not_instate[i].tipuls[j].type == "tipul") {
-					is_intipul = true;
-					if (temp_cardata_by_chart_not_instate[i].tipuls[j].hh_stands) {
-						is_hhstand_intipul = true;
+		for (let j = 0; j < takalot.length; j++) {
+				if (takalot[j].type == "tipul") {
+					temp_cardata_by_chart_intipul.push(takalot[j]);
+					if (takalot[j].hh_stands) {
+						temp_cardata_by_chart_hhstand_intipul.push(takalot[j]);
 					}
 				}
 				if (
-					temp_cardata_by_chart_not_instate[i].tipuls[j].type == "harig_tipul"
+					takalot[j].type == "harig_tipul"
 				) {
-					is_harigtipul = true;
-					if (temp_cardata_by_chart_not_instate[i].tipuls[j].hh_stands) {
-						is_hhstand_harigtipul = true;
+					temp_cardata_by_chart_harigtipul.push(takalot[j]);
+					if (takalot[j].hh_stands) {
+						temp_cardata_by_chart_hhstand_harigtipul.push(takalot[j]);
 					}
 				}
 				if (
-					temp_cardata_by_chart_not_instate[i].tipuls[j].type ==
+					takalot[j].type ==
 					"takala_mizdamenet"
 				) {
-					is_takalotmizdamnot = true;
-					if (temp_cardata_by_chart_not_instate[i].tipuls[j].hh_stands) {
-						is_hhstand_takalotmizdamnot = true;
+					temp_cardata_by_chart_takalotmizdamnot.push(takalot[j]);
+					if (takalot[j].hh_stands) {
+						temp_cardata_by_chart_hhstand_takalotmizdamnot.push(takalot[j]);
 					}
 				}
 			}
-			if (is_intipul)
-				temp_cardata_by_chart_intipul.push(
-					temp_cardata_by_chart_not_instate[i]
-				);
-			if (is_harigtipul)
-				temp_cardata_by_chart_harigtipul.push(
-					temp_cardata_by_chart_not_instate[i]
-				);
-			if (is_takalotmizdamnot)
-				temp_cardata_by_chart_takalotmizdamnot.push(
-					temp_cardata_by_chart_not_instate[i]
-				);
-			if (is_hhstand_intipul)
-				temp_cardata_by_chart_hhstand_intipul.push(
-					temp_cardata_by_chart_not_instate[i]
-				);
-			if (is_hhstand_harigtipul)
-				temp_cardata_by_chart_hhstand_harigtipul.push(
-					temp_cardata_by_chart_not_instate[i]
-				);
-			if (is_hhstand_takalotmizdamnot)
-				temp_cardata_by_chart_hhstand_takalotmizdamnot.push(
-					temp_cardata_by_chart_not_instate[i]
-				);
-			const sys = props.systemsonz;
-			console.log(sys);
-			sys.map((item) => {
-				if (item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber) {
-					if (item.kshirot != "כשיר") {
-						temp_cardata_by_cartype_systemonz.push(
-							temp_cardata_by_chart_not_instate[i]
-						);
-					}
-				}
-			});
-			unique = [
-				...new Map(
-					temp_cardata_by_cartype_systemonz.map((m) => [m.carnumber, m])
-				).values(),
-			];
-			console.log(unique);
-			const fl = sys.filter(
-				(item) =>
-					item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber
-			);
-			unique1 = [...new Map(fl.map((m) => [m.carnumber, m])).values()];
-			temp_cardata_by_cartype_systemonz_mooshbat = unique1.length;
-			sys.map((item) => {
-				try {
-					if (
-						item.carnumber == temp_cardata_by_chart_not_instate[i].carnumber
-					) {
-						let temp = [];
-						temp.push(
-							item.tipuls
-								.map((m) => m.hh_stands.map((a) => a.missing_makat_2))
-								.flat()
-						);
-						temp[0] = temp[0].reduce((acc, cv) => Number(acc) + Number(cv), 0);
-						temp_system_hh.push(temp);
-					}
-				} catch (error) {}
-			});
-			if (temp_system_hh != false) {
-				if (temp_system_hh.length > 1) {
-					// is_system_hh_multival = true;
-				}
-			}
-		}
 
+		let temp = [];
+		temp = temp_cardata_by_chart_hhstand_intipul.map((item) => {
+			return item.hh_stands.map((a) => a.missing_makat_2).flat();
+		});
+		let temp1 = [];
+		temp1 = temp_cardata_by_chart_hhstand_harigtipul.map((item) => {
+			return item.hh_stands.map((a) => a.missing_makat_2).flat();
+		});
+		let temp2 = [];
+		temp2 = temp_cardata_by_chart_hhstand_takalotmizdamnot.map((item) => {
+			return item.hh_stands.map((a) => a.missing_makat_2).flat();
+		});
+
+		setTakalot(takalot.length);
 		setCardata_by_chart(temp_cardata_by_chart.length);
 		setCardata_by_chart_instate(temp_cardata_by_chart_instate.length);
 		setCardata_by_chart_not_instate(temp_cardata_by_chart_not_instate.length);
@@ -290,26 +229,13 @@ const SubChartCard = (props) => {
 			temp_cardata_by_chart_takalotmizdamnot.length
 		);
 		setCardata_by_chart_hhstand_intipul(
-			temp_cardata_by_chart_hhstand_intipul.length
+			temp.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
 		);
 		setCardata_by_chart_hhstand_harigtipul(
-			temp_cardata_by_chart_hhstand_harigtipul.length
+			temp1.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
 		);
 		setCardata_by_chart_hhstand_takalotmizdamnot(
-			temp_cardata_by_chart_hhstand_takalotmizdamnot.length
-		);
-		setCardata_by_cartype_systemonz(unique.length);
-		setCardata_by_cartype_system_mooshbat(
-			temp_cardata_by_cartype_systemonz_mooshbat
-		);
-		setCardata_by_cartype_systemonz_hh(
-			!temp_system_hh
-				? 0
-				: temp_system_hh.length > 1
-				? temp_system_hh.reduce((acc, cv) => Number(acc) + Number(cv), 0)
-				: temp_system_hh.length == 0
-				? 0
-				: temp_system_hh[0]
+			temp2.flat(2).reduce((acc, cv) => Number(acc) + Number(cv), 0)
 		);
 	}
 
@@ -726,118 +652,92 @@ const SubChartCard = (props) => {
 					</div>
 
 					{collapseOpen ? (
-						<div
-							style={{
-								width: "80%",
-								marginLeft: "auto",
-								marginRight: "auto",
-								paddingTop: "25px",
-							}}
-						>
-							<h6>
-								{props.chart.name} בטיפול: {cardata_by_chart_intipul}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									חלפים: {cardata_by_chart_hhstand_intipul})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_chart_not_instate != 0
+							<div
+								style={{
+									width: "80%",
+									marginLeft: "auto",
+									marginRight: "auto",
+									paddingTop: "25px",
+								}}
+							>
+								<h6>
+									{props.chart.name} בטיפול: {cardata_by_chart_intipul}{" "}
+									<span style={{ color: "DarkTurquoise" }}>
+										חלפים: {cardata_by_chart_hhstand_intipul})
+									</span>
+								</h6>
+								<Progress
+									color="guyblue"
+									value={
+										takalot != 0
+											? (cardata_by_chart_intipul /
+													takalot) *
+											  100
+											: 0
+									}
+									style={{ height: "10px", marginBottom: "8px" }}
+								>
+									{(takalot != 0
 										? (cardata_by_chart_intipul /
-												cardata_by_chart_not_instate) *
+												takalot) *
 										  100
 										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{(cardata_by_chart_not_instate != 0
-									? (cardata_by_chart_intipul / cardata_by_chart_not_instate) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-							<h6>
-								{props.chart.name} חריגי טיפול: {cardata_by_chart_harigtipul}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_chart_hhstand_harigtipul})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_chart_not_instate != 0
+									).toFixed(0)}
+									%
+								</Progress>
+								<h6>
+									{props.chart.name} חריגי טיפול: {cardata_by_chart_harigtipul}{" "}
+									<span style={{ color: "DarkTurquoise" }}>
+										(חלפים: {cardata_by_chart_hhstand_harigtipul})
+									</span>
+								</h6>
+								<Progress
+									color="guyblue"
+									value={
+										takalot != 0
+											? (cardata_by_chart_harigtipul /
+													takalot) *
+											  100
+											: 0
+									}
+									style={{ height: "10px", marginBottom: "8px" }}
+								>
+									{(takalot != 0
 										? (cardata_by_chart_harigtipul /
-												cardata_by_chart_not_instate) *
+												takalot) *
 										  100
 										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{(cardata_by_chart_not_instate != 0
-									? (cardata_by_chart_harigtipul /
-											cardata_by_chart_not_instate) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-							<h6>
-								{props.chart.name} בתקלות מזדמנות:{" "}
-								{cardata_by_chart_takalotmizdamnot}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_chart_hhstand_takalotmizdamnot})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_chart_not_instate != 0
+									).toFixed(0)}
+									%
+								</Progress>
+								<h6>
+									{props.chart.name} בתקלות מזדמנות:{" "}
+									{cardata_by_chart_takalotmizdamnot}{" "}
+									<span style={{ color: "DarkTurquoise" }}>
+										(חלפים: {cardata_by_chart_hhstand_takalotmizdamnot})
+									</span>
+								</h6>
+								<Progress
+									color="guyblue"
+									value={
+										takalot != 0
+											? (cardata_by_chart_takalotmizdamnot /
+													takalot) *
+											  100
+											: 0
+									}
+									style={{ height: "10px", marginBottom: "8px" }}
+								>
+									{(takalot != 0
 										? (cardata_by_chart_takalotmizdamnot /
-												cardata_by_chart_not_instate) *
+												takalot) *
 										  100
 										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{(cardata_by_chart_not_instate != 0
-									? (cardata_by_chart_takalotmizdamnot /
-											cardata_by_chart_not_instate) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-							<h6>
-								{props.chart.name} אי כשירות מערכת:{" "}
-								{cardata_by_cartype_system_mooshbat}{" "}
-								<span style={{ color: "DarkTurquoise" }}>
-									(חלפים: {cardata_by_cartype_systemonz_hh})
-								</span>
-							</h6>
-							<Progress
-								color="guyblue"
-								value={
-									cardata_by_cartype_systemonz != 0
-										? (cardata_by_cartype_system_mooshbat /
-												cardata_by_cartype_systemonz) *
-										  100
-										: 0
-								}
-								style={{ height: "10px", marginBottom: "8px" }}
-							>
-								{" "}
-								{(cardata_by_cartype_systemonz != 0
-									? (cardata_by_cartype_system_mooshbat /
-											cardata_by_cartype_systemonz) *
-									  100
-									: 0
-								).toFixed(0)}
-								%
-							</Progress>
-						</div>
-					) : null}
+									).toFixed(0)}
+									%
+								</Progress>
+							</div>
+						) : null}
 				</CardBody>
 			</Card>
 		</div>

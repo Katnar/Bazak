@@ -30,7 +30,7 @@ import {
 	Progress,
 } from "reactstrap";
 
-function DashboardCard(props) {
+function DashboardTechCard(props) {
 	const [takalot, setTakalot] = useState([]);
 	const [systems, setSystems] = useState([]);
 	const [systems_by_kashir, setSystems_by_kashir] = useState([]);
@@ -70,9 +70,9 @@ function DashboardCard(props) {
 		let temp_systems_by_kashir;
 		let temp_systems_by_lo_kashir;
 
-		if (props.systemtype == "mkabaz" && temp_systems[0].mkabazs) {
+		if (props.systemtype == "mkabaz" && temp_systems[0].mkabaz) {
 			temp_systems = temp_systems.filter(
-				(system) => system.mkabazs.name == props.systemname
+				(system) => system.mkabaz == props.systemname
 			);
 			tempcardata = props.cardatas.filter(
 				(cardata) => cardata.mkabaz_data[0].name == props.systemname
@@ -95,7 +95,11 @@ function DashboardCard(props) {
 		takalot = takalot.filter((takala) => takala.type != "takala_mizdamenet");
 		if (props.systemtype == "dividesystems") {
 			takalot = takalot.filter(
-				(takala) => takala.type != "technology_mizdamenet" || props.systemname == takala.systemType
+				(takala) => !(takala.type == "technology_mizdamenet" && props.systemname != takala.systemType)
+			);
+		}if (props.systemtype == "mkabaz") {
+			takalot = takalot.filter(
+				(takala) => !(takala.type == "technology_mizdamenet" && props.systemtypename != takala.systemType)
 			);
 		}
 
@@ -543,4 +547,4 @@ function DashboardCard(props) {
 	) : null;
 }
 
-export default withRouter(DashboardCard);
+export default withRouter(DashboardTechCard);

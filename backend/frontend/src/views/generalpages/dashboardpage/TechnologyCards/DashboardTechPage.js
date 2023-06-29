@@ -62,10 +62,20 @@ function DashboardPage({ match, theme }) {
 
 	const systemsByMkabaz = async () => {
 		await axios
-			.get(`http://localhost:8000/api/systemsonzbymakats`)
+			.get(`http://localhost:8000/api/systemsonz`)
 			.then((response) => {
-				setSystemsonZs(response.data);
-				setIsdataloaded(true);
+				let systems = response.data.map((system)=>{
+					const dt = cardatas.filter((cardata)=>
+					cardata.carnumber == system.carnumber)
+					if(dt.length>0){
+						system.mkabaz=dt[0].mkabaz_data[0].name
+						return system
+					}
+				})
+				if(systems[0] != undefined){
+					setSystemsonZs(systems);
+					setIsdataloaded(true);
+				}
 			})
 			.catch((error) => {
 				console.log(error);
@@ -164,7 +174,7 @@ function DashboardPage({ match, theme }) {
 									)}
 									cardatas={cardatas.filter(
 										(cardata) => {
-											let systems = systemsonZs.filter((system) => system.systemType == match.params.systemname && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber.carnumber});
+											let systems = systemsonZs.filter((system) => system.systemType == match.params.systemname && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
 											for(let i=0;i<systems.length;i++){
 											   if(cardata.carnumber == systems[i]){
 												return true;

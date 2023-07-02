@@ -88,11 +88,34 @@ function DashboardTechCard(props) {
         
 		for(let i=0;i<tempcardata.length;i++){
 			for(let j=0;j<tempcardata[i].tipuls.length;j++){
-				takalot.push(tempcardata[i].tipuls[j]);
+				if (props.systemtype == "allsystems") {
+					let newtipul;
+					let len = 0;
+					if(tempcardata[i].tipuls[j].hh_stands){//if has hh
+						newtipul = {hh_stands:tempcardata[i].tipuls[j].hh_stands};
+					}
+					if(tempcardata[i].tipuls[j].type == "tipul" || tempcardata[i].tipuls[j].type == "harig_tipul"){//if is tipul or harig tipul
+						for(let y=0;y<temp_systems.length;y++){
+							if(temp_systems[y].carnumber == tempcardata[i].carnumber && temp_systems[y].kshirot == "לא כשיר"){
+								len++;
+							}
+						}
+						newtipul = {...newtipul, type:tempcardata[i].tipuls[j].type, len:len};
+					}
+					if(tempcardata[i].tipuls[j].type == "technology_mizdamenet"){//if technology mizdamenet
+						newtipul = {...newtipul, type:tempcardata[i].tipuls[j].type, systemType:tempcardata[i].tipuls[j].systemType};
+					}
+					if(newtipul != undefined){
+						takalot.push(newtipul);
+					}
+				}else{
+					if(tempcardata[i].tipuls[j].type != "takala_mizdamenet"){
+						takalot.push(tempcardata[i].tipuls[j]);
+					}
+				}
 			}
 		}
 
-		takalot = takalot.filter((takala) => takala.type != "takala_mizdamenet");
 		if (props.systemtype == "dividesystems") {
 			takalot = takalot.filter(
 				(takala) => !(takala.type == "technology_mizdamenet" && props.systemname != takala.systemType)
@@ -113,13 +136,25 @@ function DashboardTechCard(props) {
 
 			for (let j = 0; j < takalot.length; j++) {
 				if (takalot[j].type == "tipul") {
-					temp_takalot_by_lo_kashir_intipul.push(takalot[j]);
+					if(takalot[j].len){
+						for(let i = 0; i<takalot[j].len ; i++){
+							temp_takalot_by_lo_kashir_intipul.push(takalot[j]);
+						}
+					}else{
+						temp_takalot_by_lo_kashir_intipul.push(takalot[j]);
+					}
 					if (takalot[j].hh_stands) {
 					temp_takalot_by_lo_kashir_hhstand_intipul.push(takalot[j]);
 					}
 				}
 				if (takalot[j].type == "harig_tipul") {
-					temp_takalot_by_lo_kashir_harigtipul.push(takalot[j]);
+					if(takalot[j].len){
+						for(let i = 0; i<takalot[j].len ; i++){
+							temp_takalot_by_lo_kashir_harigtipul.push(takalot[j]);
+						}
+					}else{
+						temp_takalot_by_lo_kashir_harigtipul.push(takalot[j]);
+					}
 					if (takalot[j].hh_stands) {
 					temp_takalot_by_lo_kashir_hhstand_harigtipul.push(takalot[j]);
 					}
@@ -145,7 +180,19 @@ function DashboardTechCard(props) {
 			return item.hh_stands.map((a) => a.missing_makat_2).flat();
 		});
 
-		setTakalot(takalot.length);
+		if (props.systemtype == "allsystems") {
+			let takalotLen = 0;
+			for(let i=0;i<takalot.length;i++){
+              if(takalot[i].len){
+				takalotLen = takalotLen + takalot[i].len;
+			  }else{
+				takalotLen++;
+			  }
+			}
+			setTakalot(takalotLen);
+		}else{
+			setTakalot(takalot.length);
+		}
 		setSystems(temp_systems.length);
 		setSystems_by_kashir(temp_systems_by_kashir.length);
 		setSystems_by_lo_kashir(temp_systems_by_lo_kashir.length);

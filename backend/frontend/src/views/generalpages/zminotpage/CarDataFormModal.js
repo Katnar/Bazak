@@ -44,6 +44,7 @@ const CarDataFormModal = (props) => {
 	const [finalspecialkeytwo, setFinalSpecialKeytwo] = useState([]);
 	//technology
 	const [technologies, setTechnologies] = useState([]);
+	const [techfordelete, setTechfordelete] = useState([]);
 	//units
 	const [gdods, setGdods] = useState([]);
 	const [hativas, setHativas] = useState([]);
@@ -88,14 +89,13 @@ const CarDataFormModal = (props) => {
 					.get(
 						`http://localhost:8000/api/systemsonzbycarnumber/${tempcardata.carnumber}`
 					)
-					.then((response1) => {
+					.then(async(response1) => {
 						let tempsystemonZ = response1.data;
 						if (tempsystemonZ.length > 0) {
 							let tempTechnologies = [];
 							getTipultypes();
 							for (let i = 0; i < tempsystemonZ.length; i++) {
 								let temp = { ...tempsystemonZ[i] };
-								delete temp._id;
 								delete temp.createdAt;
 								delete temp.updatedAt;
 								delete temp.expected_repair;
@@ -112,6 +112,24 @@ const CarDataFormModal = (props) => {
 							setFinalSpecialKeytwo(tempcardata.tipuls);
 							setTechnologies(tempTechnologies);
 							setCarData(tempcardata);
+							await axios
+								.get(`http://localhost:8000/api/systemstomakatByMakatId/${tempcardata.makat}`)
+								.then( async (response2) => {
+									let tempsystems = [];
+									for (let i = 0; i < response2.data.length; i++) {
+										axios
+											.get(
+												`http://localhost:8000/api/system/${response2.data[i].systemId}`
+											)
+											.then( async (response3) => {
+												tempsystems = [...tempsystems,response3.data];
+												setSystems(tempsystems)
+											});
+									}
+								})
+								.catch((error) => {
+									console.log(error);
+								});
 						}
 					});
 
@@ -220,6 +238,8 @@ const CarDataFormModal = (props) => {
 
 	const getSystemstomakats = async (makatId) => {
 		let tempsystems = [];
+		let temptech = [];
+		let techfordelete = [];
 		await axios
 			.get(`http://localhost:8000/api/systemstomakatByMakatId/${makatId}`)
 			.then( async (response) => {
@@ -235,18 +255,22 @@ const CarDataFormModal = (props) => {
 				setTimeout(() => {
 						for (let i = 0; i < technologies.length; i++) {
 								// technologeies is the tempsystems that are attached to this makat
-								let flag = true;
-								for (let j = 0; j < systems.length; j++) {
-									if (technologies[i].systemType == systems[j].name) {
+								let flag = false;
+								for (let j = 0; j < tempsystems.length; j++) {
+									if (technologies[i].systemType == tempsystems[j].name) {
 										//current system on makat vs all the tempsystems from the new dropdown list
-										flag = false;
+										flag = true;
 									}
 								}
-								console.log(flag)
 								if (flag == true) {
-									setTechnologies([]);
+									temptech.push(technologies[i]);
+								}
+								if (flag == false) {
+									techfordelete.push(technologies[i]);
 								}
 						}
+						setTechfordelete(techfordelete);
+						setTechnologies(temptech);
 						setSystems(tempsystems);
 				}, "100");
 			})
@@ -437,6 +461,7 @@ const CarDataFormModal = (props) => {
 			toast.error(
 				'במקרה של שינוי מק"ט, יש לבדוק אם המערכות שעל הצ יכולות להיות על המק"ט החדש'
 			);
+			getSystemstomakats(selectedOption.value);
 		}
 	}
 
@@ -921,6 +946,15 @@ const CarDataFormModal = (props) => {
 					tempsystemonZ[x]
 				);
 			}
+			//delete unwanted technologies
+			var temptechfordelete = { ...techfordelete };
+			let temptechfordeleteId;
+			for (let i = 0; i < techfordelete.length; i++) {
+				temptechfordeleteId = temptechfordelete[i]._id;
+				await axios.delete(
+					`http://localhost:8000/api/systemsonz/${temptechfordeleteId}`
+				);
+			}
 			//create archivecardata
 			delete tempcardata._id;
 			tempcardata.archiveType = "1";
@@ -987,11 +1021,11 @@ const CarDataFormModal = (props) => {
 		getMakats(cardata.mkabaz);
 	}, [cardata.mkabaz]);
 
-	useEffect(() => {
-		if (cardata.makat != undefined) {
-			getSystemstomakats(cardata.makat);
-		}
-	}, [cardata.makat]);
+	// useEffect(() => {
+	// 	if (cardata.makat != undefined) {
+	// 		getSystemstomakats(cardata.makat);
+	// 	}
+	// }, [cardata.makat]);
 
 	useEffect(() => {
 		if (props.isOpen == true) {

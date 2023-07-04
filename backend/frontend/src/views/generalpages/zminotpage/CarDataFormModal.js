@@ -112,6 +112,7 @@ const CarDataFormModal = (props) => {
 							setFinalSpecialKeytwo(tempcardata.tipuls);
 							setTechnologies(tempTechnologies);
 							setCarData(tempcardata);
+						}
 							await axios
 								.get(`http://localhost:8000/api/systemstomakatByMakatId/${tempcardata.makat}`)
 								.then( async (response2) => {
@@ -130,7 +131,6 @@ const CarDataFormModal = (props) => {
 								.catch((error) => {
 									console.log(error);
 								});
-						}
 					});
 
 				//new 18.8.22
@@ -200,11 +200,10 @@ const CarDataFormModal = (props) => {
 	function ToggleForModalDelete(evt) {
 		let tempfinalspecialkeytwo = [...finalspecialkeytwo];
 		for (let j = 0; j < finalspecialkeytwo.length; j++) {
-			if (
-				tempfinalspecialkeytwo[j].systemType ==
-				technologies[deleteIndex].systemType
-			) {
-				tempfinalspecialkeytwo.splice(j, 1);
+			if(tempfinalspecialkeytwo[j] != undefined){
+				if (tempfinalspecialkeytwo[j].systemType == technologies[deleteIndex].systemType && (tempfinalspecialkeytwo[j].systemType != undefined || technologies[deleteIndex].systemType != undefined)){
+					tempfinalspecialkeytwo.splice(j, 1);
+				}
 			}
 		}
 		setFinalSpecialKeytwo(tempfinalspecialkeytwo);
@@ -250,6 +249,9 @@ const CarDataFormModal = (props) => {
 						)
 						.then( async (response2) => {
 							tempsystems.push(response2.data);
+						})
+						.catch((error) => {
+							console.log(error);
 						});
 				}
 				setTimeout(() => {
@@ -257,7 +259,7 @@ const CarDataFormModal = (props) => {
 								// technologeies is the tempsystems that are attached to this makat
 								let flag = false;
 								for (let j = 0; j < tempsystems.length; j++) {
-									if (technologies[i].systemType == tempsystems[j].name) {
+									if (technologies[i].systemType == tempsystems[j]._id) {
 										//current system on makat vs all the tempsystems from the new dropdown list
 										flag = true;
 									}
@@ -269,6 +271,18 @@ const CarDataFormModal = (props) => {
 									techfordelete.push(technologies[i]);
 								}
 						}
+
+						let tempfinalspecialkeytwo = [...finalspecialkeytwo];
+						for(let y=0;y <techfordelete.length; y++){
+							for (let j = 0; j < finalspecialkeytwo.length; j++) {
+								if(tempfinalspecialkeytwo[j] != undefined){
+									if (tempfinalspecialkeytwo[j].systemType == techfordelete[y].systemType && (tempfinalspecialkeytwo[j].systemType != undefined || techfordelete[y].systemType != undefined)){
+										tempfinalspecialkeytwo.splice(j, 1);
+									}
+								}
+							}
+						}
+						setFinalSpecialKeytwo(tempfinalspecialkeytwo);
 						setTechfordelete(techfordelete);
 						setTechnologies(temptech);
 						setSystems(tempsystems);
@@ -480,7 +494,6 @@ const CarDataFormModal = (props) => {
 				break;
 			}
 		}
-		
 		return makatId;
 	}
 
@@ -643,6 +656,10 @@ const CarDataFormModal = (props) => {
 				cardata.expected_repair == ""
 			) {
 				ErrorReason += "חובה להזין צפי תיקון";
+				flag = false;
+			}
+			if (finalspecialkeytwo.length == 0) {
+				ErrorReason += ",חובה להזין את סיבת אי-הזמינות/אי-הכשירות";
 				flag = false;
 			}
 		}
@@ -861,16 +878,11 @@ const CarDataFormModal = (props) => {
 			let tempsystemonZ = { ...technologies };
 			let tempfinalspecialkeytwo = { ...finalspecialkeytwo };
 			let temptipuls = [];
-			// if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
-			// 	tempcardata.tipuls = [];
-			// 	tempcardata.takala_info = "";
-			// 	tempcardata.expected_repair = "";
-			// } else {
+
 			if (tempcardata.zminot == "זמין" && tempcardata.kshirot == "כשיר") {
 				tempcardata.tipuls = [];
 			}
-			// console.log(tempcardata.tipuls);
-			//for sorting tipuls between cardata and systemsonZ
+
 			for (let j = 0; j < technologies.length; j++) {
 				if (tempsystemonZ[j].kshirot == "לא כשיר") {
 					for (let i = 0; i < finalspecialkeytwo.length; i++) {
@@ -913,7 +925,7 @@ const CarDataFormModal = (props) => {
 					temperror.type = "technology_mizdamenet";
 					temptipuls.push(temperror);
 				}
-				if(tempfinalspecialkeytwo[l].errorType == undefined){
+				if(tempfinalspecialkeytwo[l].errorType == undefined && (tempcardata.zminot != "זמין" || tempcardata.kshirot != "כשיר")){
 					temptipuls.push(tempfinalspecialkeytwo[l]);
 				}
 			}
@@ -922,7 +934,6 @@ const CarDataFormModal = (props) => {
 				tempcardata.expected_repair = "";
 				tempcardata.takala_info = "";
 			}
-			// }
 
 			var isTechnology = false;
 			var newMakat;
@@ -1021,12 +1032,6 @@ const CarDataFormModal = (props) => {
 		getMakats(cardata.mkabaz);
 	}, [cardata.mkabaz]);
 
-	// useEffect(() => {
-	// 	if (cardata.makat != undefined) {
-	// 		getSystemstomakats(cardata.makat);
-	// 	}
-	// }, [cardata.makat]);
-
 	useEffect(() => {
 		if (props.isOpen == true) {
 			init();
@@ -1040,8 +1045,6 @@ const CarDataFormModal = (props) => {
 	}, [props.isOpen]);
 	//* technologies kashir/not
 	useEffect(() => {
-		// console.log(technologies);
-		// console.log(systems);
 		if (
 			technologies.length > 0
 				? technologies.map((tec) => tec.kshirot == "לא כשיר").includes(true)
@@ -1056,11 +1059,8 @@ const CarDataFormModal = (props) => {
 		if (technologies.length > 0) {
 			const ismshbit = technologies.map((tec) => {
 				return systems.map((sys) => {
-					// console.log(sys.name == tec.systemType);
-					// console.log(sys.mashbit);
-					// console.log(tec.kshirot == "לא כשיר");
 					if (
-						sys.name == tec.systemType &&
+						sys._id == tec.systemType &&
 						
 						(sys.mashbit == '1' || sys.mashbit == '2') &&
 						tec.kshirot == "לא כשיר"
@@ -1801,7 +1801,7 @@ const CarDataFormModal = (props) => {
 															<option value={"בחר"}>{"בחר"}</option>
 															{systems.map((system, i) =>
 																system ? (
-																	<option value={system.name}>
+																	<option value={system._id}>
 																		{system.name}
 																	</option>
 																) : null
@@ -1826,7 +1826,7 @@ const CarDataFormModal = (props) => {
 																	if (e.target.value == "לא כשיר") {
 																		let isMashbit;
 																		for (let i = 0; i < systems.length; i++) {
-																			if (systems[i].name == t.systemType) {
+																			if (systems[i]._id == t.systemType) {
 																				isMashbit = systems[i].mashbit;
 																			}
 																		}
@@ -1856,7 +1856,7 @@ const CarDataFormModal = (props) => {
 																		if (e.target.value == "כשיר") {
 																			let isMashbit;
 																			for (let i = 0; i < systems.length; i++) {
-																				if (systems[i].name == t.systemType) {
+																				if (systems[i]._id == t.systemType) {
 																					isMashbit = systems[i].mashbit;
 																				}
 																			}
@@ -1937,7 +1937,7 @@ const CarDataFormModal = (props) => {
 															<option value={"בחר"}>{"בחר"}</option>
 															{systems.map((system, i) =>
 																system ? (
-																	<option value={system.name}>
+																	<option value={system._id}>
 																		{system.name}
 																	</option>
 																) : null
@@ -1962,7 +1962,7 @@ const CarDataFormModal = (props) => {
 																if (e.target.value == "לא כשיר") {
 																	let isMashbit;
 																	for (let i = 0; i < systems.length; i++) {
-																		if (systems[i].name == t.systemType) {
+																		if (systems[i]._id == t.systemType) {
 																			isMashbit = systems[i].mashbit;
 																		}
 																	}
@@ -1992,7 +1992,7 @@ const CarDataFormModal = (props) => {
 																	if (e.target.value == "כשיר") {
 																		let isMashbit;
 																		for (let i = 0; i < systems.length; i++) {
-																			if (systems[i].name == t.systemType) {
+																			if (systems[i]._id == t.systemType) {
 																				isMashbit = systems[i].mashbit;
 																			}
 																		}
@@ -2010,7 +2010,6 @@ const CarDataFormModal = (props) => {
 																		j++
 																	) {
 																		if (tempfinalspecialkeytwo[j]) {
-																			// console.log(tempfinalspecialkeytwo[j]);
 																			if (
 																				tempfinalspecialkeytwo[j].systemType ==
 																				t.systemType
@@ -3044,8 +3043,6 @@ const CarDataFormModal = (props) => {
 																										);
 																									}
 																								} else {
-																									// console.log(technologies.map(tec => tec.kshirot == "כשיר"))
-																									// console.log(technologies.map(tec => tec.kshirot == "כשיר").includes(true))
 																									if (
 																										value == "Z" ||
 																										(value == "technology" &&
@@ -3176,19 +3173,22 @@ const CarDataFormModal = (props) => {
 																							<option value={"בחר"}>
 																								{"בחר"}
 																							</option>
+																							
 																							{technologies.map(
-																								(technology, i) =>
-																									technology.kshirot ==
-																									"לא כשיר" ? (
-																										<option
-																											value={
-																												technology.systemType
-																											}
-																										>
-																											{technology.systemType}
-																										</option>
-																									) : null
-																							)}
+																								(technology, i) =>{
+																								let tempsys = systems.filter((sys) =>sys._id == technology.systemType)[0];
+																								let systemName;
+																								if(tempsys != undefined){
+																								systemName = tempsys.name;
+																								}
+																								return(
+																								technology.kshirot == "לא כשיר" ? (
+																								<option value={technology.systemType}>
+																									{systemName}
+																								</option>
+																								) : null
+																								);
+																							})}
 																						</Input>
 																					</div>
 																				</Col>
@@ -4307,16 +4307,21 @@ const CarDataFormModal = (props) => {
 																						<option value={"בחר"}>
 																							{"בחר"}
 																						</option>
-																						{technologies.map((technology, i) =>
-																							technology.kshirot ==
-																							"לא כשיר" ? (
-																								<option
-																									value={technology.systemType}
-																								>
-																									{technology.systemType}
+																						{technologies.map(
+																								(technology, i) =>{
+																								let tempsys = systems.filter((sys) =>sys._id == technology.systemType)[0];
+																								let systemName;
+																								if(tempsys != undefined){
+																								systemName = tempsys.name;
+																								}
+																								return(
+																								technology.kshirot == "לא כשיר" ? (
+																								<option value={technology.systemType}>
+																									{systemName}
 																								</option>
-																							) : null
-																						)}
+																								) : null
+																								);
+																							})}
 																					</Input>
 																				</div>
 																			</Col>

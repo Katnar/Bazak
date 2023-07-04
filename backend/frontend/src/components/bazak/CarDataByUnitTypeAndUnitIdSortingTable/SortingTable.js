@@ -38,6 +38,7 @@ const SortingTable = (props) => {
 	const [originaldata, setOriginaldata] = useState([]);
 	// sysytems //! might cange the way we save this kind of data later depends if we want to fillter with the main fillter
 	const [systemsonZ, setSystemonsonZ] = useState({});
+	const [systems, setSystems] = useState([]);
 	//filter
 	const [filter, setFilter] = useState([]);
 	//cardata form modal
@@ -66,6 +67,7 @@ const SortingTable = (props) => {
 
 	function ToggleForModal(evt) {
 		setIscardataformopen(!iscardataformopen);
+		getSystemsonZs();
 		getSystems();
 		updatechangedcardata(); // update table..
 	}
@@ -84,11 +86,18 @@ const SortingTable = (props) => {
 		updatechangedcardatadelete(); // update table..
 	}
 
-	async function getSystems() {
+	async function getSystemsonZs() {
 		await axios.get(`http://localhost:8000/api/systemsonz`).then((res) => {
 			// console.log(res.data);
 			// setData({ ...data, systems: res.data });
 			setSystemonsonZ(res.data);
+		});
+	}
+
+	async function getSystems(){
+		axios.get(`http://localhost:8000/api/system`)
+		.then((response) => {
+			setSystems(response.data)
 		});
 	}
 
@@ -240,7 +249,7 @@ const SortingTable = (props) => {
 		if (!props.charts) {
 			getCardDataByUnitTypeAndUnitId();
 			fixfilterbyurl();
-			// getSystems();
+			// getSystemsonZs();
 		} else {
 			//handeled by useffect..
 		}
@@ -1244,6 +1253,7 @@ const SortingTable = (props) => {
 		if (reduxcardata.length > 0 && isdataloaded == false) {
 			init();
 		}
+		getSystemsonZs();
 		getSystems();
 	}, [reduxcardata]);
 
@@ -1791,23 +1801,15 @@ const SortingTable = (props) => {
 												/*//* systems */
 											}
 											if (cell.column.id == "systems") {
-												{
-													/* console.log(cell.row.values.carnumber); */
-												}
 												let value = [];
 												try {
 													value = systemsonZ.filter(
 														(sys, i) =>
 															sys.carnumber == cell.row.values.carnumber
 													);
+													value.map((val) => val.systemName = systems.filter((s) => s._id == val.systemType)[0].name);
 												} catch (error) {
-													{/* console.log(error); */}
-												}
 
-												{
-													/* console.log(
-													value.map((val) => `${val.systemType},${val.kshirot}`)
-												); */
 												}
 												return value != [] ? (
 													<td
@@ -1829,7 +1831,7 @@ const SortingTable = (props) => {
 																		marginTop: "6px",
 																	}}
 																>
-																	{val.systemType} (
+																	{val.systemName} (
 																	<span
 																		style={{
 																			color: color,

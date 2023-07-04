@@ -450,10 +450,12 @@ const CarDataFormModal = (props) => {
 	}
 
 	function handleChange2(selectedOption, name) {
+		let tempcardata = { ...cardata };
+
+		console.log("selected option " + selectedOption.value);
 		if (!(selectedOption.value == "בחר"))
 			setCarData({ ...cardata, [name]: selectedOption.value });
 		else {
-			let tempcardata = { ...cardata };
 			delete tempcardata[name];
 			setCarData(tempcardata);
 		}
@@ -463,7 +465,7 @@ const CarDataFormModal = (props) => {
 			);
 			getSystemstomakats(selectedOption.value);
 		}
-	}
+}
 
 	const clickSubmit = (event) => {
 		CheckFormData();
@@ -923,18 +925,17 @@ const CarDataFormModal = (props) => {
 				tempcardata.takala_info = "";
 			}
 			// }
-
 			var isTechnology = false;
 			var newMakat;
 			if (tempcardata.magadal == "magadal04") {
 				//change im army
 				isTechnology = true;
-			}
-			if (isTechnology == true) {
 				newMakat = removeZerosForMakatId(tempcardata.makat);
-				tempcardata.carnumber = tempcardata.carnumber.split("-");
-				tempcardata.carnumber = newMakat + "-" + tempcardata.carnumber[1];
+				var splitCarnumber = tempcardata.carnumber.split("-");
+				splitCarnumber = tempcardata.carnumber.includes("-")? splitCarnumber[1] : tempcardata.carnumber;
+				tempcardata.carnumber = newMakat + "-" + splitCarnumber;
 			}
+
 			tempcardata.updatedBy = user.personalnumber;
 			let result = await axios.put(
 				`http://localhost:8000/api/cardata/${tempcardataid}`,

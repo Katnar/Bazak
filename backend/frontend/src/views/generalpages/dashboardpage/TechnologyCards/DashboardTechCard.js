@@ -118,11 +118,11 @@ function DashboardTechCard(props) {
 
 		if (props.systemtype == "dividesystems") {
 			takalot = takalot.filter(
-				(takala) => !(takala.type == "technology_mizdamenet" && props.systemname != takala.systemType)
+				(takala) => !(takala.type == "technology_mizdamenet" && props.systemid != takala.systemType)
 			);
 		}if (props.systemtype == "mkabaz") {
 			takalot = takalot.filter(
-				(takala) => !(takala.type == "technology_mizdamenet" && props.systemtypename != takala.systemType)
+				(takala) => !(takala.type == "technology_mizdamenet" && props.systemid != takala.systemType)
 			);
 		}
 

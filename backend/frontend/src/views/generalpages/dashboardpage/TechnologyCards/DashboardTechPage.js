@@ -45,13 +45,13 @@ function DashboardPage({ match, theme }) {
 		getReduxCardDataByUnitTypeAndUnitId();
 		setIsdataloaded(false);
 		setCardatas(reduxcardata);
+		getSystemTypes();
 		if (match.params.systemtype == "mkabaz") {
 			await getMkabazs();
 			await systemsByMkabaz();
 		}else{
 			await getSystemsonZs();
 		}
-		getSystemTypes();
 	}
 
 	const getReduxCardDataByUnitTypeAndUnitId = async () => {
@@ -143,13 +143,14 @@ function DashboardPage({ match, theme }) {
 								<DashboardTechCard
 									theme={theme}
 									systemtype={match.params.systemtype}
+									systemid={systemtype._id}
 									systemname={systemtype.name}
 									systemsonZs={systemsonZs.filter(
-										(system) => system.systemType == systemtype.name
+										(system) => system.systemType == systemtype._id
 									)}
 									cardatas={cardatas.filter(
 										(cardata) => {
-											let systems = systemsonZs.filter((system) => system.systemType == systemtype.name && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
+											let systems = systemsonZs.filter((system) => system.systemType == systemtype._id && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
 											for(let i=0;i<systems.length;i++){
 											   if(cardata.carnumber == systems[i]){
 												return true;
@@ -167,14 +168,13 @@ function DashboardPage({ match, theme }) {
 								<DashboardTechCard
 									theme={theme}
 									systemtype={match.params.systemtype}
+									systemid={systemtypes.filter((systype)=> systype.name == match.params.systemname)[0]._id}
 									systemtypename={match.params.systemname}
 									systemname={mkabaz.name}
-									systemsonZs={systemsonZs.filter(
-										(system) => system.systemType == match.params.systemname
-									)}
+									systemsonZs={systemsonZs.filter((system) => system.systemType == systemtypes.filter((systype)=> systype.name == match.params.systemname)[0]._id)}
 									cardatas={cardatas.filter(
 										(cardata) => {
-											let systems = systemsonZs.filter((system) => system.systemType == match.params.systemname && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
+											let systems = systemsonZs.filter((system) => system.systemType == systemtypes.filter((systype)=> systype.name == match.params.systemname)[0]._id && system.kshirot == "לא כשיר").map((system) =>{return system.carnumber});
 											for(let i=0;i<systems.length;i++){
 											   if(cardata.carnumber == systems[i]){
 												return true;

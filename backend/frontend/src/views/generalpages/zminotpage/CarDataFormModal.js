@@ -38,6 +38,9 @@ import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import TechFormModalDelete from "./TechFormModalDelete";
 
 const CarDataFormModal = (props) => {
+
+	const technologyTimrunMagadal = "magadal04"; //change to the magadal in the army
+
 	const { user } = isAuthenticated();
 	//cardata
 	const [cardata, setCarData] = useState({});
@@ -496,7 +499,7 @@ const CarDataFormModal = (props) => {
 			flag = false;
 		} else {
 			var isTechnology = false;
-			if (cardata.magadal == "magadal04") {
+			if (cardata.magadal == technologyTimrunMagadal) {
 				//change to the magadal of technologies in the database in army
 				isTechnology = true;
 			}
@@ -708,7 +711,7 @@ const CarDataFormModal = (props) => {
 
 		var isTechnology = false;
 		var newMakat;
-		if (tempcardata.magadal == "magadal04") {
+		if (tempcardata.magadal == technologyTimrunMagadal) {
 			//change to the magadal of technologies in the database in army
 			isTechnology = true;
 			newMakat = removeZerosForMakatId(tempcardata.makat);
@@ -927,7 +930,7 @@ const CarDataFormModal = (props) => {
 			// }
 			var isTechnology = false;
 			var newMakat;
-			if (tempcardata.magadal == "magadal04") {
+			if (tempcardata.magadal == technologyTimrunMagadal) {
 				//change im army
 				isTechnology = true;
 				newMakat = removeZerosForMakatId(tempcardata.makat);
@@ -1259,7 +1262,7 @@ const CarDataFormModal = (props) => {
 									<Row>
 										{!cardata.magad &&
 										(props.cardataid == undefined ||
-											cardata.magadal != "magadal04") ? ( //change to the magadal of technologies in the database in army
+											cardata.magadal != technologyTimrunMagadal) ? ( //change to the magadal of technologies in the database in army
 											<Col
 												style={{
 													justifyContent: "right",

@@ -1039,6 +1039,7 @@ const CarDataFormModal = (props) => {
 			setCarData({});
 			setFinalSpecialKeytwo([]);
 			setTechnologies([]);
+			setSystems([]);
 			setDeleteId();
 			setTakalaopen(false);
 		}

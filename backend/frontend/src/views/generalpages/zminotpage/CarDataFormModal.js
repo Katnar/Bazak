@@ -824,7 +824,14 @@ const CarDataFormModal = (props) => {
 							tempsystemonZ[j].takala_info = "";
 						}
 					}
-					tempsystemonZ[j] = {...tempsystemonZ[j], mkabaz: cardata.mkabaz_data[0].name};
+					await axios
+					.get(`http://localhost:8000/api/mkabaz/${tempcardata.mkabaz}`)
+					.then((response) => {
+						tempsystemonZ[j] = {...tempsystemonZ[j], mkabaz: response.data.name};
+					})
+					.catch((error) => {
+						console.log(error);
+					});
 				}
 
 				for (let l = 0; l < finalspecialkeytwo.length; l++) {
@@ -908,7 +915,14 @@ const CarDataFormModal = (props) => {
 						tempsystemonZ[j].takala_info = "";
 					}
 				}
-				tempsystemonZ[j] = {...tempsystemonZ[j], mkabaz: cardata.mkabaz_data[0].name};
+				await axios
+					.get(`http://localhost:8000/api/mkabaz/${tempcardata.mkabaz}`)
+					.then((response) => {
+						tempsystemonZ[j] = {...tempsystemonZ[j], mkabaz: response.data.name};
+					})
+					.catch((error) => {
+						console.log(error);
+					});
 			}
 
 			for (let l = 0; l < finalspecialkeytwo.length; l++) {

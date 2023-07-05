@@ -824,6 +824,7 @@ const CarDataFormModal = (props) => {
 							tempsystemonZ[j].takala_info = "";
 						}
 					}
+					tempsystemonZ[j] = {...tempsystemonZ[j], mkabaz: cardata.mkabaz_data[0].name};
 				}
 
 				for (let l = 0; l < finalspecialkeytwo.length; l++) {
@@ -907,6 +908,7 @@ const CarDataFormModal = (props) => {
 						tempsystemonZ[j].takala_info = "";
 					}
 				}
+				tempsystemonZ[j] = {...tempsystemonZ[j], mkabaz: cardata.mkabaz_data[0].name};
 			}
 
 			for (let l = 0; l < finalspecialkeytwo.length; l++) {

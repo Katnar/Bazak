@@ -48,10 +48,8 @@ function DashboardPage({ match, theme }) {
 		getSystemTypes();
 		if (match.params.systemtype == "mkabaz") {
 			await getMkabazs();
-			await systemsByMkabaz();
-		}else{
-			await getSystemsonZs();
 		}
+		await getSystemsonZs();
 	}
 
 	const getReduxCardDataByUnitTypeAndUnitId = async () => {
@@ -60,27 +58,27 @@ function DashboardPage({ match, theme }) {
 		}
 	};
 
-	const systemsByMkabaz = async () => {
-		await axios
-			.get(`http://localhost:8000/api/systemsonz`)
-			.then((response) => {
-				let systems = response.data.map((system)=>{
-					const dt = cardatas.filter((cardata)=>
-					cardata.carnumber == system.carnumber)
-					if(dt.length>0){
-						system.mkabaz=dt[0].mkabaz_data[0].name
-						return system
-					}
-				})
-				if(systems[0] != undefined){
-					setSystemsonZs(systems);
-					setIsdataloaded(true);
-				}
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
+	// const systemsByMkabaz = async () => {
+	// 	await axios
+	// 		.get(`http://localhost:8000/api/systemsonz`)
+	// 		.then((response) => {
+	// 			let systems = response.data.map((system)=>{
+	// 				const dt = cardatas.filter((cardata)=>
+	// 				cardata.carnumber == system.carnumber)
+	// 				if(dt.length>0){
+	// 					system.mkabaz=dt[0].mkabaz_data[0].name
+	// 					return system
+	// 				}
+	// 			})
+	// 			if(systems[0] != undefined){
+	// 				setSystemsonZs(systems);
+	// 				setIsdataloaded(true);
+	// 			}
+	// 		})
+	// 		.catch((error) => {
+	// 			console.log(error);
+	// 		});
+	// };
 
 	const getSystemsonZs = async () => {
 		await axios

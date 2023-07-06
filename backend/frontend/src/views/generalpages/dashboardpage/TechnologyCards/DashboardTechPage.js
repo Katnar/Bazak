@@ -47,51 +47,69 @@ function DashboardPage({ match, theme }) {
 		setIsdataloaded(false);
 		setCardatas(reduxcardata);
 		getSystemTypes();
-		// console.log(systemsonZs);
-		// if (mkabazs.length < 0) {
 
 		// }
 		if (match.params.systemtype == "mkabaz") {
+			fillterd_data.current.filter = false;
 			await getMkabazs();
 			await systemsByMkabaz();
+			setCardatas(
+				reduxcardata.filter((cardata) => {
+					let systems = systemsonZs
+						.filter(
+							(system) =>
+								system.systemType ==
+									systemtypes.filter(
+										(systype) => systype.name == match.params.systemname
+									)[0]._id && system.kshirot == "לא כשיר"
+						)
+						.map((system) => {
+							return system.carnumber;
+						});
+					for (let i = 0; i < systems.length; i++) {
+						if (cardata.carnumber == systems[i]) {
+							return true;
+						}
+					}
+					return false;
+				})
+			);
 			try {
 				if (fillterd_data.current.system && fillterd_data.current.mkabaz) {
+					setIsdataloaded(false);
 					const check = () =>
-						fillterd_data.current.mkabaz.filter((mkabaz, index) => {
+						fillterd_data.current.mkabaz.filter((mkabaz) => {
 							let tmp = fillterd_data.current.system.map((sys) => {
-								// console.log(sys.mkabaz);
-								// console.log(mkabaz.name);
+								// console.log(sys.mkabaz == mkabaz.name);
 								if (sys.mkabaz == mkabaz.name) {
+									// console.log(sys.mkabaz);
+									// console.log(mkabaz.name);
 									return mkabaz;
 								}
 							});
-							// console.log(tmp[index]);
+							// console.log(tmp);
 							// console.log(mkabaz);
-							return tmp[index] == mkabaz;
+							if (tmp.includes(mkabaz)) {
+								return mkabaz;
+							}
 						});
-					console.log(check());
+					// console.log(check());
 					setMkabazs(check());
+					setIsdataloaded(true);
+					// console.log(fillterd_data.current);
 					if (mkabazs.length < 0) {
 						setMkabazs(check());
 						fillterd_data.current.filter = true;
 						setIsdataloaded(true);
 					}
-
-					// console.log(mkabazs);
-
-					// console.log("11111");
 				}
 			} catch (error) {
-				// setIsdataloaded(false);
 				console.log(error);
 			}
 		} else {
 			await getSystemsonZs();
-			// console.log(systemsonZs);
+			setIsdataloaded(true);
 		}
-		// fillterd_data.current.done = true;
-		// console.log(fillterd_data);
-		// console.log(mkabazs);
 	}
 
 	const getReduxCardDataByUnitTypeAndUnitId = async () => {
@@ -123,7 +141,6 @@ function DashboardPage({ match, theme }) {
 					);
 					fillterd_data.current.system = data;
 					setSystemsonZs(data);
-					setIsdataloaded(true);
 				}
 			})
 			.catch((error) => {
@@ -137,7 +154,6 @@ function DashboardPage({ match, theme }) {
 			.then((response) => {
 				setSystemsonZs(response.data);
 				fillterd_data.current.systemsonz = response.data;
-				setIsdataloaded(true);
 			})
 			.catch((error) => {
 				console.log(error);
@@ -226,38 +242,22 @@ function DashboardPage({ match, theme }) {
 					: match.params.systemtype == "mkabaz"
 					? mkabazs.map((mkabaz, i) =>
 							mkabaz ? (
-								<DashboardTechCard
-									theme={theme}
-									systemtype={match.params.systemtype}
-									systemid={
-										systemtypes.filter(
-											(systype) => systype.name == match.params.systemname
-										)[0]._id
-									}
-									systemtypename={match.params.systemname}
-									systemname={mkabaz.name}
-									systemsonZs={systemsonZs}
-									cardatas={cardatas.filter((cardata) => {
-										let systems = systemsonZs
-											.filter(
-												(system) =>
-													system.systemType ==
-														systemtypes.filter(
-															(systype) =>
-																systype.name == match.params.systemname
-														)[0]._id && system.kshirot == "לא כשיר"
-											)
-											.map((system) => {
-												return system.carnumber;
-											});
-										for (let i = 0; i < systems.length; i++) {
-											if (cardata.carnumber == systems[i]) {
-												return true;
-											}
+								<>
+									{console.log(mkabazs)}
+									<DashboardTechCard
+										theme={theme}
+										systemtype={match.params.systemtype}
+										systemid={
+											systemtypes.filter(
+												(systype) => systype.name == match.params.systemname
+											)[0]._id
 										}
-										return false;
-									})}
-								/>
+										systemtypename={match.params.systemname}
+										systemname={mkabaz.name}
+										systemsonZs={systemsonZs}
+										cardatas={cardatas}
+									/>
+								</>
 							) : null
 					  )
 					: null}

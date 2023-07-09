@@ -48,7 +48,6 @@ function DashboardPage({ match, theme }) {
 		setCardatas(reduxcardata);
 		getSystemTypes();
 
-		// }
 		if (match.params.systemtype == "mkabaz") {
 			fillterd_data.current.filter = false;
 			await getMkabazs();
@@ -80,23 +79,16 @@ function DashboardPage({ match, theme }) {
 					const check = () =>
 						fillterd_data.current.mkabaz.filter((mkabaz) => {
 							let tmp = fillterd_data.current.system.map((sys) => {
-								// console.log(sys.mkabaz == mkabaz.name);
 								if (sys.mkabaz == mkabaz.name) {
-									// console.log(sys.mkabaz);
-									// console.log(mkabaz.name);
 									return mkabaz;
 								}
 							});
-							// console.log(tmp);
-							// console.log(mkabaz);
 							if (tmp.includes(mkabaz)) {
 								return mkabaz;
 							}
 						});
-					// console.log(check());
 					setMkabazs(check());
 					setIsdataloaded(true);
-					// console.log(fillterd_data.current);
 					if (mkabazs.length < 0) {
 						setMkabazs(check());
 						fillterd_data.current.filter = true;
@@ -131,7 +123,8 @@ function DashboardPage({ match, theme }) {
 						return system;
 					}
 				});
-				if (systems[0] != undefined) {
+				systems = systems.filter((system)=> system != undefined);
+				if (systems.length > 0) {
 					let data = systems.filter(
 						(system) =>
 							system.systemType ==
@@ -175,18 +168,55 @@ function DashboardPage({ match, theme }) {
 		await axios
 			.get(`http://localhost:8000/api/mkabaz`)
 			.then((response) => {
-				// console.log(systemsonZs);
 				fillterd_data.current.mkabaz = response.data;
 				setMkabazs(response.data);
-				// console.log(response.data);
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 	};
 
+	const unitTypeByUserRole = () => {
+		if (isAuthenticated().user.role === "0") {
+            return "admin";
+        }
+        if (isAuthenticated().user.role === "1") {
+            return "gdod";
+        }
+        if (isAuthenticated().user.role === "2") {
+            return "hativa";
+        }
+        if (isAuthenticated().user.role === "3") {
+            return "ogda";
+        }
+        if (isAuthenticated().user.role === "4") {
+            return "pikod";
+        }
+		if (isAuthenticated().user.role === "5") {
+            return "general";
+        }
+    }
+	const unitIdByUserRole = () => {
+		if (isAuthenticated().user.role === "0") {
+            return "0";
+        }
+        if (isAuthenticated().user.role === "1") {
+            return isAuthenticated().user.gdodid;
+        }
+        if (isAuthenticated().user.role === "2") {
+             return isAuthenticated().user.hativaid;
+        }
+        if (isAuthenticated().user.role === "3") {
+             return isAuthenticated().user.ogdaid;
+        }
+        if (isAuthenticated().user.role === "4") {
+             return isAuthenticated().user.pikodid;
+        }
+		if (isAuthenticated().user.role === "5") {
+             return "5";
+        }
+    }
 	useEffect(() => {
-		// systemsByMkabaz();
 		init();
 	}, [match]);
 
@@ -198,7 +228,6 @@ function DashboardPage({ match, theme }) {
 
 	useEffect(() => {
 		getReduxCardDataByUnitTypeAndUnitId();
-		// systemsByMkabaz();
 	}, []);
 
 	return !isdataloaded && !fillterd_data.current.filter ? (
@@ -243,7 +272,6 @@ function DashboardPage({ match, theme }) {
 					? mkabazs.map((mkabaz, i) =>
 							mkabaz ? (
 								<>
-									{console.log(mkabazs)}
 									<DashboardTechCard
 										theme={theme}
 										systemtype={match.params.systemtype}
@@ -261,6 +289,22 @@ function DashboardPage({ match, theme }) {
 							) : null
 					  )
 					: null}
+			</Row>
+			<Row>
+				<Col xs={12} md={3} style={{ textAlign: "right" }}>
+					<LatestUpdateDateComponent
+						cardatas={cardatas}
+						isdataloaded={isdataloaded}
+					/>
+				</Col>
+				<Col xs={12} md={6}></Col>
+				<Col xs={12} md={3}>
+					<Link
+						to={`/zminotpage/${unitTypeByUserRole()}/${unitIdByUserRole()}/magadal/0/false`}
+					>
+						<button className="btn-new-blue">טבלת זמינות</button>
+					</Link>
+				</Col>
 			</Row>
 		</div>
 	);

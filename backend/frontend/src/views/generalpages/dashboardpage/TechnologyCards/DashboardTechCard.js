@@ -65,11 +65,12 @@ function DashboardTechCard(props) {
 
 	function init() {
 		let temp_systems = props.systemsonZs;
-		let tempcardata = [...props.cardatas];
+		let tempcardata = props.cardatas;
 		let takalot = [];
 		let temp_systems_by_kashir;
 		let temp_systems_by_lo_kashir;
 
+		console.log(props.cardatas);
 		if (props.systemtype == "mkabaz" && temp_systems[0].mkabaz) {
 			temp_systems = temp_systems.filter(
 				(system) => system.mkabaz == props.systemname
@@ -507,6 +508,8 @@ function DashboardTechCard(props) {
 					</div>
 
 					{collapseOpen ? (
+						<>
+						{console.log(takalot)}
 						<div
 							style={{
 								width: "80%",
@@ -587,6 +590,7 @@ function DashboardTechCard(props) {
 								%
 							</Progress>
 						</div>
+						</>
 					) : null}
 				</CardBody>
 			</Card>

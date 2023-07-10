@@ -52,29 +52,30 @@ function DashboardPage({ match, theme }) {
 			fillterd_data.current.filter = false;
 			await getMkabazs();
 			await systemsByMkabaz();
-			setCardatas(
-				reduxcardata.filter((cardata) => {
-					let systems = systemsonZs
-						.filter(
-							(system) =>
-								system.systemType ==
-									systemtypes.filter(
-										(systype) => systype.name == match.params.systemname
-									)[0]._id && system.kshirot == "לא כשיר"
-						)
-						.map((system) => {
-							return system.carnumber;
-						});
-					for (let i = 0; i < systems.length; i++) {
-						if (cardata.carnumber == systems[i]) {
-							return true;
-						}
-					}
-					return false;
-				})
-			);
+
 			try {
 				if (fillterd_data.current.system && fillterd_data.current.mkabaz) {
+					setCardatas(
+						reduxcardata.filter((cardata) => {
+							let systems = fillterd_data.current.system
+								.filter(
+									(system) =>
+										system.systemType ==
+											systemtypes.filter(
+												(systype) => systype.name == match.params.systemname
+											)[0]._id && system.kshirot == "לא כשיר"
+								)
+								.map((system) => {
+									return system.carnumber;
+								});
+							for (let i = 0; i < systems.length; i++) {
+								if (cardata.carnumber == systems[i]) {
+									return true;
+								}
+							}
+							return false;
+						})
+					);
 					setIsdataloaded(false);
 					const check = () =>
 						fillterd_data.current.mkabaz.filter((mkabaz) => {
@@ -89,6 +90,7 @@ function DashboardPage({ match, theme }) {
 						});
 					setMkabazs(check());
 					setIsdataloaded(true);
+					fillterd_data.current.filter = true;
 					if (mkabazs.length < 0) {
 						setMkabazs(check());
 						fillterd_data.current.filter = true;
@@ -282,7 +284,7 @@ function DashboardPage({ match, theme }) {
 										}
 										systemtypename={match.params.systemname}
 										systemname={mkabaz.name}
-										systemsonZs={systemsonZs}
+										systemsonZs={fillterd_data.current.system}
 										cardatas={cardatas}
 									/>
 								</>

@@ -218,6 +218,57 @@ function DashboardPage({ match, theme }) {
              return "5";
         }
     }
+
+	 async function HierarchyCheck(targetUnitId, targetUnitType) {
+		 return hierarchyCheck(targetUnitId, targetUnitType);
+	
+		async function getTargetParentId(targetUnitId, targetUnitType) {
+			try {
+				let response = await axios.get(`http://localhost:8000/api/${targetUnitType}/${targetUnitId}`)
+				if (targetUnitType == 'gdod') {
+					return response.data.hativa;
+				}
+				if (targetUnitType == 'hativa') {
+					return response.data.ogda;
+				}
+				if (targetUnitType == 'ogda') {
+					return response.data.pikod;
+				}
+			} catch {
+				console.log("error in HierarchyCheck");
+			}
+		}
+	
+		async function hierarchyCheck(targetUnitId, targetUnitType) {
+			if (isAuthenticated().user.role == '0' || isAuthenticated().user.role == '5') {
+				return true;
+			}
+			if (targetUnitId == unitIdByUserRole() && targetUnitType == unitTypeByUserRole()) {
+				return true;
+			} else {
+				if (targetUnitType != 'pikod') {
+					targetUnitId = await getTargetParentId(targetUnitId, targetUnitType);
+					if (targetUnitType == 'gdod') {
+						targetUnitType = 'hativa';
+					}
+					else {
+						if (targetUnitType == 'hativa') {
+							targetUnitType = 'ogda';
+						}
+						else {
+							if (targetUnitType == 'ogda') {
+								targetUnitType = 'pikod';
+							}
+						}
+					}
+					return hierarchyCheck(targetUnitId, targetUnitType);
+				} else {
+					return false;
+				}
+			}
+		}
+	}
+
 	useEffect(() => {
 		init();
 	}, [match]);
@@ -250,7 +301,7 @@ function DashboardPage({ match, theme }) {
 									systemsonZs={systemsonZs.filter(
 										(system) => system.systemType == systemtype._id
 									)}
-									cardatas={cardatas.filter((cardata) => {
+									cardatas={ cardatas.filter(async (cardata) => {
 										let systems = systemsonZs
 											.filter(
 												(system) =>
@@ -262,6 +313,7 @@ function DashboardPage({ match, theme }) {
 											});
 										for (let i = 0; i < systems.length; i++) {
 											if (cardata.carnumber == systems[i]) {
+							                    await HierarchyCheck(cardata.gdod, "gdod")
 												return true;
 											}
 										}

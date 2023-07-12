@@ -220,6 +220,16 @@ function DashboardPage({ match, theme }) {
 	) : (
 		<div>
 			<Row>
+				{cartypes.map((cartype, i) =>
+					cartype ? (
+						<DashboardCard
+							theme={theme}
+							match={match}
+							cartype={cartype}
+							cardatas={cardatas}
+						/>
+					) : null
+				)}
 				{match.params.cartype == "magadal" ? (
 					<DashboardTechCard
 						theme={theme}
@@ -238,16 +248,6 @@ function DashboardPage({ match, theme }) {
 						)}
 					/>
 				) : null}
-				{cartypes.map((cartype, i) =>
-					cartype ? (
-						<DashboardCard
-							theme={theme}
-							match={match}
-							cartype={cartype}
-							cardatas={cardatas}
-						/>
-					) : null
-				)}
 			</Row>
 			<Row>
 				<Col xs={12} md={3} style={{ textAlign: "right" }}>

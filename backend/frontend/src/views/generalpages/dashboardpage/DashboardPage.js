@@ -38,7 +38,6 @@ function DashboardPage({ match, theme }) {
 	const [cartypes, setCartypes] = useState([]);
 	//systems
 	const [systemsonZs, setSystemsonZs] = useState([]);
-	// const [sysonz, setsysonz] = useState([]);
 	//spinner
 	const [isdataloaded, setIsdataloaded] = useState(false);
 	//redux
@@ -149,18 +148,6 @@ function DashboardPage({ match, theme }) {
 			});
 	};
 
-	// const getsysoz = async () => {
-	// 	await axios
-	// 		.get(`http://localhost:8000/api/systemonz_mashbit`)
-	// 		.then((response) => {
-	// 			console.log(response.data);
-	// 			setsysonz(response.data);
-	// 		})
-	// 		.catch((error) => {
-	// 			console.log(error);
-	// 		});
-	// };
-
 	const getMagadals = async () => {
 		await axios
 			.get(`http://localhost:8000/api/magadal`)
@@ -218,7 +205,6 @@ function DashboardPage({ match, theme }) {
 
 	useEffect(() => {
 		getReduxCardDataByUnitTypeAndUnitId();
-		// getsysoz();
 	}, []);
 
 	return !isdataloaded ? (
@@ -256,7 +242,6 @@ function DashboardPage({ match, theme }) {
 					cartype ? (
 						<DashboardCard
 							theme={theme}
-							// systemsonz={systemsonZs}
 							match={match}
 							cartype={cartype}
 							cardatas={cardatas}

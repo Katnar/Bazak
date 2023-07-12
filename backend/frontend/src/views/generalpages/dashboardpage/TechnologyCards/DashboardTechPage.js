@@ -129,7 +129,7 @@ function DashboardPage({ match, theme }) {
 			.get(`http://localhost:8000/api/systemsonz`)
 			.then((response) => {
 				let systems = response.data.map((system) => {
-					const dt = cardatas.filter(
+					const dt = reduxcardata.filter(
 						(cardata) => cardata.carnumber == system.carnumber
 					);
 					if (dt.length > 0) {

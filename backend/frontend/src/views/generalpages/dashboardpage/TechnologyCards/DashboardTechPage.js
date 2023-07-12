@@ -58,12 +58,12 @@ function DashboardPage({ match, theme }) {
 						reduxcardata.filter((cardata) => {
 							let systems = fillterd_data.current.system
 								.filter(
-									(system) =>
-										system.systemType ==
-											systemtypes.filter(
-												(systype) => systype.name == match.params.systemname
-											)[0]._id && system.kshirot == "לא כשיר"
-								)
+								 (system) =>{
+									let systype = systemtypes.filter((systype) => systype.name == match.params.systemname);
+									if(systype.length>0){
+										return system.systemType == systype[0]._id && system.kshirot == "לא כשיר"
+									}
+								 })
 								.map((system) => {
 									return system.carnumber;
 								});

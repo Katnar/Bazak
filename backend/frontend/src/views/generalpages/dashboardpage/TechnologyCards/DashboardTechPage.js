@@ -45,7 +45,6 @@ function DashboardPage({ match, theme }) {
 	async function init() {
 		getReduxCardDataByUnitTypeAndUnitId();
 		setIsdataloaded(false);
-		setCardatas(reduxcardata);
 		getSystemTypes();
 
 		if (match.params.systemtype == "mkabaz") {
@@ -102,7 +101,20 @@ function DashboardPage({ match, theme }) {
 			}
 		} else {
 			await getSystemsonZs();
-			setIsdataloaded(true);
+			if (fillterd_data.current.systemsonz){
+				setCardatas(reduxcardata.filter((cardata) => {
+					let systems = fillterd_data.current.systemsonz.map((system) => {
+						return system.carnumber;
+					});
+					for (let i = 0; i < systems.length; i++) {
+						if (cardata.carnumber == systems[i]) {
+							return true;
+						}
+					}
+					return false;
+				}));
+				setIsdataloaded(true);
+			}
 		}
 	}
 
@@ -147,8 +159,16 @@ function DashboardPage({ match, theme }) {
 		await axios
 			.get(`http://localhost:8000/api/systemsonz`)
 			.then((response) => {
-				setSystemsonZs(response.data);
-				fillterd_data.current.systemsonz = response.data;
+				let data = response.data.filter((system)=>{
+						let cardata = reduxcardata.filter((cardata) =>system.carnumber == cardata.carnumber);
+						if(cardata.length>0){
+							return(true);
+						}else{
+							return(false);
+						}
+				})
+				setSystemsonZs(data);
+				fillterd_data.current.systemsonz = data;
 			})
 			.catch((error) => {
 				console.log(error);
@@ -219,56 +239,6 @@ function DashboardPage({ match, theme }) {
         }
     }
 
-	 async function HierarchyCheck(targetUnitId, targetUnitType) {
-		 return hierarchyCheck(targetUnitId, targetUnitType);
-	
-		async function getTargetParentId(targetUnitId, targetUnitType) {
-			try {
-				let response = await axios.get(`http://localhost:8000/api/${targetUnitType}/${targetUnitId}`)
-				if (targetUnitType == 'gdod') {
-					return response.data.hativa;
-				}
-				if (targetUnitType == 'hativa') {
-					return response.data.ogda;
-				}
-				if (targetUnitType == 'ogda') {
-					return response.data.pikod;
-				}
-			} catch {
-				console.log("error in HierarchyCheck");
-			}
-		}
-	
-		async function hierarchyCheck(targetUnitId, targetUnitType) {
-			if (isAuthenticated().user.role == '0' || isAuthenticated().user.role == '5') {
-				return true;
-			}
-			if (targetUnitId == unitIdByUserRole() && targetUnitType == unitTypeByUserRole()) {
-				return true;
-			} else {
-				if (targetUnitType != 'pikod') {
-					targetUnitId = await getTargetParentId(targetUnitId, targetUnitType);
-					if (targetUnitType == 'gdod') {
-						targetUnitType = 'hativa';
-					}
-					else {
-						if (targetUnitType == 'hativa') {
-							targetUnitType = 'ogda';
-						}
-						else {
-							if (targetUnitType == 'ogda') {
-								targetUnitType = 'pikod';
-							}
-						}
-					}
-					return hierarchyCheck(targetUnitId, targetUnitType);
-				} else {
-					return false;
-				}
-			}
-		}
-	}
-
 	useEffect(() => {
 		init();
 	}, [match]);
@@ -293,6 +263,7 @@ function DashboardPage({ match, theme }) {
 				{match.params.systemtype == "dividesystems"
 					? systemtypes.map((systemtype, i) =>
 							systemtype ? (
+								<>
 								<DashboardTechCard
 									theme={theme}
 									systemtype={match.params.systemtype}
@@ -301,7 +272,7 @@ function DashboardPage({ match, theme }) {
 									systemsonZs={systemsonZs.filter(
 										(system) => system.systemType == systemtype._id
 									)}
-									cardatas={ cardatas.filter(async (cardata) => {
+									cardatas={cardatas.filter((cardata) => {
 										let systems = systemsonZs
 											.filter(
 												(system) =>
@@ -312,14 +283,14 @@ function DashboardPage({ match, theme }) {
 												return system.carnumber;
 											});
 										for (let i = 0; i < systems.length; i++) {
-											if (cardata.carnumber == systems[i]) {
-							                    await HierarchyCheck(cardata.gdod, "gdod")
+											if(cardata.carnumber == systems[i]) {
 												return true;
 											}
 										}
 										return false;
 									})}
 								/>
+								</>
 							) : null
 					  )
 					: match.params.systemtype == "mkabaz"

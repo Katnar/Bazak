@@ -6,72 +6,11 @@ const agg = [
     '$lookup': {
       'from': 'systems',
       'localField': 'systemType',
-      'foreignField': 'name',
+      'foreignField': '_id',
       'as': 'mashbit',
     },
   },
 ];
-
-// let mkabazBySystemonZ = 
-// [
-//   {
-//       '$lookup': {
-//           'from': 'cardatas', 
-//           'localField': 'carnumber', 
-//           'foreignField': 'carnumber', 
-//           'as': 'carnumber'
-//       }
-//   }, {
-//       '$unwind': {
-//           'path': '$carnumber'
-//       }
-//   }, {
-//       '$project': {
-//           '_id': 0, 
-//           'tipuls': 1, 
-//           'carnumber.makat': 1, 
-//           'carnumber.carnumber': 1, 
-//           'systemType': 1, 
-//           'id': 1, 
-//           'kshirot': 1
-//       }
-//   }, {
-//       '$lookup': {
-//           'from': 'makats', 
-//           'localField': 'carnumber.makat', 
-//           'foreignField': '_id', 
-//           'as': 'makats'
-//       }
-//   }, {
-//       '$project': {
-//           'tipuls': 1, 
-//           'makats.mkabaz': 1, 
-//           'carnumber.carnumber': 1, 
-//           'systemType': 1, 
-//           'id': 1, 
-//           'kshirot': 1
-//       }
-//   }, {
-//       '$unwind': {
-//           'path': '$makats'
-//       }
-//   }, {
-//       '$lookup': {
-//           'from': 'mkabazs', 
-//           'localField': 'makats.mkabaz', 
-//           'foreignField': '_id', 
-//           'as': 'mkabazs'
-//       }
-//   }, {
-//       '$unwind': {
-//           'path': '$mkabazs'
-//       }
-//   }, {
-//       '$project': {
-//           'makats': 0
-//       }
-//   }
-// ];
 
 exports.find = (req, res) => {
 	Systemsonz.find()
@@ -115,26 +54,6 @@ exports.remove = (req, res) => {
 		.then((systemsonzs) => res.json(systemsonzs))
 		.catch((err) => res.status(400).json("Error: " + err));
 };
-exports.findByCarNumber = (req, res) => {
-	Systemsonz.find({ carnumber: req.params.carnumber })
-		.then((systemsonzs) => res.json(systemsonzs))
-		.catch((err) => res.status(400).json("Error: " + err));
-};
-
-// exports.findByMkabaz = (req, res) => {
-// 	let Systemfindquerry = mkabazBySystemonZ.slice();
-// 	let finalquerry = Systemfindquerry;
-
-//     console.log(finalquerry)
-// 	Systemsonz.aggregate(finalquerry)
-// 		.then((result) => {
-//             console.log(result)
-// 			res.json(result);
-// 		})
-// 		.catch((error) => {
-// 			res.status(400).json("Error: " + error);
-// 		});
-// };
 
 exports.remove = (req, res) => {
 	Systemsonz.deleteOne({ _id: req.params.id })

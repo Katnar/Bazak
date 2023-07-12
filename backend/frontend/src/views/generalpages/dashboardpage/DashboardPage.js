@@ -38,7 +38,7 @@ function DashboardPage({ match, theme }) {
 	const [cartypes, setCartypes] = useState([]);
 	//systems
 	const [systemsonZs, setSystemsonZs] = useState([]);
-	const [sysonz, setsysonz] = useState([]);
+	// const [sysonz, setsysonz] = useState([]);
 	//spinner
 	const [isdataloaded, setIsdataloaded] = useState(false);
 	//redux
@@ -134,23 +134,32 @@ function DashboardPage({ match, theme }) {
 		await axios
 			.get(`http://localhost:8000/api/systemsonz`)
 			.then((response) => {
-				setSystemsonZs(response.data);
+				let data = response.data.filter((system)=>{
+					let cardata = reduxcardata.filter((cardata) =>system.carnumber == cardata.carnumber);
+					if(cardata.length>0){
+						return(true);
+					}else{
+						return(false);
+					}
+			})
+			setSystemsonZs(data);
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 	};
 
-	const getsysoz = async () => {
-		await axios
-			.get(`http://localhost:8000/api/systemonz_mashbit`)
-			.then((response) => {
-				setsysonz(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	};
+	// const getsysoz = async () => {
+	// 	await axios
+	// 		.get(`http://localhost:8000/api/systemonz_mashbit`)
+	// 		.then((response) => {
+	// 			console.log(response.data);
+	// 			setsysonz(response.data);
+	// 		})
+	// 		.catch((error) => {
+	// 			console.log(error);
+	// 		});
+	// };
 
 	const getMagadals = async () => {
 		await axios
@@ -209,7 +218,7 @@ function DashboardPage({ match, theme }) {
 
 	useEffect(() => {
 		getReduxCardDataByUnitTypeAndUnitId();
-		getsysoz();
+		// getsysoz();
 	}, []);
 
 	return !isdataloaded ? (
@@ -247,7 +256,7 @@ function DashboardPage({ match, theme }) {
 					cartype ? (
 						<DashboardCard
 							theme={theme}
-							systemsonz={sysonz}
+							// systemsonz={systemsonZs}
 							match={match}
 							cartype={cartype}
 							cardatas={cardatas}
